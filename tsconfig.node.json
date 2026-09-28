@@ -25,7 +25,6 @@
     "vite.config.ts",
     "vitest.config.ts",
     "playwright.config.ts",
-    "drizzle.config.ts",
-    "e2e"
+    "drizzle.config.ts"
   ]
 }
