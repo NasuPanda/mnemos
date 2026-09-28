@@ -272,11 +272,11 @@ Sources: [R2 Workers API](https://developers.cloudflare.com/r2/api/workers/worke
 
 Cloudflare Access with Google login: each person signs in about once a month per device, and the app itself contains no login code.
 
-**One-time setup (about 15 minutes):**
+**One-time setup (about 15 minutes; the full checklist is in `docs/setup.md`):**
 
 1. **Google Cloud Console:** create a project and a "Web application" OAuth client. Set the redirect URI to `https://<team>.cloudflareaccess.com/cdn-cgi/access/callback`.
 2. **Cloudflare Zero Trust:** go to Integrations → Identity providers → Add Google, and paste in the client ID and secret.
-3. **The Worker:** open its Access tab and protect all of its addresses.
+3. **The Worker:** open its Access tab, choose Protect this Worker → All traffic, and pick the email-list policy. Never use the "Email domain" option with gmail.com: it would let every Gmail user in.
 4. **The Access application:** allow your group's Google emails, use Google as the login method, and set both the app and global session to 1 month.
 
 **Things to handle in code:**
@@ -285,9 +285,10 @@ Cloudflare Access with Google login: each person signs in about once a month per
 - **Sign out:** the Account card's Sign out links to `/cdn-cgi/access/logout`.
 - **Session expiry:** after a month, API calls get redirected to the login page. Call `fetch` with `redirect: "manual"`, and if `res.type === "opaqueredirect"`, reload the page.
 - **Phone install:** the manifest link needs `crossorigin="use-credentials"`, or installing fails behind Access.
-- **Local development:** Access doesn't sit in front of `wrangler dev`, so use a fake email from an environment variable.
+- **Identity:** the Worker checks `Cf-Access-Jwt-Assertion` itself with `jose` (team keys, issuer, AUD tag). Cloudflare's `ctx.access` (August 2026) can't replace this: the router in front of a Worker with static assets doesn't pass it on.
+- **Local development:** Access doesn't sit in front of `npm run dev`, so the Worker uses `DEV_USER_EMAIL` from `.dev.vars`, and only on localhost.
 
-Sources: [Google identity provider](https://developers.cloudflare.com/cloudflare-one/integrations/identity-providers/google/), [Session management](https://developers.cloudflare.com/cloudflare-one/identity/users/session-management/), [One-click Access for Workers](https://developers.cloudflare.com/changelog/post/2025-10-03-one-click-access-for-workers/), [PWA behind Access](https://github.com/danny-avila/LibreChat/discussions/5154)
+Sources: [Google identity provider](https://developers.cloudflare.com/cloudflare-one/integrations/identity-providers/google/), [Session management](https://developers.cloudflare.com/cloudflare-one/identity/users/session-management/), [Access for Workers](https://developers.cloudflare.com/workers/configuration/cloudflare-access/), [PWA behind Access](https://github.com/danny-avila/LibreChat/discussions/5154)
 
 ## Free-tier limits
 
