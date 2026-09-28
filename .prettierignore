@@ -1,0 +1,15 @@
+dist
+.wrangler
+coverage
+playwright-report
+test-results
+package-lock.json
+worker-configuration.d.ts
+migrations
+.claude
+# Prose and design sources are written by hand
+*.md
+docs
+# Kept identical in layout to docs/design/mnemos-tokens.css
+tokens.css
+src/styles/tokens.css

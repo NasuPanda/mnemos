@@ -3,39 +3,39 @@
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "mnemos",
-	"main": "worker/index.ts",
-	"compatibility_date": "2026-09-25",
-	"assets": {
-		// Unknown paths serve index.html so the React router can take over.
-		"not_found_handling": "single-page-application",
-		// Only these paths reach the Worker; everything else is a static file.
-		"run_worker_first": ["/api/*", "/img/*"]
-	},
-	// Only the production workers.dev address; no per-version preview addresses.
-	"preview_urls": false,
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "mnemos",
-			"migrations_dir": "migrations"
-		}
-	],
-	"r2_buckets": [
-		{
-			"binding": "IMAGES",
-			"bucket_name": "mnemos-images"
-		}
-	],
-	"vars": {
-		// From Zero Trust once the Access application exists (see docs/setup.md).
-		// Empty values make every API request fail with 401.
-		"ACCESS_TEAM_DOMAIN": "",
-		"ACCESS_AUD": ""
-	},
-	"observability": {
-		"enabled": true
-	},
-	"upload_source_maps": true
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mnemos",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-25",
+  "assets": {
+    // Unknown paths serve index.html so the React router can take over.
+    "not_found_handling": "single-page-application",
+    // Only these paths reach the Worker; everything else is a static file.
+    "run_worker_first": ["/api/*", "/img/*"],
+  },
+  // Only the production workers.dev address; no per-version preview addresses.
+  "preview_urls": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mnemos",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "IMAGES",
+      "bucket_name": "mnemos-images",
+    },
+  ],
+  "vars": {
+    // From Zero Trust once the Access application exists (see docs/setup.md).
+    // Empty values make every API request fail with 401.
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": "",
+  },
+  "observability": {
+    "enabled": true,
+  },
+  "upload_source_maps": true,
 }
