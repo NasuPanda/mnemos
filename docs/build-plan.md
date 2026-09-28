@@ -13,7 +13,7 @@ The order we build in. Each phase ends with something you can use on your phone,
 5. **Check:** it runs typecheck, lint and tests, and compares screenshots at 390 px and 1440 px with the mockups.
 6. **Finish:** it ticks the boxes below and tells me what to try on my phone.
 
-**Sessions and branches:** start a fresh AI session for each phase; this file and `docs/design-plan.md` carry the context between sessions. Use one git branch per phase, merge when "Done when" is true, and deploy after every phase.
+**Sessions and branches:** start a fresh AI session for each phase; this file and `docs/design-plan.md` carry the context between sessions. Use one git branch per phase, named after the change it makes rather than the phase number (phase 0 was `scaffold-worker-and-access-login`). Merge when "Done when" is true, and deploy after every phase. The repository is local only.
 
 **Tests are written with the code, not at the end:**
 
@@ -39,7 +39,7 @@ The order we build in. Each phase ends with something you can use on your phone,
 
 **Tasks:**
 
-- [ ] Split `docs/design/Mnemos visual directions.pdf` into one PNG per page in `docs/design/`, named as in the table at the end of this file.
+- [ ] Split `docs/design/visual-directions.pdf` into one PNG per page in `docs/design/`, named as in the table at the end of this file.
 - [ ] Scaffold with `npm create cloudflare@latest -- mnemos --framework=react` (React + Vite + `@cloudflare/vite-plugin`).
 - [ ] Add a Hono Worker entry (`worker/index.ts`).
 - [ ] Set up `wrangler.jsonc`:
@@ -216,7 +216,7 @@ The order we build in. Each phase ends with something you can use on your phone,
 
 ## Mockup files
 
-The pages of `Mnemos visual directions.pdf` (round 3), saved as `docs/design/<file>.png`:
+The pages of `docs/design/visual-directions.pdf` (round 3), saved as `docs/design/<file>.png`. The PDFs, PNGs and HEIC in `docs/design/` are kept out of git; rebuild the PNGs with `swift scripts/split-mockups.swift docs/design/visual-directions.pdf docs/design` (macOS). Desktop pages come out 1440 px wide and phone pages 390 × 844, the same sizes as the Playwright screenshots.
 
 | Page | File |
 | --- | --- |
