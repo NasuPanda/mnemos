@@ -26,6 +26,11 @@ export default defineConfig([
     files: ["src/**/*.{ts,tsx}"],
     extends: [reactHooks.configs.flat["recommended-latest"], reactRefresh.configs.vite],
   },
+  {
+    // shadcn components export their cva variants next to the component.
+    files: ["src/components/ui/**/*.tsx"],
+    rules: { "react-refresh/only-export-components": "off" },
+  },
   // AGENTS.md: colours come from tokens only, and nothing uses shadcn's destructive variant.
   {
     files: ["src/**/*.{ts,tsx}"],

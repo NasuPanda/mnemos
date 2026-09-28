@@ -11,5 +11,4 @@ migrations
 *.md
 docs
 # Kept identical in layout to docs/design/mnemos-tokens.css
-tokens.css
 src/styles/tokens.css

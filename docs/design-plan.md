@@ -128,6 +128,7 @@ Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", rou
   Every Hungarian phrase has its English translation directly under it.
 - **One colour, one meaning:**
   - **Tram yellow #F5C400** is the only accent. It means selected, focused or primary action.
+    A key hint inside a yellow button uses a darker yellow fill (#D0A806, `kbd-primary`) with Dusk text.
   - **Section lines** use M2 red, M3 blue and M4 green.
   - **No colour** for confidence, overdue, success or errors. They use words, icons, weight and size.
   - **Lamplight gold (#E3A857)** appears only inside illustrations.
@@ -196,7 +197,7 @@ Everything runs on one free Cloudflare account as a single Worker, so there are 
 | Database | Cloudflare D1 (SQLite) + Drizzle ORM | Relational data fits naturally; never pauses |
 | Images | Cloudflare R2, or Workers KV to avoid adding a card | Built for files, with no bandwidth fees; stays behind the login |
 | Login | Cloudflare Access + Google login, 1-month session | No login code to write; strangers can't load the app |
-| Frontend | Vite + React + TypeScript, Tailwind CSS v4, shadcn/ui, Motion, dnd-kit | Polished look, smooth transitions, keyboard-friendly; dnd-kit reorders images |
+| Frontend | Vite + React + TypeScript, Tailwind CSS v4, shadcn/ui (Radix primitives, Nova preset, restyled by the tokens), Motion, dnd-kit | Polished look, smooth transitions, keyboard-friendly; dnd-kit reorders images |
 | Text | react-markdown + remark-gfm; rehype-highlight loaded only when an item has a code block | Safe by default (no raw HTML) and light |
 | Fonts | @fontsource-variable/atkinson-hyperlegible-next and -mono, self-hosted | No third-party requests; the latin-ext subset loads only when a page needs it |
 | Mobile | Responsive layout, designed for the phone as much as the desktop; PWA via vite-plugin-pwa (optional) | Reviews on the go; installs to a phone's home screen |
@@ -320,5 +321,4 @@ Small decisions left for implementation:
 
 - **Undo on the phone:** place the pop-up at the top, so it never covers Show answer on the next item.
 - **Remove stop:** the confirmation should not remove on a plain Enter.
-- **Tokens:** add the key-hint colour inside the yellow button (#D0A806) to `tokens.css`, and delete shadcn's `destructive` variants, which the dark tokens make unreadable.
 - **Math formulas (later):** remark-math + rehype-katex, loaded only for items that use them.

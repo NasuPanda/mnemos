@@ -1,6 +1,7 @@
 /* mnemos.css · "Danube at dusk" · Tailwind v4 + shadcn/ui */
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "shadcn/tailwind.css"; /* data-open, data-closed … variants used by the Radix components */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -18,6 +19,7 @@
   --mist-300: #B8C4D6;  /* Mist · secondary text */
   --foam-50: #EEF2F7;   /* Foam · primary text */
   --tram-yellow: #F5C400; /* Selected, focused, primary action */
+  --tram-yellow-600: #D0A806; /* Key hint fill inside the yellow button */
   --m2-500: #DC433D;    /* M2 red · ring and line */
   --m2-950: #572521;    /* M2 red · badge fill */
   --m2-200: #FFCBC4;    /* M2 red · badge code */
@@ -70,6 +72,8 @@
   --subtle-foreground: var(--fog-400); /* tertiary text */
   --kbd: var(--dusk-800);             /* key hint fill */
   --kbd-foreground: var(--mist-300);  /* key hint text */
+  --kbd-primary: var(--tram-yellow-600); /* key hint inside the yellow button */
+  --kbd-primary-foreground: var(--dusk-950); /* 7.9:1 on kbd-primary */
   --line-m2: var(--m2-500);
   --line-m2-surface: var(--m2-950);
   --line-m2-foreground: var(--m2-200);
@@ -129,6 +133,8 @@
   --color-subtle-foreground: var(--subtle-foreground);
   --color-kbd: var(--kbd);
   --color-kbd-foreground: var(--kbd-foreground);
+  --color-kbd-primary: var(--kbd-primary);
+  --color-kbd-primary-foreground: var(--kbd-primary-foreground);
   --color-line-m2: var(--line-m2);
   --color-line-m2-surface: var(--line-m2-surface);
   --color-line-m2-foreground: var(--line-m2-foreground);
