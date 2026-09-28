@@ -1,7 +1,4 @@
-import { Hono } from "hono";
+import { createApp } from "./app";
+import { accessKeys } from "./auth/access";
 
-const app = new Hono<{ Bindings: Env }>();
-
-app.notFound((c) => c.json({ error: "not_found" }, 404));
-
-export default app;
+export default createApp(accessKeys);
