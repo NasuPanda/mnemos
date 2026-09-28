@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local development (never deployed, never committed).
+# Access doesn't sit in front of localhost, so the Worker signs you in as this email instead.
+# It only works on localhost and 127.0.0.1.
+DEV_USER_EMAIL=dev@mnemos.local
