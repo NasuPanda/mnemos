@@ -1,0 +1,30 @@
+# Dependencies and builds
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Cloudflare: local D1/R2 state and local secrets
+.wrangler/
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
+
+# Tests
+playwright-report/
+test-results/
+blob-report/
+coverage/
+
+# Design sources stay local: regenerate the mockup PNGs with scripts/split-mockups.swift
+docs/design/**/*.pdf
+docs/design/**/*.heic
+docs/design/**/*.HEIC
+docs/design/**/*.png
+
+# OS and editors
+.DS_Store
+*.log
+.vscode/*
+!.vscode/extensions.json
+.idea/
