@@ -20,6 +20,7 @@
       "binding": "DB",
       "database_name": "mnemos",
       "migrations_dir": "migrations",
+      "database_id": "651a1290-8903-4354-8f40-f76942b55d3a",
     },
   ],
   "r2_buckets": [
@@ -29,9 +30,9 @@
     },
   ],
   "vars": {
-    // From Zero Trust once the Access application exists (see docs/setup.md).
-    // Empty values make every API request fail with 401.
-    "ACCESS_TEAM_DOMAIN": "",
+    // From Zero Trust (see docs/setup.md). Neither value is secret.
+    // While either is empty, every API request fails with 401.
+    "ACCESS_TEAM_DOMAIN": "https://lorand-sht-df49.cloudflareaccess.com",
     "ACCESS_AUD": "",
   },
   "observability": {
