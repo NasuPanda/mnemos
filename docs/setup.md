@@ -61,7 +61,10 @@ The app lives at `https://mnemos.<your-subdomain>.workers.dev`. `<team>` below i
     - Session duration: **1 month**.
 13. Copy two values into `wrangler.jsonc` → `vars`, then deploy again (`npm run deploy`). Neither value is secret.
     - **Team domain** (Zero Trust → Settings → Team name and domain) goes in `ACCESS_TEAM_DOMAIN`.
-    - **Application Audience (AUD) tag** (the application's Overview) goes in `ACCESS_AUD`.
+    - **Application Audience (AUD) tag** goes in `ACCESS_AUD`. The docs place it under Zero Trust → Access controls → Applications → Configure → Additional settings, but for a Worker protected from its Access tab that field can be empty. The same tag is the `kid` parameter in the redirect to the login page:
+      ```sh
+      curl -sI https://mnemos.<your-subdomain>.workers.dev/ | grep -io 'kid=[0-9a-f]*'
+      ```
     - Until both are set, every API request answers 401.
 14. Open the `workers.dev` address on your laptop and your phone. It should ask for Google, then show "Signed in as \<your email\>".
 

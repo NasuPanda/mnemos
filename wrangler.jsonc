@@ -33,7 +33,8 @@
     // From Zero Trust (see docs/setup.md). Neither value is secret.
     // While either is empty, every API request fails with 401.
     "ACCESS_TEAM_DOMAIN": "https://lorand-sht-df49.cloudflareaccess.com",
-    "ACCESS_AUD": "",
+    // The Worker's Access application. Also visible as ?kid= in the redirect to the login page.
+    "ACCESS_AUD": "0815ee96e361564fbc51f442d1b4e4ca6dd33d4f1aaff1cf51c5df58006076f6",
   },
   "observability": {
     "enabled": true,
