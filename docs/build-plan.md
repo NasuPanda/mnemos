@@ -54,7 +54,7 @@ The order we build in. Each phase ends with something you can use on your phone,
 - [x] Identity middleware: check the `Cf-Access-Jwt-Assertion` header with `jose`; locally, use `DEV_USER_EMAIL`.
 - [x] `GET /api/me` and a bare page that shows "Signed in as …" on the Dusk background.
 - [x] Deploy, then follow the plan's Login setup: Google OAuth client, Access application, 1-month session. **This step is done by hand, and the AI writes the checklist.**
-- [ ] Optional: a GitHub Actions workflow that runs typecheck, lint and tests on every push. *(Skipped while the repo was local only; add it once it is on GitHub.)*
+- [x] Optional: a GitHub Actions workflow that runs typecheck, lint and tests on every push (`.github/workflows/ci.yml`, including the end-to-end tests).
 
 **Done when:** the deployed app asks for Google login, then shows your email, read from D1, on both your laptop and your phone. `npm test` passes.
 
