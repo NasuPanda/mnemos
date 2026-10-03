@@ -13,7 +13,7 @@ The order we build in. Each phase ends with something you can use on your phone,
 5. **Check:** it runs typecheck, lint and tests, and compares screenshots at 390 px and 1440 px with the mockups.
 6. **Finish:** it ticks the boxes below and tells me what to try on my phone.
 
-**Sessions and branches:** start a fresh AI session for each phase; this file and `docs/design-plan.md` carry the context between sessions. Use one git branch per phase, named after the change it makes rather than the phase number (phase 0 was `scaffold-worker-and-access-login`). Merge when "Done when" is true, and deploy after every phase. The repository is local only.
+**Sessions and branches:** start a fresh AI session for each phase; this file and `docs/design-plan.md` carry the context between sessions. Use one git branch per phase, named after the change it makes rather than the phase number (phase 0 was `scaffold-worker-and-access-login`). Merge when "Done when" is true, and deploy after every phase.
 
 **Tests are written with the code, not at the end:**
 
@@ -39,24 +39,26 @@ The order we build in. Each phase ends with something you can use on your phone,
 
 **Tasks:**
 
-- [ ] Split `docs/design/visual-directions.pdf` into one PNG per page in `docs/design/`, named as in the table at the end of this file.
-- [ ] Scaffold with `npm create cloudflare@latest -- mnemos --framework=react` (React + Vite + `@cloudflare/vite-plugin`).
-- [ ] Add a Hono Worker entry (`worker/index.ts`).
-- [ ] Set up `wrangler.jsonc`:
+- [x] Split `docs/design/visual-directions.pdf` into one PNG per page in `docs/design/`, named as in the table at the end of this file.
+- [x] Scaffold with `npm create cloudflare@latest -- mnemos --framework=react` (React + Vite + `@cloudflare/vite-plugin`).
+- [x] Add a Hono Worker entry (`worker/index.ts`).
+- [x] Set up `wrangler.jsonc`:
   - `assets.not_found_handling: "single-page-application"`;
   - `run_worker_first: ["/api/*", "/img/*"]`;
   - D1 and R2 bindings.
-- [ ] Tailwind CSS v4 (CSS-first, no `tailwind.config.js`), then `shadcn init`.
-- [ ] Add `src/styles/tokens.css` from the design draft. Add the key-hint colour inside the yellow button (#D0A806) as a token, and remove shadcn's `destructive` variants.
-- [ ] Fonts: `@fontsource-variable/atkinson-hyperlegible-next` and `-mono`.
-- [ ] Tooling: strict TypeScript, ESLint and Prettier, Vitest, `@cloudflare/vitest-plugin`, Playwright. Create the npm scripts listed in `AGENTS.md`.
-- [ ] Drizzle with a first migration (`users` only).
-- [ ] Identity middleware: check the `Cf-Access-Jwt-Assertion` header with `jose`; locally, use `DEV_USER_EMAIL`.
-- [ ] `GET /api/me` and a bare page that shows "Signed in as …" on the Dusk background.
-- [ ] Deploy, then follow the plan's Login setup: Google OAuth client, Access application, 1-month session. **This step is done by hand, and the AI writes the checklist.**
-- [ ] Optional: a GitHub Actions workflow that runs typecheck, lint and tests on every push.
+- [x] Tailwind CSS v4 (CSS-first, no `tailwind.config.js`), then `shadcn init`.
+- [x] Add `src/styles/tokens.css` from the design draft. Add the key-hint colour inside the yellow button (#D0A806) as a token, and remove shadcn's `destructive` variants.
+- [x] Fonts: `@fontsource-variable/atkinson-hyperlegible-next` and `-mono`.
+- [x] Tooling: strict TypeScript, ESLint and Prettier, Vitest, `@cloudflare/vitest-plugin`, Playwright. Create the npm scripts listed in `AGENTS.md`.
+- [x] Drizzle with a first migration (`users` only).
+- [x] Identity middleware: check the `Cf-Access-Jwt-Assertion` header with `jose`; locally, use `DEV_USER_EMAIL`.
+- [x] `GET /api/me` and a bare page that shows "Signed in as …" on the Dusk background.
+- [x] Deploy, then follow the plan's Login setup: Google OAuth client, Access application, 1-month session. **This step is done by hand, and the AI writes the checklist.**
+- [ ] Optional: a GitHub Actions workflow that runs typecheck, lint and tests on every push. *(Skipped while the repo was local only; add it once it is on GitHub.)*
 
 **Done when:** the deployed app asks for Google login, then shows your email, read from D1, on both your laptop and your phone. `npm test` passes.
+
+**Done (3 Oct 2026):** live at https://mnemos.mnemos.workers.dev, confirmed on laptop and phone. Decisions recorded in the plan: shadcn on Radix, `kbd-primary` token, the Worker checks the Access JWT itself (`ctx.access` doesn't reach Workers with static assets), and the AUD tag comes from the login redirect when the dashboard field is empty.
 
 ## Phase 1 — The scheduling core (no UI)
 
