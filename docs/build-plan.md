@@ -69,13 +69,13 @@ The order we build in. Each phase ends with something you can use on your phone,
 - [ ] In `src/core`, write pure TypeScript with no React, no database and no clock. "Today" is always passed in as a `YYYY-MM-DD` string. It covers:
   - ladder moves, the next due date, manual dates (after today only), and early and late reviews;
   - once a day;
-  - days late, and the order: section order, then most days late first, then the ones due today;
+  - days late, and the order: section order, then most days late first, then the ones due today; equally late items in creation order, oldest first; on a future day, items reviewed today last in their section;
   - the counts: Left, Late, Done, Due, Early and Line.
 - [ ] Ladder edits:
   - validation: 1–7 stops, gaps from 1 to 365, each longer than the one before;
-  - adding a stop;
+  - adding a stop: its gap starts at double the last one, capped at 365; refused at 7 stops or when the last gap is 365;
   - removing stop k: `stop = stop − 1` where `stop ≥ max(k, 2)`.
-- [ ] Undo (restore `stop_before` and `was_due_on`), the section colour counter (M2 → M3 → M4), and section-code suggestion and validation.
+- [ ] Undo (restore `stop_before` and `was_due_on`; only for a review made today), the section colour counter (M2 → M3 → M4), and section-code suggestion and validation (the suggestion rule is in the plan's Core concepts; any valid code the user types wins).
 - [ ] Use the design draft's checked examples as test cases:
   - **A stop-4 item rated on Thu 24 Sep 2026:**
     - Confident → Thu 1 Oct, stop 5;
@@ -136,7 +136,7 @@ The order we build in. Each phase ends with something you can use on your phone,
   - a Code button on phones that wraps the selection in backticks;
   - Save stays within reach, with Ctrl/⌘+Enter on desktop;
   - Delete asks first.
-- [ ] Section picker with "create on the spot": the suggested code and the next colour are shown.
+- [ ] Section picker with "create on the spot": the suggested code and the next colour are shown, and the user can type their own code instead.
 - [ ] Images:
   - resize, hash and upload in the browser;
   - paste or drop on desktop; camera or photo library on the phone;
@@ -164,7 +164,7 @@ The order we build in. Each phase ends with something you can use on your phone,
   - future days show the items due;
   - `[` and `]` move a day, and T jumps to today.
 - [ ] Future day:
-  - items already reviewed today are dimmed and skipped by J/K;
+  - items already reviewed today are dimmed, listed last in their section, and skipped by J/K;
   - Review early, with the Early count.
 - [ ] Item history:
   - the line map and the table;
@@ -173,7 +173,7 @@ The order we build in. Each phase ends with something you can use on your phone,
   - the H panel inside review mode.
 - [ ] Settings ("Menetrend"):
   - the ladder editor with validation;
-  - add stop;
+  - add stop (its gap starts at double the last one, capped at 365);
   - remove stop, with a confirmation that doesn't act on a plain Enter;
   - the preview of where each rating leads;
   - Account and Sign out (`/cdn-cgi/access/logout`).
