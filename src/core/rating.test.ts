@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_LADDER } from "./ladder";
+import { DEFAULT_LADDER, removeStop, setGap, stopAfterRemoval } from "./ladder";
 import {
   itemAfter,
   moveOnLadder,
@@ -299,6 +299,28 @@ describe("Undo puts back the stop and due date the item had", () => {
   it("only undoes a review made today", () => {
     const review = rated({ item: { stop: 4, dueOn: THU_24_SEP }, confidence: "confident" });
     expect(undo(review, "2026-09-25")).toEqual({ ok: false, error: "not-from-today" });
+  });
+});
+
+describe("Ladder edits apply from each item's next review", () => {
+  it("keeps the due date already set, and uses the new gap at the next review", () => {
+    const item = { stop: 4, dueOn: "2026-09-29" };
+    const edited = setGap(DEFAULT_LADDER, 4, 6);
+    // Nothing reschedules the item when the gap changes; its due date stays 29 Sep.
+    const review = rated({ item, ladder: edited, today: "2026-09-29", confidence: "neutral" });
+    expect(review.wasDueOn).toBe("2026-09-29");
+    expect(itemAfter(review)).toEqual({ stop: 4, dueOn: "2026-10-05" });
+  });
+
+  it("rates an item moved by a stop removal from its new stop, on the new ladder", () => {
+    const removed = removeStop(DEFAULT_LADDER, 3);
+    if (!removed.ok) throw new Error("removal refused");
+    const item = { stop: stopAfterRemoval(3, 3), dueOn: THU_24_SEP };
+    expect(item.stop).toBe(2);
+    expect(itemAfter(rated({ item, ladder: removed.value, confidence: "confident" }))).toEqual({
+      stop: 3,
+      dueOn: "2026-09-29", // the new stop 3 is the old stop 4: 5 days
+    });
   });
 });
 
