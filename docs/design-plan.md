@@ -17,7 +17,12 @@ Mnemos is a sleek, fast study scheduler that uses simple spaced repetition on a 
 The app has four things: sections that group items, items you study, reviews that record each study session, and a ladder that turns confidence into days.
 
 - **Section:** a named group of items, such as a subject or problem set, drawn as a metro line. Each section has:
-  - a short code: 2–3 characters (A–Z, 0–9), unique per person, suggested from the name and editable;
+  - a short code: 2–3 characters (A–Z, 0–9), unique per person. The app suggests one from the name, but you can always type your own instead, when creating the section or later. The suggestion:
+    - strips accents (Gráfok → GRA);
+    - for two or more words, takes the initials of the first three (Data structures → DS, Operating systems 2 → OS2);
+    - for one word, takes its first three letters (Compilers → COM), with no camelCase splitting (TypeScript → TYP);
+    - if that code is taken, swaps the last character for 2–9 (COM → CO2, DS → DS2);
+    - gives a one-letter name a digit (C → C2), and gives no suggestion when the name has no usable letters;
   - a line colour, assigned once when the section is created, cycling M2 red → M3 blue → M4 green.
 
   Reordering or deleting sections never changes a colour. The code, not the colour, identifies a section.
@@ -76,9 +81,9 @@ Opening one item from the dashboard returns there after rating. Flash review run
 
 | Screen | Purpose | Shows |
 | --- | --- | --- |
-| Dashboard | See one day at a glance | **Week strip:** reviews done on past days, items left today, items due on future days. **Summary line:** left · late · done. **Sections:** each drawn as a metro line, listing its items with their stop and overdue delay. **Start review** button. **On a future day:** that day's items, with the ones already reviewed today dimmed, and a Review early button |
+| Dashboard | See one day at a glance | **Week strip:** reviews done on past days, items left today, items due on future days. **Summary line:** left · late · done. **Sections:** each drawn as a metro line, listing its items with their stop and overdue delay. **Start review** button. **On a future day:** that day's items, with the ones already reviewed today dimmed and listed last in their section, and a Review early button |
 | Review mode | Study one item | **Problem side:** description, problem, images and link. **Reveal:** tap or click anywhere, or press Space; images open zoom and links open normally instead. **Answer side:** the name as a heading, then answer text, images, link and side note; the problem shrinks to a card with thumbnails. **Rating:** three confidence buttons, each showing the date and stop it leads to, plus Pick a date. **Undo:** available for 4 s after rating |
-| Flash review | Review a set in one run | All items due today, or all of one section's. Goes section by section in your section order; within a section, the latest items come first (most days late first), then the ones due today. Starts with "Kérjük, vigyázzanak, az ajtók záródnak!" |
+| Flash review | Review a set in one run | All items due today, or all of one section's. Goes section by section in your section order; within a section, the latest items come first (most days late first), then the ones due today, with equally late items in creation order, oldest first. Starts with "Kérjük, vigyázzanak, az ajtók záródnak!" |
 | All done | The rest moment when nothing is left today | Végállomás over the Parliament illustration, today's count, tomorrow's due count, and a neutral Review early button |
 | Items | Find and manage items | Search (names, descriptions and notes), filter by section, and sort by next due. A table on desktop, two-line rows on the phone |
 | Item editor | Add or edit an item | **Fields:** every item field. **Images:** paste or drop on desktop, camera or photo library on the phone; reorder and remove. **Section picker:** can create a new section on the spot. **Markdown fields:** a Write / Preview toggle. **Save:** stays within reach |
@@ -93,12 +98,13 @@ Next due date = review date + the gap of the stop the item lands on, unless you 
 - **Manual date:** picking a date replaces only the date. You still rate your confidence, the ladder still moves, and the review records that the date was manual. Only dates after today can be picked; the calendar disables today and the past.
 - **New items:** start on stop 1 and are due the day they're added.
 - **Overdue:** an item whose due date has passed stays on today's dashboard, marked with how many days late it is ("+3 days" = today minus the due date).
-- **Order:** sections follow your section order. Within a section, the latest items come first (most days late first), then the ones due today. The dashboard and flash review use the same order.
+- **Order:** sections follow your section order. Within a section, the latest items come first (most days late first), then the ones due today. Items that are equally late, including all items due today and all of a future day's items, go in creation order, oldest first. On a future day, the items already reviewed today come last in their section. The dashboard and flash review use the same order.
 - **Late and early reviews:** the next date always counts from the day you actually review. You can review a future day's items early; an early review works like any other and counts toward today's done.
 - **Once a day:** an item can be reviewed at most once per day. After that it shows dimmed as "Reviewed today" on future days and can't be reviewed again until tomorrow. Undo covers a wrong rating.
+- **Undo:** puts back the stop and due date the item had before the rating, and deletes the review, so the item can be rated again. Only a review made today can be undone.
 - **Other days:** a future day shows the items due then. A past day shows only the reviews you did that day; missed items don't appear there.
 - **Ladder edits:** apply from each item's next review; due dates already set stay as they are.
-  - **Adding a stop:** adds a new last stop.
+  - **Adding a stop:** adds a new last stop. Its gap starts at double the previous last gap, capped at 365 days, and can be edited. No stop can be added once the ladder has 7 stops or its last gap is already 365 days.
   - **Removing a stop:** its items move down one stop (stop 1's items stay on the new stop 1), and the stops after it renumber.
   - **Minimum:** a ladder always keeps at least one stop.
 
@@ -233,16 +239,16 @@ Six D1 tables, and each screen is one indexed query by date.
 | Table | Key columns | Notes |
 | --- | --- | --- |
 | users | id, email, created_at | Created on first login from the Access email |
-| settings | user_id, ladder_days, next_line | ladder_days is a JSON list of gaps, default [1, 2, 3, 5, 7, 14, 28]. next_line is the colour counter (M2 → M3 → M4) for the next new section; it only moves forward |
+| settings | user_id, ladder_days, next_line | ladder_days is a JSON list of gaps, default [1, 2, 3, 5, 7, 14, 28]. next_line is the colour counter (M2 → M3 → M4) for the next new section; it only moves forward. A new account's next_line is m2 |
 | sections | id, user_id, name, code, line, position | line is m2, m3 or m4, set once at creation; code is unique per user; order is set by position |
-| items | id, user_id, section_id, name, description, problem_url, problem_text, answer_url, answer_text, side_note, stop, due_on, created_at, updated_at | stop is the item's place on the ladder, starting at 1. due_on is a plain date. Index on (user_id, due_on) |
+| items | id, user_id, section_id, name, description, problem_url, problem_text, answer_url, answer_text, side_note, stop, due_on, created_at, updated_at | stop is the item's place on the ladder, starting at 1. due_on is a plain date. Index on (user_id, due_on). id grows with creation (AUTOINCREMENT), and the scheduling order uses it as creation order |
 | item_images | id, item_id, side, image_key, position | side is problem or answer; image_key points to the stored image; position keeps the order |
-| reviews | id, user_id, item_id, reviewed_on, confidence, stop_before, stop_after, was_due_on, next_due_on, manual, reviewed_at | Unique on (item_id, reviewed_on): one review per item per day. stop_before and was_due_on let Undo restore the item and give the early and late marks. Index on (user_id, reviewed_on) |
+| reviews | id, user_id, item_id, reviewed_on, confidence, stop_before, stop_after, was_due_on, next_due_on, manual, reviewed_at | Unique on (item_id, reviewed_on): one review per item per day. stop_before and was_due_on let Undo restore the item and give the early and late marks. Index on (user_id, reviewed_on). confidence is confident, neutral or not_at_all |
 
 **Queries:**
 
 - **Today's items:** every item with `due_on` on or before today, with overdue ones flagged. Items reviewed today have already moved to a later date, so they drop out on their own.
-- **A future day's items:** items where `due_on` is that date. Those with a review dated today (found through the `(user_id, reviewed_on)` index) show dimmed.
+- **A future day's items:** items where `due_on` is that date. Those with a review dated today (found through the `(user_id, reviewed_on)` index) show dimmed and come last in their section.
 - **A past day's history:** reviews where `reviewed_on` is that date.
 - **An item's history:** reviews by `item_id`, newest first.
 - **Removing stop k:** one update sets `stop = stop − 1` where `stop ≥ max(k, 2)`, and the gap is removed from `ladder_days`.
