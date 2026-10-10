@@ -9,6 +9,7 @@ const ORIGIN = "https://mnemos.example.workers.dev";
 export type Session = {
   userId: number;
   get: (path: string) => Promise<Response>;
+  getWith: (path: string, headers: Record<string, string>) => Promise<Response>;
   post: (path: string, body: unknown) => Promise<Response>;
   del: (path: string) => Promise<Response>;
 };
@@ -33,6 +34,7 @@ export async function signIn(email: string): Promise<Session> {
   return {
     userId: row.id,
     get: (path) => request(path),
+    getWith: (path, headers) => request(path, { headers }),
     post: (path, body) =>
       request(path, {
         method: "POST",
