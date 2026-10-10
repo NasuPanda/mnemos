@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures.ts";
 
 // The e2e profile (seed/profiles.ts): four items left today, two of them late; one due tomorrow.
 
