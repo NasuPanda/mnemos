@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <rect width="800" height="400" fill="#ffffff"/>
+  <g font-family="Courier New, monospace" font-size="26" fill="#1a1a1a">
+    <text x="70" y="70">Dijkstra(G, s)</text>
+    <text x="100" y="108">for v in V: d[v] = ∞</text>
+    <text x="100" y="146">d[s] = 0; Q = V</text>
+    <text x="100" y="184">while Q not empty:</text>
+    <text x="130" y="222">u = extract-min(Q)</text>
+    <text x="130" y="260">for (u, v, w) in E:</text>
+    <text x="160" y="298">if d[u] + w &lt; d[v]:</text>
+    <text x="190" y="336">d[v] = d[u] + w</text>
+  </g>
+  <text x="70" y="380" font-family="Times New Roman, serif" font-size="22" fill="#1a1a1a">Fig. 2</text>
+</svg>

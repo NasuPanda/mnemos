@@ -4,7 +4,8 @@ const port = 4173;
 
 export default defineConfig({
   testDir: "e2e",
-  fullyParallel: true,
+  // One test at a time: they share the e2e database and reseed it.
+  workers: 1,
   forbidOnly: !!process.env.CI,
   reporter: "list",
   use: {
@@ -21,9 +22,10 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
     },
   ],
-  // The built app in the Workers runtime, with local D1 and the dev identity from .dev.vars.
+  // The built app in the Workers runtime, with its own local D1 and R2 (.wrangler/e2e-state)
+  // and the dev identity from .dev.vars. Tests reseed that state; your dev data is untouched.
   webServer: {
-    command: `npm run db:migrate:local && npm run build && vite preview --port ${port} --strictPort`,
+    command: `npm run db:migrate:e2e && npm run db:seed:e2e && npm run build && MNEMOS_STATE_DIR=.wrangler/e2e-state vite preview --port ${port} --strictPort`,
     url: `http://localhost:${port}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

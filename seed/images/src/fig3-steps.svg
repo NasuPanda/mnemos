@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <rect width="800" height="400" fill="#ffffff"/>
+  <g font-family="Times New Roman, serif" font-size="30" fill="#1a1a1a">
+    <text x="80" y="70" font-weight="bold">step</text><text x="300" y="70" font-weight="bold">S</text><text x="450" y="70" font-weight="bold">A</text><text x="600" y="70" font-weight="bold">B</text>
+    <line x1="70" y1="88" x2="700" y2="88" stroke="#1a1a1a" stroke-width="2"/>
+    <text x="80" y="140">pop S</text><text x="300" y="140">0</text><text x="450" y="140">2</text><text x="600" y="140">5</text>
+    <text x="80" y="200">pop A</text><text x="300" y="200">0</text><text x="450" y="200">2</text><text x="600" y="200">5</text>
+    <text x="80" y="260">pop B</text><text x="300" y="260">0</text><text x="450" y="260">2*</text><text x="600" y="260">5</text>
+    <text x="70" y="380" font-size="22">Fig. 3 · * never corrected</text>
+  </g>
+</svg>

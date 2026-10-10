@@ -18,7 +18,10 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
-    "db:seed": "wrangler d1 execute DB --local --file=seed/dev.sql"
+    "db:seed": "node scripts/seed.ts",
+    "db:seed:e2e": "node scripts/seed.ts --profile=e2e --persist-to=.wrangler/e2e-state",
+    "db:seed:remote": "node scripts/seed.ts --remote",
+    "db:migrate:e2e": "wrangler d1 migrations apply DB --local --persist-to=.wrangler/e2e-state"
   },
   "dependencies": {
     "@fontsource-variable/atkinson-hyperlegible-mono": "^5.3.0",
