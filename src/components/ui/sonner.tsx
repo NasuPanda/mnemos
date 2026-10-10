@@ -15,7 +15,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--border-radius": "var(--radius-lg)",
         } as React.CSSProperties
       }
-      toastOptions={{ classNames: { toast: "cn-toast" } }}
+      toastOptions={{
+        classNames: {
+          toast: "cn-toast gap-3 shadow-raised",
+          title: "text-small",
+          actionButton: "bg-transparent! text-foreground! text-small! font-bold! px-1! h-8!",
+        },
+      }}
       {...props}
     />
   );

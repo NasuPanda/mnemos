@@ -39,3 +39,8 @@ export function count(n: number, singular: string, plural = `${singular}s`): str
 
 /** The overdue marker: "+1 day", "+3 days". */
 export const lateLabel = (days: number) => `+${count(days, "day")}`;
+
+/** "example.edu/algo/lecture-07.pdf": a link's address without the scheme. */
+export function shortUrl(url: string): string {
+  return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+}

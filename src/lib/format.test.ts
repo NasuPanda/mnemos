@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { keyName } from "@/hooks/use-hotkeys";
-import { count, dayMonth, lateLabel, longDate, shortDate, weekday } from "./format";
+import { count, dayMonth, lateLabel, longDate, shortDate, shortUrl, weekday } from "./format";
 import { localToday } from "./today";
 
 describe("Dates as the mockups write them", () => {
@@ -47,5 +47,14 @@ describe("Key names", () => {
     expect(keyName({ key: "F", shiftKey: true })).toBe("Shift+F");
     expect(keyName({ key: "Enter", shiftKey: false })).toBe("Enter");
     expect(keyName({ key: "1", shiftKey: false })).toBe("1");
+  });
+});
+
+describe("Links", () => {
+  it("show their address without the scheme", () => {
+    expect(shortUrl("https://example.edu/algo/lecture-07.pdf")).toBe(
+      "example.edu/algo/lecture-07.pdf",
+    );
+    expect(shortUrl("http://example.edu/")).toBe("example.edu");
   });
 });

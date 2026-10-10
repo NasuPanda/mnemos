@@ -3,12 +3,13 @@ import { Toaster } from "@/components/ui/sonner";
 import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { navigate, useLocation } from "@/lib/router";
 import { PlaceholderScreen } from "@/screens/placeholder";
+import { ReviewScreen } from "@/screens/review";
 import { TodayScreen } from "@/screens/today";
 
 export default function App() {
   const { path } = useLocation();
   const desktop = useMediaQuery(DESKTOP);
-  const known = ["/", "/items", "/settings"].includes(path);
+  const known = ["/", "/review", "/items", "/settings"].includes(path);
 
   useEffect(() => {
     if (!known) navigate("/", { replace: true });
@@ -17,6 +18,7 @@ export default function App() {
   return (
     <>
       {path === "/" && <TodayScreen />}
+      {path === "/review" && <ReviewScreen />}
       {path === "/items" && (
         <PlaceholderScreen
           title="Items"
@@ -30,7 +32,11 @@ export default function App() {
         />
       )}
       {/* On phones the Undo pop-up sits at the top, so it never covers Show answer. */}
-      <Toaster position={desktop ? "bottom-center" : "top-center"} />
+      {/* On desktop it sits above the rating buttons, never over them. */}
+      <Toaster
+        position={desktop ? "bottom-center" : "top-center"}
+        offset={desktop ? { bottom: 140 } : undefined}
+      />
     </>
   );
 }
