@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { navigate, useLocation } from "@/lib/router";
+import { FlashStartScreen } from "@/screens/flash-start";
 import { PlaceholderScreen } from "@/screens/placeholder";
 import { ReviewScreen } from "@/screens/review";
 import { TodayScreen } from "@/screens/today";
@@ -9,7 +10,7 @@ import { TodayScreen } from "@/screens/today";
 export default function App() {
   const { path } = useLocation();
   const desktop = useMediaQuery(DESKTOP);
-  const known = ["/", "/review", "/items", "/settings"].includes(path);
+  const known = ["/", "/flash", "/review", "/items", "/settings"].includes(path);
 
   useEffect(() => {
     if (!known) navigate("/", { replace: true });
@@ -18,6 +19,7 @@ export default function App() {
   return (
     <>
       {path === "/" && <TodayScreen />}
+      {path === "/flash" && <FlashStartScreen />}
       {path === "/review" && <ReviewScreen />}
       {path === "/items" && (
         <PlaceholderScreen
