@@ -1,4 +1,4 @@
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 
 /**
  * Where an item is on the ladder: one square per stop, filled up to the current one, always

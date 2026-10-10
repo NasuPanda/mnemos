@@ -1,5 +1,5 @@
 import { Clock } from "lucide-react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { lateLabel } from "@/lib/format";
 
 /** "+3 days" with a clock: bold text, no colour. Nothing shows for an item due today. */

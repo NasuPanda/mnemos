@@ -1,6 +1,6 @@
 import { House, List, Play, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { Kbd } from "@/components/ui/kbd";
 import { SectionBadge } from "@/components/section-badge";
 import { useHotkeys } from "@/hooks/use-hotkeys";

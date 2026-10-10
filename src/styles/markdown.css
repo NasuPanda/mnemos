@@ -1,0 +1,74 @@
+/* Rendered Markdown in review: answers, problem descriptions and side notes. Tokens only. */
+.markdown {
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  overflow-wrap: anywhere;
+}
+.markdown > * + * {
+  margin-top: 0.875rem;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  font-size: var(--text-section);
+  line-height: var(--text-section--line-height);
+  font-weight: var(--text-section--font-weight);
+}
+.markdown strong {
+  font-weight: 700;
+}
+.markdown a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.markdown ul,
+.markdown ol {
+  padding-left: 1.25rem;
+}
+.markdown ul {
+  list-style: disc;
+}
+.markdown ol {
+  list-style: decimal;
+}
+.markdown li + li {
+  margin-top: 0.25rem;
+}
+.markdown code {
+  font-family: var(--font-mono);
+  font-size: 0.9375em;
+  background: var(--muted);
+  border-radius: var(--radius-sm);
+  padding: 0.0625rem 0.3125rem;
+}
+.markdown pre {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.125rem;
+  overflow-x: auto;
+}
+.markdown pre code {
+  background: none;
+  padding: 0;
+  font-size: var(--text-code);
+  line-height: var(--text-code--line-height);
+}
+.markdown blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1rem;
+  color: var(--muted-foreground);
+}
+.markdown table {
+  border-collapse: collapse;
+}
+.markdown th,
+.markdown td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.375rem 0.75rem;
+  text-align: left;
+}
+.markdown hr {
+  border-color: var(--border);
+}

@@ -78,7 +78,18 @@ export default defineConfig([
   },
   {
     files: ["src/**/*.{ts,tsx}"],
-    rules: { "no-restricted-syntax": ["error", ...APP_SYNTAX] },
+    rules: {
+      "no-restricted-syntax": ["error", ...APP_SYNTAX],
+      // shadcn components arrive importing "cn"; use ours, which knows the token class names.
+      "no-restricted-imports": [
+        "error",
+        { paths: [{ name: "cn", message: 'Import { cn } from "@/lib/utils" instead.' }] },
+      ],
+    },
+  },
+  {
+    files: ["src/lib/utils.ts"],
+    rules: { "no-restricted-imports": "off" },
   },
   {
     files: ["src/core/**/*.ts"],

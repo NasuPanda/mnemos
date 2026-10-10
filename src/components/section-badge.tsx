@@ -1,4 +1,4 @@
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import type { Line } from "@/core";
 import { Badge } from "@/components/ui/badge";
 
