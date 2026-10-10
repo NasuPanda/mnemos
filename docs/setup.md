@@ -7,7 +7,7 @@ How to run Mnemos locally, and the one-time steps in Cloudflare and Google that 
 1. Install Node from `.tool-versions` (`asdf install`), then run `npm install`.
 2. Install the test browsers: `npx playwright install chromium webkit`.
 3. Copy `.dev.vars.example` to `.dev.vars`. Access doesn't sit in front of localhost, so the Worker signs you in as `DEV_USER_EMAIL` instead, and only on localhost.
-4. Create the local database: `npm run db:migrate:local`, then `npm run db:seed`.
+4. Create the local database: `npm run db:migrate:local`, then `npm run db:seed`. The seed replaces the dev user's sections, items, images and reviews with a sample day like the design draft's Thursday (38 left, 7 late, 9 done), dated from today; run it again for a fresh day.
 5. Start the app: `npm run dev`, then open http://localhost:5173.
 6. Optional, macOS only: rebuild the mockup PNGs, which aren't in git, with `swift scripts/split-mockups.swift docs/design/visual-directions.pdf docs/design`.
 
@@ -78,6 +78,17 @@ npx wrangler r2 bucket create mnemos-images
 npm run db:migrate:remote
 npm run deploy
 ```
+
+## Sample data in production
+
+Phase 2 is checked on a phone with the sample day in your own production account. Both commands ask you to type a phrase before they touch production:
+
+```sh
+npm run db:seed:remote -- --email=you@gmail.com             # type "seed production"
+node scripts/seed.ts --wipe --remote --email=you@gmail.com  # type "wipe production"
+```
+
+Wipe it before you add real items (phase 3's first task).
 
 ## Adding a friend
 

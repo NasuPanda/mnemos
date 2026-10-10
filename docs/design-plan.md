@@ -82,7 +82,7 @@ Opening one item from the dashboard returns there after rating. Flash review run
 | Screen | Purpose | Shows |
 | --- | --- | --- |
 | Dashboard | See one day at a glance | **Week strip:** reviews done on past days, items left today, items due on future days. **Summary line:** left · late · done. **Sections:** each drawn as a metro line, listing its items with their stop and overdue delay. **Start review** button. **On a future day:** that day's items, with the ones already reviewed today dimmed and listed last in their section, and a Review early button |
-| Review mode | Study one item | **Problem side:** description, problem, images and link. **Reveal:** tap or click anywhere, or press Space; images open zoom and links open normally instead. **Answer side:** the name as a heading, then answer text, images, link and side note; the problem shrinks to a card with thumbnails. **Rating:** three confidence buttons, each showing the date and stop it leads to, plus Pick a date. **Undo:** available for 4 s after rating |
+| Review mode | Study one item | **Problem side:** description, problem, images and link. **Reveal:** tap or click anywhere, or press Space; images open zoom and links open normally instead. **Answer side:** the name as a heading, then answer text, images, link and side note; the problem shrinks to a card with thumbnails. **Rating:** three confidence buttons, each showing the date and stop it leads to, plus Pick a date (pick the date first; the buttons then show it, and you still rate). **Undo:** available for 4 s after rating, from the pop-up or U; it brings the item back as the current one, answer showing |
 | Flash review | Review a set in one run | All items due today, or all of one section's. Goes section by section in your section order; within a section, the latest items come first (most days late first), then the ones due today, with equally late items in creation order, oldest first. Starts with "Kérjük, vigyázzanak, az ajtók záródnak!" |
 | All done | The rest moment when nothing is left today | Végállomás over the Parliament illustration, today's count, tomorrow's due count, and a neutral Review early button |
 | Items | Find and manage items | Search (names, descriptions and notes), filter by section, and sort by next due. A table on desktop, two-line rows on the phone |
@@ -203,7 +203,7 @@ Everything runs on one free Cloudflare account as a single Worker, so there are 
 | Database | Cloudflare D1 (SQLite) + Drizzle ORM | Relational data fits naturally; never pauses |
 | Images | Cloudflare R2, or Workers KV to avoid adding a card | Built for files, with no bandwidth fees; stays behind the login |
 | Login | Cloudflare Access + Google login, 1-month session | No login code to write; strangers can't load the app |
-| Frontend | Vite + React + TypeScript, Tailwind CSS v4, shadcn/ui (Radix primitives, Nova preset, restyled by the tokens), Motion, dnd-kit | Polished look, smooth transitions, keyboard-friendly; dnd-kit reorders images |
+| Frontend | Vite + React + TypeScript, Tailwind CSS v4, shadcn/ui (Radix primitives, Nova preset, restyled by the tokens; Calendar, Drawer and Sonner bring react-day-picker, vaul and sonner), a small in-house router on the History API, Motion, dnd-kit | Polished look, smooth transitions, keyboard-friendly; dnd-kit reorders images |
 | Text | react-markdown + remark-gfm; rehype-highlight loaded only when an item has a code block | Safe by default (no raw HTML) and light |
 | Fonts | @fontsource-variable/atkinson-hyperlegible-next and -mono, self-hosted | No third-party requests; the latin-ext subset loads only when a page needs it |
 | Mobile | Responsive layout, designed for the phone as much as the desktop; PWA via vite-plugin-pwa (optional) | Reviews on the go; installs to a phone's home screen |
@@ -265,6 +265,8 @@ Images are resized in the browser, stored in R2 under a name made from their con
 5. **Show:** `GET /img/<hash>.webp` streams the file back with `Cache-Control: private, max-age=31536000, immutable`, so the browser downloads each image only once.
 
 Images live only in the image fields; Markdown images are not allowed. The Parliament illustration and the Zsolnay pattern are part of the app's static files, not user images.
+
+**No captions:** images have no caption field. Zoom shows only its position ("1 / 2"), and each image's alt text names its side and position ("Problem image 1"). The draft's "Fig. 1 · graph" caption in zoom is left out.
 
 **Guardrails:**
 
