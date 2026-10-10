@@ -1,0 +1,44 @@
+import { env } from "cloudflare:test";
+import { createApp } from "../app";
+import { accessToken, AUD, TEAM, testKeys } from "./access-tokens";
+
+const app = createApp(testKeys);
+const deployed = { ...env, ACCESS_TEAM_DOMAIN: TEAM, ACCESS_AUD: AUD };
+const ORIGIN = "https://mnemos.example.workers.dev";
+
+export type Session = {
+  userId: number;
+  get: (path: string) => Promise<Response>;
+  post: (path: string, body: unknown) => Promise<Response>;
+  del: (path: string) => Promise<Response>;
+};
+
+/** Signs in through Access (a test-signed token) and returns helpers for that person's requests. */
+export async function signIn(email: string): Promise<Session> {
+  const token = await accessToken({ email });
+  const request = async (path: string, init: RequestInit = {}) =>
+    app.request(
+      `${ORIGIN}${path}`,
+      { ...init, headers: { "Cf-Access-Jwt-Assertion": token, ...init.headers } },
+      deployed,
+    );
+
+  const me = await request("/api/me");
+  if (me.status !== 200) throw new Error(`sign-in failed: ${me.status}`);
+  const row = await env.DB.prepare("SELECT id FROM users WHERE email = ?")
+    .bind(email.toLowerCase())
+    .first<{ id: number }>();
+  if (!row) throw new Error("user row missing");
+
+  return {
+    userId: row.id,
+    get: (path) => request(path),
+    post: (path, body) =>
+      request(path, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+      }),
+    del: (path) => request(path, { method: "DELETE" }),
+  };
+}
