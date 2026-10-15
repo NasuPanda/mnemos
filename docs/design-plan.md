@@ -268,7 +268,7 @@ Images live only in the image fields; Markdown images are not allowed. The Parli
 
 **No captions:** images have no caption field. Zoom shows only its position ("1 / 2"), and each image's alt text names its side and position ("Problem image 1"). The draft's "Fig. 1 · graph" caption in zoom is left out.
 
-**Leaving zoom:** Close, Esc and Back (the phone's back gesture) close it, and closing returns to the item exactly as it was. Opening zoom adds a history entry for Back to take off; closing any other way removes it, so the next Back still leaves the screen.
+**Leaving zoom:** Close, Esc, Back (the phone's back gesture) and a swipe down at 100 % close it, and closing returns to the item exactly as it was. Opening zoom adds a history entry for Back to take off; closing any other way removes it, so the next Back still leaves the screen.
 
 **Guardrails:**
 

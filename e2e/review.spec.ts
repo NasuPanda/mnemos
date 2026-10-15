@@ -116,6 +116,34 @@ test("Back closes the zoom and leaves the item as it was", async ({ page }, test
   await expect(page.getByText("4 left today")).toBeVisible();
 });
 
+test("in zoom, a swipe sideways turns the image and a swipe down closes it", async ({
+  page,
+}, testInfo) => {
+  phoneOnly(testInfo.project.name);
+  await page.goto("/review");
+  await onItem(page, 1);
+  await page.getByRole("button", { name: "Zoom problem image 1" }).tap();
+  const zoom = page.getByRole("dialog");
+
+  // Playwright can't drag a finger, so a mouse drag runs the same pointer handlers.
+  const swipe = async (dx: number, dy: number) => {
+    const box = await zoom.getByRole("img").boundingBox();
+    if (!box) throw new Error("no image in zoom");
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + dx, y + dy, { steps: 5 });
+    await page.mouse.up();
+  };
+
+  await swipe(-150, 0);
+  await expect(zoom).toContainText("2 / 2");
+  await swipe(0, 150);
+  await expect(zoom).toBeHidden();
+  await expect(page.getByRole("button", { name: /Show answer/ })).toBeVisible();
+});
+
 test("Undo puts the item back and returns to it", async ({ page }, testInfo) => {
   desktopOnly(testInfo.project.name);
   await page.goto("/review");

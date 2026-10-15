@@ -5,11 +5,13 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import type { ImageDto } from "../../../worker/contract";
 import { imageLabel, imageUrl } from "@/lib/images";
 import { useBackCloses } from "@/lib/router";
+import { swipeOf, type Swipe } from "@/components/review/swipe";
 
 const MAX_SCALE = 4;
 
 /**
- * Full-screen zoom. Phone: pinch or double-tap to zoom, swipe for the next image, Back to close.
+ * Full-screen zoom. Phone: pinch or double-tap to zoom, swipe sideways for the next image, swipe
+ * down or Back to close.
  * Desktop: ← → and Esc, double-click to zoom. Closing returns to the item exactly as it was.
  */
 export function ImageZoom({
@@ -55,7 +57,13 @@ export function ImageZoom({
             {image ? imageLabel(image) : ""}
           </DialogDescription>
         </header>
-        {image && <ZoomableImage key={image.key + image.position} image={image} onSwipe={go} />}
+        {image && (
+          <ZoomableImage
+            key={image.key + image.position}
+            image={image}
+            onSwipe={(swipe) => (swipe === "down" ? onClose() : go(swipe === "left" ? 1 : -1))}
+          />
+        )}
         <footer className="flex items-center justify-center gap-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
           <Button
             variant="secondary"
@@ -95,13 +103,13 @@ export function ImageZoom({
 
 type View = { scale: number; x: number; y: number };
 
+type Gesture = { distance: number; scale: number; startX: number; startY: number; view: View };
+
 /** Pinch, double-tap or double-click to zoom; drag to pan when zoomed; swipe when not. */
-function ZoomableImage({ image, onSwipe }: { image: ImageDto; onSwipe: (step: number) => void }) {
+function ZoomableImage({ image, onSwipe }: { image: ImageDto; onSwipe: (swipe: Swipe) => void }) {
   const [view, setView] = useState<View>({ scale: 1, x: 0, y: 0 });
   const pointers = useRef(new Map<number, { x: number; y: number }>());
-  const gesture = useRef<{ distance: number; scale: number; startX: number; view: View } | null>(
-    null,
-  );
+  const gesture = useRef<Gesture | null>(null);
   const lastTap = useRef(0);
 
   const toggleZoom = () =>
@@ -115,6 +123,7 @@ function ZoomableImage({ image, onSwipe }: { image: ImageDto; onSwipe: (step: nu
       distance: points.length === 2 ? distance(points) : 0,
       scale: view.scale,
       startX: event.clientX,
+      startY: event.clientY,
       view,
     };
     if (event.pointerType === "touch" && points.length === 1) {
@@ -147,8 +156,8 @@ function ZoomableImage({ image, onSwipe }: { image: ImageDto; onSwipe: (step: nu
     if (pointers.current.size > 0) return;
     gesture.current = null;
     if (start && view.scale === 1 && start.distance === 0) {
-      const dx = event.clientX - start.startX;
-      if (Math.abs(dx) > 60) onSwipe(dx < 0 ? 1 : -1);
+      const swipe = swipeOf(event.clientX - start.startX, event.clientY - start.startY);
+      if (swipe) onSwipe(swipe);
     }
     if (view.scale < 1.05) setView({ scale: 1, x: 0, y: 0 });
   };
