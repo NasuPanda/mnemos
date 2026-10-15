@@ -88,6 +88,8 @@ npm run db:seed:remote -- --email=you@gmail.com             # type "seed product
 node scripts/seed.ts --wipe --remote --email=you@gmail.com  # type "wipe production"
 ```
 
+Claude Code's `!` commands have no keyboard for the prompt, so pass the phrase instead: `--confirm="seed production"` or `--confirm="wipe production"`.
+
 Wipe it before you add real items (phase 3's first task).
 
 ## Adding a friend

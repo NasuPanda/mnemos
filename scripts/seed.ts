@@ -5,6 +5,9 @@
 //   npm run db:seed:remote -- --email=me  your production account (asks you to confirm)
 //   node scripts/seed.ts --wipe [--remote --email=me]   delete the sample data only
 //
+// Production asks you to type "seed production" (or "wipe production"). Where there is no
+// keyboard, such as Claude Code's "!" commands, pass it instead: --confirm="seed production".
+//
 // It replaces the person's sections, items, images and reviews; users and settings stay.
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -154,6 +157,15 @@ async function confirmProduction() {
     `\nThis ${wipe ? "deletes" : "replaces"} every section, item, image and review of ${email}\n` +
       `in the production database (remote D1 "mnemos" and R2 "${BUCKET}").\n`,
   );
+  // Without a keyboard (Claude Code's "!" commands, scripts), pass the phrase as --confirm.
+  const given = args.get("confirm");
+  if (given !== undefined) {
+    if (given.trim() !== phrase) fail(`Nothing changed: --confirm must be "${phrase}".`);
+    return;
+  }
+  if (!process.stdin.isTTY) {
+    fail(`Nothing changed. Without a keyboard, add --confirm="${phrase}".`);
+  }
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const answer = await rl.question(`Type "${phrase}" to continue: `);
   rl.close();
