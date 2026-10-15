@@ -93,6 +93,29 @@ test("a tap anywhere reveals the answer, but images open zoom and links open", a
   await expect(page.getByRole("button", { name: /^Confident/ })).toBeVisible();
 });
 
+test("Back closes the zoom and leaves the item as it was", async ({ page }, testInfo) => {
+  phoneOnly(testInfo.project.name);
+  await page.goto("/");
+  await page.getByRole("link", { name: /Start review · 4/ }).tap();
+  await page.getByRole("button", { name: /^Start/ }).tap();
+  await onItem(page, 1);
+
+  await page.getByRole("button", { name: "Zoom problem image 1" }).tap();
+  await page.getByRole("button", { name: "Next image" }).tap();
+  await expect(page.getByRole("dialog")).toContainText("2 / 2");
+  await page.goBack();
+  await expect(page.getByRole("dialog")).toBeHidden();
+  await onItem(page, 1);
+  await expect(page.getByRole("button", { name: /Show answer/ })).toBeVisible();
+
+  // Closed with its button, the zoom leaves nothing in the history: Back leaves the review.
+  await page.getByRole("button", { name: "Zoom problem image 1" }).tap();
+  await page.getByRole("button", { name: "Close zoom" }).tap();
+  await expect(page.getByRole("dialog")).toBeHidden();
+  await page.goBack();
+  await expect(page.getByText("4 left today")).toBeVisible();
+});
+
 test("Undo puts the item back and returns to it", async ({ page }, testInfo) => {
   desktopOnly(testInfo.project.name);
   await page.goto("/review");

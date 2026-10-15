@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { ImageDto } from "../../../worker/contract";
 import { imageLabel, imageUrl } from "@/lib/images";
+import { useBackCloses } from "@/lib/router";
 
 const MAX_SCALE = 4;
 
 /**
- * Full-screen zoom. Phone: pinch or double-tap to zoom, swipe for the next image. Desktop:
- * ← → and Esc, double-click to zoom. Closing returns to the item exactly as it was.
+ * Full-screen zoom. Phone: pinch or double-tap to zoom, swipe for the next image, Back to close.
+ * Desktop: ← → and Esc, double-click to zoom. Closing returns to the item exactly as it was.
  */
 export function ImageZoom({
   images,
@@ -24,6 +25,7 @@ export function ImageZoom({
 }) {
   const image = index === null ? undefined : images[index];
   const closeButton = useRef<HTMLButtonElement>(null);
+  useBackCloses(image !== undefined, onClose);
   const go = (step: number) => {
     if (index === null || images.length === 0) return;
     onIndexChange((index + step + images.length) % images.length);
