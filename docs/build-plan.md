@@ -126,6 +126,8 @@ The order we build in. Each phase ends with something you can use on your phone,
 
 **Done when:** on your phone you can review the seeded day to the Végállomás, ratings survive a reload, and Undo works.
 
+**Done (15 Oct 2026):** checked on the phone against the deployed app with the production sample day: the dashboard counts, reveal, ratings, Undo, and Végállomás still showing after a reload all work. One bug is open: on the phone, the image zoom can't be closed ([issue #3](https://github.com/NasuPanda/mnemos/issues/3)).
+
 **Changed while building (recorded in the plan):**
 
 - The phone check uses the sample day seeded into your production account (`npm run db:seed:remote`); phase 3 starts by wiping it.
