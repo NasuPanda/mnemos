@@ -95,20 +95,20 @@ The order we build in. Each phase ends with something you can use on your phone,
 
 **Tasks:**
 
-- [ ] Database: the full schema from the plan, plus a seed script with sample data like the mockups (12 sections, a few hundred items, some with images).
-- [ ] API:
+- [x] Database: the full schema from the plan, plus a seed script with sample data like the mockups (12 sections, a few hundred items, some with images).
+- [x] API:
   - load today;
   - save a review;
   - undo;
   - serve images from R2 at `/img/*`.
-- [ ] App shell:
+- [x] App shell:
   - the sidebar from 1024 px, the tab bar below that;
   - key hints hidden on touch screens.
-- [ ] Dashboard (today):
+- [x] Dashboard (today):
   - the summary line;
   - section cards drawn as metro lines, with each item's stop and overdue delay;
   - Start review.
-- [ ] Review mode:
+- [x] Review mode:
   - the problem side;
   - revealing the answer: tap, click or Space, while images still zoom and links still open;
   - the answer side, with Markdown rendering;
@@ -116,9 +116,9 @@ The order we build in. Each phase ends with something you can use on your phone,
   - the confidence buttons with their date and stop;
   - Pick a date;
   - Undo for 4 s, shown at the top of the screen on phones.
-- [ ] Flash review: the start screen and the section-by-section order. All done: Végállomás, using the placeholder art for now.
-- [ ] Keyboard: J/K, Enter, Space, 1/2/3, D, Z, U, Esc, F and Shift+F.
-- [ ] End-to-end tests:
+- [x] Flash review: the start screen and the section-by-section order. All done: Végállomás, using the placeholder art for now.
+- [x] Keyboard: J/K, Enter, Space, 1/2/3, D, Z, U, Esc, F and Shift+F.
+- [x] End-to-end tests:
   - review three items with only the keyboard at 1440 px;
   - review them with taps at 390 × 844 until All done.
 
@@ -126,12 +126,23 @@ The order we build in. Each phase ends with something you can use on your phone,
 
 **Done when:** on your phone you can review the seeded day to the Végállomás, ratings survive a reload, and Undo works.
 
+**Done (15 Oct 2026):** checked on the phone against the deployed app with the production sample day: the dashboard counts, reveal, ratings, Undo, and Végállomás still showing after a reload all work. One bug is open: on the phone, the image zoom can't be closed ([issue #3](https://github.com/NasuPanda/mnemos/issues/3)).
+
+**Changed while building (recorded in the plan):**
+
+- The phone check uses the sample day seeded into your production account (`npm run db:seed:remote`); phase 3 starts by wiping it.
+- End-to-end tests run against their own local database (`.wrangler/e2e-state`), reseeded before each test, one at a time.
+- Image zoom shows "1 / 2" and no caption; alt text names the side and position.
+- T, I and `,` (switch screens) work already, since the sidebar shows them.
+- Not yet built, as planned: the week strip and the calendar button (phase 4), History, Edit and the phone's ··· menu (phases 3–4), New item (phase 3), Review early on All done (phase 4), the final Parliament and doors art (phase 5).
+
 ## Phase 3 — Slice 2: items and the editor
 
 **Goal:** you can add real items, including photos from your phone. **From here on, use Mnemos for real.**
 
 **Tasks:**
 
+- [ ] Wipe the phase 2 sample day from production first: `node scripts/seed.ts --wipe --remote --email=<you>` (it asks you to type "wipe production").
 - [ ] Item editor:
   - every field, with Name and Section required;
   - Markdown fields with a Write / Preview toggle;

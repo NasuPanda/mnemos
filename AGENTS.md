@@ -39,7 +39,10 @@ Create these in phase 0 and keep this list accurate.
 - `npm run dev`: local development in the Workers runtime, with local D1 and R2. Needs `.dev.vars` (copy `.dev.vars.example`).
 - `npm run preview`: build, then serve the built app in the Workers runtime.
 - `npm run typecheck`, `npm run lint` (ESLint and Prettier), `npm run format`, `npm test`, `npm run test:watch`, `npm run test:e2e`.
-- `npm run db:generate`, `npm run db:migrate:local`, `npm run db:migrate:remote`, `npm run db:seed`.
+- `npm run db:generate`, `npm run db:migrate:local`, `npm run db:migrate:remote`.
+- `npm run db:seed`: replace the dev user's local data with the sample day (`scripts/seed.ts`; `--wipe` deletes it only).
+- `npm run db:migrate:e2e`, `npm run db:seed:e2e`: the end-to-end tests' own local database; Playwright runs both.
+- `npm run db:seed:remote -- --email=<you>`: the sample day in production. Only when I ask; it asks to type "seed production" (or takes `--confirm="seed production"` where there is no keyboard).
 - `npm run cf-typegen`: regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc`.
 - `npm run deploy`: only when I ask.
 

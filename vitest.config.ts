@@ -1,5 +1,6 @@
 import path from "node:path";
 import { cloudflareTest, readD1Migrations } from "@cloudflare/vitest-plugin";
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -10,6 +11,17 @@ export default defineConfig({
         test: {
           name: "core",
           include: ["src/core/**/*.test.ts"],
+          environment: "node",
+        },
+      },
+      {
+        // The app's logic and markup: plain functions and server-rendered components in Node.
+        plugins: [react()],
+        resolve: { alias: { "@": path.join(import.meta.dirname, "src") } },
+        test: {
+          name: "ui",
+          include: ["src/**/*.test.{ts,tsx}"],
+          exclude: ["src/core/**", "**/node_modules/**"],
           environment: "node",
         },
       },

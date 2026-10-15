@@ -49,21 +49,28 @@ async function signedInEmail(
   return null;
 }
 
-/** One read on every request; a write only on someone's first login. */
+/**
+ * One read on every request; writes only on someone's first login, which creates the user and
+ * their settings (default ladder, colour counter at M2) together.
+ */
 async function findOrCreateUser(db: Db, email: string) {
   const columns = { id: users.id, email: users.email };
   const [existing] = await db.select(columns).from(users).where(eq(users.email, email));
   if (existing) return existing;
 
-  const [created] = await db
-    .insert(users)
-    .values({ email })
-    .onConflictDoNothing({ target: users.email })
-    .returning(columns);
-  if (created) return created;
+  // One D1 batch, so a person never exists without settings.
+  const d1 = db.$client;
+  await d1.batch([
+    d1.prepare("INSERT INTO users (email) VALUES (?) ON CONFLICT (email) DO NOTHING").bind(email),
+    d1
+      .prepare(
+        "INSERT INTO settings (user_id) SELECT id FROM users WHERE email = ? ON CONFLICT DO NOTHING",
+      )
+      .bind(email),
+  ]);
 
-  // Another request created the row between our read and write.
-  const [raced] = await db.select(columns).from(users).where(eq(users.email, email));
-  if (!raced) throw new Error("user row missing after insert");
-  return raced;
+  // Read back, whether we created the row or another request did between our read and write.
+  const [created] = await db.select(columns).from(users).where(eq(users.email, email));
+  if (!created) throw new Error("user row missing after insert");
+  return created;
 }
