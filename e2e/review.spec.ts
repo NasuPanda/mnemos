@@ -74,6 +74,8 @@ test("a tap anywhere reveals the answer, but images open zoom and links open", a
   // An image opens zoom without revealing.
   await page.getByRole("button", { name: "Zoom problem image 1" }).tap();
   await expect(page.getByRole("dialog")).toContainText("1 / 2");
+  // Playwright has no Safari toolbar, so this only guards the plain layout.
+  await expect(page.getByRole("button", { name: "Close zoom" })).toBeInViewport({ ratio: 1 });
   await page.getByRole("button", { name: "Close zoom" }).tap();
   await expect(page.getByRole("button", { name: /Show answer/ })).toBeVisible();
 

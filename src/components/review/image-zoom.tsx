@@ -33,7 +33,9 @@ export function ImageZoom({
     <Dialog open={image !== undefined} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className="flex h-dvh w-screen max-w-none flex-col gap-0 rounded-none bg-background p-0 ring-0 sm:max-w-none"
+        // Pinned to all four edges, not centred at 100dvh: on iPhone Safari the two differ, and
+        // the controls at the bottom ended up below the toolbar, where Safari doesn't draw them.
+        className="inset-0 flex max-w-none translate-none flex-col gap-0 rounded-none bg-background p-0 ring-0 sm:max-w-none"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
           closeButton.current?.focus();
