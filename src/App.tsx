@@ -4,6 +4,7 @@ import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { navigate, useLocation } from "@/lib/router";
 import { matchRoute } from "@/lib/routes";
 import { FlashStartScreen } from "@/screens/flash-start";
+import { ItemsScreen } from "@/screens/items";
 import { PlaceholderScreen } from "@/screens/placeholder";
 import { ReviewScreen } from "@/screens/review";
 import { TodayScreen } from "@/screens/today";
@@ -23,12 +24,7 @@ export default function App() {
       {route.screen === "today" && <TodayScreen />}
       {route.screen === "flash" && <FlashStartScreen />}
       {route.screen === "review" && <ReviewScreen />}
-      {route.screen === "items" && (
-        <PlaceholderScreen
-          title="Items"
-          coming="Adding, editing and finding items come in phase 3."
-        />
-      )}
+      {route.screen === "items" && <ItemsScreen />}
       {route.screen === "settings" && (
         <PlaceholderScreen
           title="Settings"
