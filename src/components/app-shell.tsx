@@ -1,11 +1,13 @@
-import { House, List, Play, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { House, List, Play, Plus, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { SectionBadge } from "@/components/section-badge";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { Link } from "@/components/link";
 import { navigate, useLocation } from "@/lib/router";
+import { newItemPath } from "@/lib/routes";
 import type { SectionDto } from "../../worker/contract";
 
 type Nav = { to: string; label: string; icon: LucideIcon; hint: string; phone: boolean };
@@ -36,6 +38,7 @@ export function AppShell({
     t: () => navigate("/"),
     i: () => navigate("/items"),
     ",": () => navigate("/settings"),
+    n: () => navigate(newItemPath()),
   });
 
   return (
@@ -53,13 +56,15 @@ export function AppShell({
 
         <nav aria-label="Main" className="flex flex-col gap-1">
           {NAV.map((item) => (
-            <SidebarLink key={item.to} item={item} active={path === item.to} />
+            <SidebarLink key={item.to} item={item} active={isCurrent(item, path)} />
           ))}
         </nav>
 
         <section aria-labelledby="lines-heading" className="flex flex-col gap-1">
           <h2 id="lines-heading" className="px-3 pb-1 text-label text-muted-foreground">
-            Lines
+            <Link to="/settings#lines" className="rounded-sm hover:text-foreground">
+              Lines
+            </Link>
           </h2>
           <ul className="flex flex-col">
             {sections.map((section) => {
@@ -77,6 +82,18 @@ export function AppShell({
             })}
           </ul>
         </section>
+
+        <Button
+          asChild
+          variant="secondary"
+          className="mt-auto h-12 shrink-0 justify-start gap-3 rounded-lg px-4 text-item font-bold"
+        >
+          <Link to={newItemPath()}>
+            <Plus aria-hidden className="size-5" />
+            <span className="flex-1">New item</span>
+            <Kbd>N</Kbd>
+          </Link>
+        </Button>
       </aside>
 
       <div className="min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
@@ -88,7 +105,7 @@ export function AppShell({
         className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-border bg-sidebar pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         {NAV.filter((item) => item.phone).map((item) => {
-          const active = path === item.to;
+          const active = isCurrent(item, path);
           return (
             <Link
               key={item.to}
@@ -124,4 +141,9 @@ function SidebarLink({ item, active }: { item: Nav; active: boolean }) {
       <Kbd>{item.hint}</Kbd>
     </Link>
   );
+}
+
+/** Items stays the current place while an item is open in the editor. */
+function isCurrent(item: Nav, path: string): boolean {
+  return path === item.to || (item.to === "/items" && path.startsWith("/items/"));
 }

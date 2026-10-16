@@ -7,12 +7,24 @@ const notify = () => listeners.forEach((listener) => listener());
 
 if (typeof window !== "undefined") window.addEventListener("popstate", notify);
 
-/** Goes to `to` (a path with an optional ?query), adding a history entry unless `replace`. */
+/**
+ * Goes to `to` (a path with an optional ?query), adding a history entry unless `replace`. Each
+ * entry remembers the screen it was opened from, so `leave` can go back the same way.
+ */
 export function navigate(to: string, options: { replace?: boolean } = {}): void {
   if (to === currentUrl()) return;
-  if (options.replace) window.history.replaceState(null, "", to);
-  else window.history.pushState(null, "", to);
+  if (options.replace) window.history.replaceState(window.history.state, "", to);
+  else window.history.pushState({ from: currentUrl() }, "", to);
   notify();
+}
+
+/**
+ * Leaves the current screen the way the person came: Back, if they opened it from inside the
+ * app, so the screen behind is as they left it; otherwise (a reload, a shared link) `fallback`.
+ */
+export function leave(fallback: string): void {
+  if (typeof window.history.state?.from === "string") window.history.back();
+  else navigate(fallback, { replace: true });
 }
 
 /** The current path and query, re-rendering when they change. */

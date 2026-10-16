@@ -12,3 +12,4 @@ migrations
 docs
 # Kept identical in layout to docs/design/mnemos-tokens.css
 src/styles/tokens.css
+.playwright-mcp/

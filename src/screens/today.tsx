@@ -1,4 +1,4 @@
-import { Play } from "lucide-react";
+import { Play, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/app-shell";
@@ -10,6 +10,7 @@ import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { dayMonth, longDate, shortDate, weekday } from "@/lib/format";
 import { navigate } from "@/lib/router";
+import { newItemPath } from "@/lib/routes";
 import { useToday } from "@/lib/today";
 import { todayView, type TodayData, type TodayView } from "@/state/today-data";
 import { load, useTodayState } from "@/state/today-store";
@@ -218,9 +219,16 @@ function NoItemsYet({ date }: { date: string }) {
         <EmptyHeader>
           <EmptyTitle>No items yet</EmptyTitle>
           <EmptyDescription>
-            Adding items arrives with the item editor, in the next phase.
+            Add your first one: a problem, its answer, and a photo if it helps. It’s due today.
           </EmptyDescription>
         </EmptyHeader>
+        <Button asChild variant="secondary" className="h-12 gap-2 px-5 text-item font-bold">
+          <Link to={newItemPath()}>
+            <Plus aria-hidden className="size-5" />
+            New item
+            <Kbd className="ml-1">N</Kbd>
+          </Link>
+        </Button>
       </Empty>
     </main>
   );

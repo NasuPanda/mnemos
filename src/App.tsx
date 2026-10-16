@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { navigate, useLocation } from "@/lib/router";
+import { matchRoute } from "@/lib/routes";
 import { FlashStartScreen } from "@/screens/flash-start";
 import { PlaceholderScreen } from "@/screens/placeholder";
 import { ReviewScreen } from "@/screens/review";
@@ -9,8 +10,9 @@ import { TodayScreen } from "@/screens/today";
 
 export default function App() {
   const { path } = useLocation();
+  const route = matchRoute(path);
   const desktop = useMediaQuery(DESKTOP);
-  const known = ["/", "/flash", "/review", "/items", "/settings"].includes(path);
+  const known = route.screen !== "unknown";
 
   useEffect(() => {
     if (!known) navigate("/", { replace: true });
@@ -18,16 +20,16 @@ export default function App() {
 
   return (
     <>
-      {path === "/" && <TodayScreen />}
-      {path === "/flash" && <FlashStartScreen />}
-      {path === "/review" && <ReviewScreen />}
-      {path === "/items" && (
+      {route.screen === "today" && <TodayScreen />}
+      {route.screen === "flash" && <FlashStartScreen />}
+      {route.screen === "review" && <ReviewScreen />}
+      {route.screen === "items" && (
         <PlaceholderScreen
           title="Items"
           coming="Adding, editing and finding items come in phase 3."
         />
       )}
-      {path === "/settings" && (
+      {route.screen === "settings" && (
         <PlaceholderScreen
           title="Settings"
           coming="The ladder editor and your account come in phase 4."

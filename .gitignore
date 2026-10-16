@@ -15,6 +15,7 @@ playwright-report/
 test-results/
 blob-report/
 coverage/
+.playwright-mcp/
 
 # Design sources stay local: regenerate the mockup PNGs with scripts/split-mockups.swift
 docs/design/**/*.pdf
