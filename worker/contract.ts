@@ -60,6 +60,8 @@ export type TodayResponse = {
   reviewsToday: ReviewDto[];
   /** Items due tomorrow, for All done's "Tomorrow: 17 due, 5 of them already reviewed today". */
   tomorrow: { date: IsoDate; itemIds: number[] };
+  /** The colour the next new section gets. */
+  nextLine: Line;
 };
 
 /** POST /api/reviews */
@@ -81,3 +83,27 @@ export type RateResponse = {
 export type UndoResponse = {
   item: { id: number; stop: number; dueOn: IsoDate };
 };
+
+/**
+ * Why a section's name or code was refused; the app explains each in one plain sentence.
+ * "code-taken" is also the answer when two requests race for the same code.
+ */
+export type SectionProblem =
+  "name-required" | "name-too-long" | "code-characters" | "code-length" | "code-taken";
+
+/** POST /api/sections: the code is the suggestion the app showed, or one the person typed. */
+export type CreateSectionRequest = { name: string; code: string };
+
+/** PATCH /api/sections/:id: rename, change the code, or both. The colour never changes. */
+export type UpdateSectionRequest = { name?: string; code?: string };
+
+/** POST and PATCH /api/sections. */
+export type SectionResponse = { section: SectionDto; nextLine: Line };
+
+/** PUT /api/sections/order: every one of the person's section ids, in the new order. */
+export type ReorderSectionsRequest = { ids: number[] };
+
+export type SectionsResponse = { sections: SectionDto[] };
+
+/** DELETE /api/sections/:id: the section goes, and its items and their reviews with it. */
+export type DeleteSectionResponse = { deletedItems: number };

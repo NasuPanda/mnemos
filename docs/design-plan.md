@@ -17,6 +17,7 @@ Mnemos is a sleek, fast study scheduler that uses simple spaced repetition on a 
 The app has four things: sections that group items, items you study, reviews that record each study session, and a ladder that turns confidence into days.
 
 - **Section:** a named group of items, such as a subject or problem set, drawn as a metro line. Each section has:
+  - a name of up to 60 characters;
   - a short code: 2–3 characters (A–Z, 0–9), unique per person. The app suggests one from the name, but you can always type your own instead, when creating the section or later. The suggestion:
     - strips accents (Gráfok → GRA);
     - for two or more words, takes the initials of the first three (Data structures → DS, Operating systems 2 → OS2);
@@ -26,6 +27,8 @@ The app has four things: sections that group items, items you study, reviews tha
   - a line colour, assigned once when the section is created, cycling M2 red → M3 blue → M4 green.
 
   Reordering or deleting sections never changes a colour. The code, not the colour, identifies a section.
+
+  Deleting a section deletes its items and their reviews too. The confirmation names how many items go, and a plain Enter doesn't confirm it.
 - **Item:** one thing to study (fields below). It sits on one stop of the ladder.
 - **Review:** one record per time you review an item. It stores the date, your confidence, the stop before and after, the due date the item had, the next due date, and whether you picked that date yourself.
 - **Ladder:** up to 7 stops, each with a gap in days (1–365, each longer than the one before). The default is 1, 2, 3, 5, 7, 14 and 28 days. The last stop is the Végállomás ("end of the line").
@@ -253,6 +256,8 @@ Six D1 tables, and each screen is one indexed query by date.
 - **An item's history:** reviews by `item_id`, newest first.
 - **Removing stop k:** one update sets `stop = stop − 1` where `stop ≥ max(k, 2)`, and the gap is removed from `ladder_days`.
 - **Undo:** delete the review and put `stop_before` and `was_due_on` back on the item.
+- **Deleting a section:** one batch deletes its items, then the section; the items' images and reviews go with them (`ON DELETE CASCADE`).
+- **Reordering sections:** one update sets every position from the new list of ids.
 
 ## Images
 

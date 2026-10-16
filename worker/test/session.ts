@@ -11,6 +11,10 @@ export type Session = {
   get: (path: string) => Promise<Response>;
   getWith: (path: string, headers: Record<string, string>) => Promise<Response>;
   post: (path: string, body: unknown) => Promise<Response>;
+  put: (path: string, body: unknown) => Promise<Response>;
+  patch: (path: string, body: unknown) => Promise<Response>;
+  /** A raw request, for bodies that aren't JSON. */
+  send: (path: string, init: RequestInit) => Promise<Response>;
   del: (path: string) => Promise<Response>;
 };
 
@@ -35,12 +39,14 @@ export async function signIn(email: string): Promise<Session> {
     userId: row.id,
     get: (path) => request(path),
     getWith: (path, headers) => request(path, { headers }),
-    post: (path, body) =>
-      request(path, {
-        method: "POST",
-        body: JSON.stringify(body),
-        headers: { "Content-Type": "application/json" },
-      }),
+    post: (path, body) => request(path, json("POST", body)),
+    put: (path, body) => request(path, json("PUT", body)),
+    patch: (path, body) => request(path, json("PATCH", body)),
+    send: request,
     del: (path) => request(path, { method: "DELETE" }),
   };
+}
+
+function json(method: string, body: unknown): RequestInit {
+  return { method, body: JSON.stringify(body), headers: { "Content-Type": "application/json" } };
 }

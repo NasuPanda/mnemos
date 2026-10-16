@@ -5,6 +5,7 @@ import type { AppEnv } from "./env";
 import { images } from "./routes/images";
 import { me } from "./routes/me";
 import { reviewRoutes } from "./routes/reviews";
+import { sectionRoutes } from "./routes/sections";
 import { today } from "./routes/today";
 
 /** The Worker's routes. Only /api/* and /img/* reach it (see run_worker_first in wrangler.jsonc). */
@@ -15,6 +16,7 @@ export function createApp(keysFor: KeysFor) {
   app.route("/api/me", me);
   app.route("/api/today", today);
   app.route("/api/reviews", reviewRoutes);
+  app.route("/api/sections", sectionRoutes);
   app.route("/img", images);
 
   app.notFound((c) => c.json({ error: "not_found" }, 404));

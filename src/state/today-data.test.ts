@@ -46,6 +46,7 @@ const data: TodayData = {
   items: [item(1, "2026-09-21"), item(2, TODAY), item(3, TODAY, 2)],
   reviewsToday: [review(90, 50, "2026-09-27")],
   tomorrow: { date: TOMORROW, itemIds: [60] },
+  nextLine: "m4",
 };
 
 describe("Today's data on the client", () => {

@@ -1,7 +1,15 @@
 import { and, asc, eq, lte, notInArray } from "drizzle-orm";
-import { addDays, DEFAULT_LADDER, validateLadder, type IsoDate, type Ladder } from "../../src/core";
+import {
+  addDays,
+  DEFAULT_LADDER,
+  FIRST_LINE,
+  validateLadder,
+  type IsoDate,
+  type Ladder,
+} from "../../src/core";
 import type { ImageDto, ItemDto, ReviewDto, TodayResponse } from "../contract";
 import type { Db } from "./client";
+import { sectionColumns } from "./sections";
 import { itemImages, items, reviews, sections, settings, type ReviewRow } from "./schema";
 
 /** The person's ladder from their settings; the default when they have none yet. */
@@ -33,17 +41,11 @@ export async function loadToday(db: Db, userId: number, date: IsoDate): Promise<
   const [settingsRows, sectionRows, itemRows, imageRows, reviewRows, tomorrowRows] = await db.batch(
     [
       db
-        .select({ ladderDays: settings.ladderDays })
+        .select({ ladderDays: settings.ladderDays, nextLine: settings.nextLine })
         .from(settings)
         .where(eq(settings.userId, userId)),
       db
-        .select({
-          id: sections.id,
-          name: sections.name,
-          code: sections.code,
-          line: sections.line,
-          position: sections.position,
-        })
+        .select(sectionColumns)
         .from(sections)
         .where(eq(sections.userId, userId))
         .orderBy(asc(sections.position), asc(sections.id)),
@@ -96,6 +98,7 @@ export async function loadToday(db: Db, userId: number, date: IsoDate): Promise<
     })),
     reviewsToday: reviewRows.map(toReviewDto),
     tomorrow: { date: tomorrow, itemIds: tomorrowRows.map((row) => row.id) },
+    nextLine: settingsRows[0]?.nextLine ?? FIRST_LINE,
   };
 }
 
