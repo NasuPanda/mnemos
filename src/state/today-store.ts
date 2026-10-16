@@ -16,7 +16,14 @@ import type {
   SectionDto,
   TodayResponse,
 } from "../../worker/contract";
-import { applyRating, confirmReview, revertRating, type TodayData } from "./today-data";
+import {
+  applyRating,
+  confirmReview,
+  revertRating,
+  withoutItem,
+  withSavedItem,
+  type TodayData,
+} from "./today-data";
 
 export type TodayState =
   | { status: "loading"; date: IsoDate }
@@ -73,6 +80,16 @@ export async function refreshToday(): Promise<void> {
   } catch {
     // The next load brings it up to date; nothing on screen is wrong in the meantime.
   }
+}
+
+/** A saved item, shown on today's list at once (see withSavedItem). */
+export function putTodayItem(item: ItemDto): void {
+  updateData((data) => withSavedItem(data, item));
+}
+
+/** A deleted item leaves today's list and tomorrow's count at once. */
+export function forgetTodayItem(itemId: number): void {
+  updateData((data) => withoutItem(data, itemId));
 }
 
 /** A section created or changed in the editor or on Settings, shown at once. */

@@ -1,4 +1,4 @@
-import { Eye, Lightbulb, X } from "lucide-react";
+import { Ellipsis, Eye, Lightbulb, Pencil, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { toast } from "sonner";
 import { daysLate, ratingOptions, reviewQueue, type Confidence, type IsoDate } from "@/core";
@@ -11,10 +11,17 @@ import { InlineMarkdown, Markdown } from "@/components/markdown";
 import { SectionBadge } from "@/components/section-badge";
 import { StopIndicator } from "@/components/stop-indicator";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Kbd } from "@/components/ui/kbd";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { navigate, useLocation } from "@/lib/router";
+import { editItemPath } from "@/lib/routes";
 import { useToday } from "@/lib/today";
 import { cn } from "@/lib/utils";
 import {
@@ -30,6 +37,7 @@ import {
   type Run,
   type Session,
 } from "@/review/session";
+import { clearParkedRun, parkedRun, parkRun } from "@/review/parked";
 import { offerUndo, onUndone, undoLast } from "@/review/undo";
 import type { TodayData } from "@/state/today-data";
 import { rateItem, useTodayState } from "@/state/today-store";
@@ -46,10 +54,23 @@ export function ReviewScreen() {
 }
 
 function ReviewRun({ data, run }: { data: TodayData; run: Run }) {
+  const key = runKey(run);
   // The run's items, kept for the whole run: a rated item leaves today's list but stays on screen
   // until the next one, and comes back as it was on Undo.
-  const [items] = useState(() => new Map(data.items.map((item) => [item.id, item])));
-  const [session, setSession] = useState<Session>(() => startSession(run, queueFor(data, run)));
+  const [items] = useState(
+    () => parkedRun(key)?.items ?? new Map(data.items.map((item) => [item.id, item])),
+  );
+  // Back from the editor, the run goes on where it was; an item deleted there is skipped.
+  const [session, setSession] = useState<Session>(() => {
+    const parked = parkedRun(key);
+    if (!parked) return startSession(run, queueFor(data, run));
+    const live = new Set(data.items.map((item) => item.id));
+    const current = currentItem(parked.session);
+    return current !== null && !live.has(current)
+      ? advance(parked.session, (id) => live.has(id))
+      : parked.session;
+  });
+  useEffect(() => clearParkedRun(), []);
   const [pressed, setPressed] = useState<Confidence | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [zoom, setZoom] = useState<{ images: ImageDto[]; index: number } | null>(null);
@@ -68,9 +89,18 @@ function ReviewRun({ data, run }: { data: TodayData; run: Run }) {
     if (finished) navigate("/", { replace: true });
   }, [finished]);
 
+  // Today's copy first, so an edit shows; the run's own copy once the item is rated.
+  const liveItems = useMemo(() => new Map(data.items.map((i) => [i.id, i])), [data.items]);
   const itemId = currentItem(session);
-  const item = itemId === null ? undefined : items.get(itemId);
+  const item = itemId === null ? undefined : (liveItems.get(itemId) ?? items.get(itemId));
   const section = data.sections.find((s) => s.id === item?.sectionId);
+
+  /** E: edit the item; saving or cancelling comes back to it here. */
+  const edit = () => {
+    if (!item || pressed) return;
+    parkRun({ key, items, session });
+    navigate(editItemPath(item.id));
+  };
 
   const rate = (confidence: Confidence) => {
     if (!item || !session.revealed || pressed) return;
@@ -103,6 +133,7 @@ function ReviewRun({ data, run }: { data: TodayData; run: Run }) {
       d: () => session.revealed && setPickerOpen(true),
       z: () => visibleImages[0] && openZoom(visibleImages[0]),
       u: () => void undoLast(),
+      e: edit,
       Escape: () => navigate("/"),
     },
     zoom === null && !pickerOpen,
@@ -156,7 +187,28 @@ function ReviewRun({ data, run }: { data: TodayData; run: Run }) {
             />
           </span>
         </div>
-        <span aria-hidden className="hidden w-32 lg:block" />
+        <Button
+          variant="ghost"
+          className="hidden h-12 w-32 justify-end gap-2 px-3 text-item font-bold lg:inline-flex"
+          onClick={edit}
+        >
+          <Pencil aria-hidden className="size-5" />
+          Edit
+          <Kbd>E</Kbd>
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-12 lg:hidden" aria-label="More">
+              <Ellipsis aria-hidden className="size-6" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-52 rounded-lg p-1.5 shadow-raised">
+            <DropdownMenuItem className="h-12 gap-3 text-body" onSelect={edit}>
+              <Pencil aria-hidden className="size-5" />
+              Edit item
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       <main

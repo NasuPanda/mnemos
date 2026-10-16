@@ -7,13 +7,13 @@ import type {
   ItemResponse,
 } from "../../worker/contract";
 import { dropItems, putItem } from "./items-store";
-import { refreshToday } from "./today-store";
+import { forgetTodayItem, putTodayItem, refreshToday } from "./today-store";
 
 export const loadItem = (itemId: number) => getJson<ItemResponse>(`/api/items/${itemId}`);
 
 /**
- * Saves an item, new or edited, and shows it everywhere: in the Items list at once, and on
- * today's dashboard once today has been fetched again. Refusals throw an ApiError.
+ * Saves an item, new or edited, and shows it everywhere at once: in the Items list and on
+ * today's dashboard, which is then fetched again to be sure. Refusals throw an ApiError.
  */
 export async function saveItem(
   itemId: number | null,
@@ -34,6 +34,7 @@ export async function saveItem(
     stop: item.stop,
     dueOn: item.dueOn,
   });
+  putTodayItem(item);
   void refreshToday();
   return item;
 }
@@ -41,6 +42,7 @@ export async function saveItem(
 export async function deleteItem(itemId: number): Promise<void> {
   await del<DeleteItemResponse>(`/api/items/${itemId}`);
   dropItems((item) => item.id !== itemId);
+  forgetTodayItem(itemId);
   void refreshToday();
 }
 

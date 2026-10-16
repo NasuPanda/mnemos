@@ -11,7 +11,7 @@ import { KeyHintBar } from "@/components/key-hint-bar";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { dayMonth, longDate, shortDate, weekday } from "@/lib/format";
 import { navigate } from "@/lib/router";
-import { newItemPath } from "@/lib/routes";
+import { editItemPath, newItemPath } from "@/lib/routes";
 import { openItemSearch } from "@/lib/item-search-focus";
 import { useToday } from "@/lib/today";
 import { todayView, type TodayData, type TodayView } from "@/state/today-data";
@@ -68,6 +68,7 @@ function Dashboard({ data, view }: { data: TodayData; view: TodayView }) {
     f: () => navigate("/flash"),
     "Shift+F": () => selectedSection !== undefined && navigate(`/flash?section=${selectedSection}`),
     "/": openItemSearch,
+    e: () => selected !== null && navigate(editItemPath(selected)),
   });
 
   const groups = data.sections
