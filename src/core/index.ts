@@ -8,3 +8,4 @@ export * from "./result";
 export * from "./sections";
 export * from "./timing";
 export * from "./items";
+export * from "./items-list";
