@@ -287,20 +287,30 @@ function Editor({
     }
   };
 
-  const onKeyDown = useEffectEvent((event: KeyboardEvent) => {
-    if (event.isComposing || event.defaultPrevented) return;
-    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
-      event.preventDefault();
-      save();
-    } else if (event.key === "Escape" && asking === null && !openLayer()) {
-      event.preventDefault();
-      cancel();
-    }
+  /** Ctrl/⌘+Enter saves from anywhere, before a picker or list can take the Enter. */
+  const onSaveKey = useEffectEvent((event: KeyboardEvent) => {
+    if (event.isComposing || event.key !== "Enter" || !(event.ctrlKey || event.metaKey)) return;
+    if (asking !== null) return;
+    event.preventDefault();
+    event.stopPropagation();
+    save();
+  });
+  /** Esc cancels, once any popover, menu or sheet has closed on its own Esc. */
+  const onEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.isComposing || event.defaultPrevented || event.key !== "Escape") return;
+    if (asking !== null || openLayer()) return;
+    event.preventDefault();
+    cancel();
   });
   useEffect(() => {
-    const listener = (event: KeyboardEvent) => onKeyDown(event);
-    window.addEventListener("keydown", listener);
-    return () => window.removeEventListener("keydown", listener);
+    const saveKey = (event: KeyboardEvent) => onSaveKey(event);
+    const escape = (event: KeyboardEvent) => onEscape(event);
+    window.addEventListener("keydown", saveKey, { capture: true });
+    window.addEventListener("keydown", escape);
+    return () => {
+      window.removeEventListener("keydown", saveKey, { capture: true });
+      window.removeEventListener("keydown", escape);
+    };
   }, []);
 
   const late = item ? daysLate(item.dueOn, date) : 0;
