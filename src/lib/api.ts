@@ -2,11 +2,14 @@ export class ApiError extends Error {
   readonly status: number;
   /** The Worker's error code, such as "already-reviewed-today". */
   readonly code: string | undefined;
+  /** The whole error answer, for refusals that say more than a code (the editor's fields). */
+  readonly body: unknown;
 
-  constructor(status: number, code?: string) {
+  constructor(status: number, code?: string, body?: unknown) {
     super(`API request failed with ${status}${code ? ` (${code})` : ""}`);
     this.status = status;
     this.code = code;
+    this.body = body;
   }
 }
 
@@ -18,6 +21,12 @@ export const getJson = <T>(path: string) => request<T>("GET", path);
 
 /** POSTs JSON to the Worker and returns its JSON answer. */
 export const postJson = <T>(path: string, body: unknown) => request<T>("POST", path, body);
+
+/** PUTs JSON to the Worker and returns its JSON answer. */
+export const putJson = <T>(path: string, body: unknown) => request<T>("PUT", path, body);
+
+/** PATCHes JSON on the Worker and returns its JSON answer. */
+export const patchJson = <T>(path: string, body: unknown) => request<T>("PATCH", path, body);
 
 /** DELETEs on the Worker and returns its JSON answer. */
 export const del = <T>(path: string) => request<T>("DELETE", path);
@@ -49,7 +58,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   }
   if (!res.ok) {
     const error = (await res.json().catch(() => null)) as { error?: string } | null;
-    throw new ApiError(res.status, error?.error);
+    throw new ApiError(res.status, error?.error, error);
   }
   return (await res.json()) as T;
 }

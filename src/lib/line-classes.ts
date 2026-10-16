@@ -6,3 +6,6 @@ export const LINE_CLASSES: Record<Line, { rail: string; ring: string }> = {
   m3: { rail: "bg-line-m3", ring: "border-line-m3" },
   m4: { rail: "bg-line-m4", ring: "border-line-m4" },
 };
+
+/** "M3 blue": how the app names a line colour in words. */
+export const LINE_NAMES: Record<Line, string> = { m2: "M2 red", m3: "M3 blue", m4: "M4 green" };
