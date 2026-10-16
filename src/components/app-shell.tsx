@@ -26,11 +26,14 @@ const NAV: Nav[] = [
 export function AppShell({
   sections,
   lines,
+  tabBar = true,
   children,
 }: {
   sections: SectionDto[];
   /** Left per section id. */
   lines: Map<number, number>;
+  /** Off for full-screen phone screens, like the item editor. */
+  tabBar?: boolean;
   children: ReactNode;
 }) {
   const { path } = useLocation();
@@ -96,32 +99,36 @@ export function AppShell({
         </Button>
       </aside>
 
-      <div className="min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+      <div
+        className={cn("min-w-0 lg:pb-0", tabBar && "pb-[calc(4.5rem+env(safe-area-inset-bottom))]")}
+      >
         {children}
       </div>
 
-      <nav
-        aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-border bg-sidebar pb-[env(safe-area-inset-bottom)] lg:hidden"
-      >
-        {NAV.filter((item) => item.phone).map((item) => {
-          const active = isCurrent(item, path);
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "flex h-[4.5rem] flex-col items-center justify-center gap-1 text-label",
-                active ? "text-foreground" : "text-muted-foreground",
-              )}
-            >
-              <item.icon aria-hidden className="size-6" strokeWidth={active ? 2.25 : 1.75} />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+      {tabBar && (
+        <nav
+          aria-label="Main"
+          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-border bg-sidebar pb-[env(safe-area-inset-bottom)] lg:hidden"
+        >
+          {NAV.filter((item) => item.phone).map((item) => {
+            const active = isCurrent(item, path);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex h-[4.5rem] flex-col items-center justify-center gap-1 text-label",
+                  active ? "text-foreground" : "text-muted-foreground",
+                )}
+              >
+                <item.icon aria-hidden className="size-6" strokeWidth={active ? 2.25 : 1.75} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </div>
   );
 }

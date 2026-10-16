@@ -47,11 +47,16 @@ async function fetchItems(date: IsoDate) {
   }
 }
 
-/** Puts a saved item into the list at once, ahead of the next refresh. */
-export function putItem(item: ItemSummaryDto): void {
+/**
+ * Puts a saved item into the list at once, ahead of the next refresh. Saving never changes
+ * whether it was reviewed today, so an item already listed keeps that.
+ */
+export function putItem(item: Omit<ItemSummaryDto, "reviewedToday">): void {
   if (state.status !== "ready") return;
+  const previous = state.items.find((i) => i.id === item.id);
   const others = state.items.filter((i) => i.id !== item.id);
-  setState({ ...state, items: [...others, item].sort((a, b) => a.id - b.id) });
+  const saved = { ...item, reviewedToday: previous?.reviewedToday ?? false };
+  setState({ ...state, items: [...others, saved].sort((a, b) => a.id - b.id) });
 }
 
 export function dropItems(keep: (item: ItemSummaryDto) => boolean): void {

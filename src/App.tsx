@@ -4,6 +4,7 @@ import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { navigate, useLocation } from "@/lib/router";
 import { matchRoute } from "@/lib/routes";
 import { FlashStartScreen } from "@/screens/flash-start";
+import { ItemEditorScreen } from "@/screens/item-editor";
 import { ItemsScreen } from "@/screens/items";
 import { PlaceholderScreen } from "@/screens/placeholder";
 import { ReviewScreen } from "@/screens/review";
@@ -25,6 +26,10 @@ export default function App() {
       {route.screen === "flash" && <FlashStartScreen />}
       {route.screen === "review" && <ReviewScreen />}
       {route.screen === "items" && <ItemsScreen />}
+      {route.screen === "new-item" && <ItemEditorScreen itemId={null} />}
+      {route.screen === "edit-item" && (
+        <ItemEditorScreen key={route.itemId} itemId={route.itemId} />
+      )}
       {route.screen === "settings" && (
         <PlaceholderScreen
           title="Settings"
