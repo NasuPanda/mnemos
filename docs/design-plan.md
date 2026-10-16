@@ -267,7 +267,7 @@ Images are resized in the browser, stored in R2 under a name made from their con
 
 1. **Add:** paste, drop or pick an image in the item editor on desktop; use the camera or photo library on the phone.
 2. **Shrink:** the browser resizes it to at most about 1,600 px, compresses it to WebP or JPEG, and names it by its SHA-256 hash, so the same image is never stored twice.
-3. **Upload:** `PUT /api/images/<hash>.webp`. The Worker streams the file straight into R2, which uses almost no CPU.
+3. **Upload:** `PUT /api/images/<hash>.webp` (or `.jpg`), as soon as the image is added. The Worker streams the file straight into R2, which uses almost no CPU. R2 itself checks that the content's SHA-256 matches the name, so nothing else can be stored under an image's name, and an image already stored isn't written again.
 4. **Save:** the item stores only the image name and its position in `item_images`. Images can be reordered and removed in the editor.
 5. **Show:** `GET /img/<hash>.webp` streams the file back with `Cache-Control: private, max-age=31536000, immutable`, so the browser downloads each image only once.
 
@@ -279,7 +279,7 @@ Images live only in the image fields; Markdown images are not allowed. The Parli
 
 **Guardrails:**
 
-- Reject files over 2 MB and cap the number of images: 10 per side of an item, and 2,000 different images per person across their items (an image used twice counts once).
+- Reject files over 2 MB, counting the file after the browser has shrunk it (the original photo can be any size), and cap the number of images: 10 per side of an item, and 2,000 different images per person across their items (an image used twice counts once).
 - Set a $1 budget alert. It sends an email but doesn't stop use.
 - Keep storage behind one small module, so switching between KV and R2 touches nothing else.
 

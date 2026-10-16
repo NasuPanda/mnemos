@@ -160,3 +160,6 @@ export type ItemImagesError =
 
 /** DELETE /api/items/:id */
 export type DeleteItemResponse = { id: number };
+
+/** PUT /api/images/:key: 201 when stored, 200 when it already was. */
+export type UploadImageResponse = { key: string };

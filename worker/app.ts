@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { KeysFor } from "./auth/access";
 import { identity } from "./auth/identity";
 import type { AppEnv } from "./env";
-import { images } from "./routes/images";
+import { imageUploads, images } from "./routes/images";
 import { itemRoutes } from "./routes/items";
 import { me } from "./routes/me";
 import { reviewRoutes } from "./routes/reviews";
@@ -19,6 +19,7 @@ export function createApp(keysFor: KeysFor) {
   app.route("/api/items", itemRoutes);
   app.route("/api/reviews", reviewRoutes);
   app.route("/api/sections", sectionRoutes);
+  app.route("/api/images", imageUploads);
   app.route("/img", images);
 
   app.notFound((c) => c.json({ error: "not_found" }, 404));
