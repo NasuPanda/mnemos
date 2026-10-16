@@ -82,7 +82,7 @@ flowchart LR
   I --> B
 ```
 
-Opening one item from the dashboard returns there after rating. Flash review runs the loop over a whole set, and when nothing is left for today, the All done screen appears.
+Opening one item from the dashboard returns there after rating. On phones, confirmations (deleting an item or a line, discarding changes) are sheets at the bottom with the action above Cancel; on desktop they are dialogs with Cancel focused, so a plain Enter never confirms. Flash review runs the loop over a whole set, and when nothing is left for today, the All done screen appears.
 
 | Screen | Purpose | Shows |
 | --- | --- | --- |
@@ -93,7 +93,7 @@ Opening one item from the dashboard returns there after rating. Flash review run
 | Items | Find and manage items | **Search:** Name, Description, Problem description and Side note, ignoring case and accents. **Filter** by section. **Sort:** by next due (earliest first, equal dates oldest first) or recently added (newest first). **Status:** each row shows "+3 days", Due today or Reviewed today; above the list, "23 items · 3 late · 5 more due today · 1 reviewed today". A table on desktop, two-line rows on the phone |
 | Item editor | Add or edit an item | **Fields:** every item field. **Images:** paste or drop on desktop, camera or photo library on the phone; reorder and remove. **Section picker:** find a section by name or code, or type a new name to create it on the spot: the section is made at once, with the suggested code (or one the person types) and the next colour. **Markdown fields:** a Write / Preview toggle; on touch screens, a Code button wraps the selection in backticks (a fenced block when it spans lines), on the Name and Description too. **Save:** stays within reach: a bar at the top on desktop (Ctrl/⌘+Enter), a button at the bottom on the phone. **Leaving:** Save, Cancel (Esc) and ✕ go back to where the editor was opened from; with unsaved changes, Cancel, Esc, ✕ and Back ask "Discard your changes?" first. **New items** start in the line the Items list is filtered to, or else the line of the last item saved in this browser. **Delete** (the ··· menu on the phone) asks first and says how many reviews go with the item |
 | Item history | See how an item has gone | A line map (reviews left to right, stops bottom to top, dot size = confidence, marks for picked dates and early reviews), plus the same data as a table. On the phone, the line map shows the latest 10 reviews; scroll back for older ones. The table always lists them all |
-| Settings ("Menetrend") | Tune the ladder; manage the account | The ladder drawn as a metro line: each stop's gap and item count, add / edit / remove stops, and a preview of where each rating leads. Account and sign out |
+| Settings ("Menetrend") | Tune the ladder; manage the lines and the account | The ladder drawn as a metro line: each stop's gap and item count, add / edit / remove stops, and a preview of where each rating leads. **Lines:** every line in order with its item count; drag a handle (or focus it and use ↑ ↓) to reorder, which sets the order of the dashboard and flash review; Edit opens the name and code (the colour shows but never changes) and Delete line…; New line makes one with the suggested code and the next colour. The sidebar's "Lines" heading links here. Account and sign out |
 
 ## Scheduling rules
 

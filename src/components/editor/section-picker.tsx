@@ -97,7 +97,7 @@ export function SectionPicker({
       {trigger}
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerContent className="max-h-[88dvh]">
-          <DrawerHeader className="px-4 pt-3 pb-2 text-left">
+          <DrawerHeader className="px-4 pt-3 pb-2 text-left group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left">
             <DrawerTitle className="flex items-baseline gap-2 text-title">
               Section <span className="text-label text-muted-foreground">Required</span>
             </DrawerTitle>

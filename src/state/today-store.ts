@@ -92,6 +92,17 @@ export function forgetTodayItem(itemId: number): void {
   updateData((data) => withoutItem(data, itemId));
 }
 
+/** A new section order, shown at once: the dashboard and flash review follow it. */
+export function orderSections(ids: number[]): void {
+  updateData((data) => ({
+    ...data,
+    sections: ids.flatMap((id, index) => {
+      const section = data.sections.find((s) => s.id === id);
+      return section ? [{ ...section, position: index + 1 }] : [];
+    }),
+  }));
+}
+
 /** A section created or changed in the editor or on Settings, shown at once. */
 export function putSection(section: SectionDto, nextLine?: Line): void {
   updateData((data) => ({

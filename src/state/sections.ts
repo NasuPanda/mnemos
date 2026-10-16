@@ -8,7 +8,7 @@ import type {
   SectionsResponse,
 } from "../../worker/contract";
 import { dropItems, refreshItems } from "./items-store";
-import { putSection, refreshToday } from "./today-store";
+import { orderSections, putSection, refreshToday } from "./today-store";
 
 /** One plain sentence for each reason a name or code is refused. */
 export function sectionProblemMessage(problem: SectionProblem, code = ""): string {
@@ -74,8 +74,9 @@ export async function updateSection(
   }
 }
 
-/** Saves a new section order; today's lines follow it. */
+/** Saves a new section order, shown at once; if the Worker refuses, today is fetched again. */
 export async function reorderSections(ids: number[]): Promise<Result<SectionDto[], string>> {
+  orderSections(ids);
   try {
     const { sections } = await putJson<SectionsResponse>("/api/sections/order", { ids });
     void refreshToday();

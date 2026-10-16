@@ -3,6 +3,7 @@ import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from "rea
 import { toast } from "sonner";
 import { daysLate, type IsoDate } from "@/core";
 import { AppShell } from "@/components/app-shell";
+import { Confirm } from "@/components/confirm";
 import {
   EditorField,
   GrowingTextarea,
@@ -14,15 +15,6 @@ import { SectionPicker } from "@/components/editor/section-picker";
 import { Link } from "@/components/link";
 import { Overdue } from "@/components/overdue";
 import { StopIndicator } from "@/components/stop-indicator";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -568,68 +560,38 @@ function Editor({
         </div>
       </form>
 
-      <AlertDialog
+      <Confirm
         open={asking === "discard"}
         onOpenChange={(open) => {
           if (open) return;
           setAsking(null);
           rearm();
         }}
-      >
-        <AlertDialogContent className="rounded-lg p-6 shadow-overlay">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-heading">Discard your changes?</AlertDialogTitle>
-            <AlertDialogDescription className="text-body">
-              {item ? "The item stays as it was." : "The new item won’t be added."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="m-0 border-0 bg-transparent p-0">
-            <AlertDialogCancel className="h-12 px-5 text-item font-bold" autoFocus>
-              Keep editing
-            </AlertDialogCancel>
-            <Button
-              variant="secondary"
-              className="h-12 px-5 text-item font-bold"
-              onClick={() => {
-                setAsking(null);
-                leave("/items");
-              }}
-            >
-              Discard
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title="Discard your changes?"
+        description={item ? "The item stays as it was." : "The new item won’t be added."}
+        cancelLabel="Keep editing"
+        confirmLabel="Discard"
+        onConfirm={() => {
+          setAsking(null);
+          leave("/items");
+        }}
+      />
 
-      <AlertDialog open={asking === "delete"} onOpenChange={(open) => !open && setAsking(null)}>
-        <AlertDialogContent className="rounded-lg p-6 shadow-overlay">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-heading">Delete this item?</AlertDialogTitle>
-            <AlertDialogDescription className="text-body">
-              {reviews === null
-                ? "Its review history goes with it."
-                : reviews === 0
-                  ? "It has no reviews yet."
-                  : `Its ${count(reviews, "review")} go with it.`}{" "}
-              This can’t be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="m-0 border-0 bg-transparent p-0">
-            <AlertDialogCancel className="h-12 px-5 text-item font-bold" autoFocus>
-              Cancel
-              <Kbd className="hidden lg:inline-flex">Esc</Kbd>
-            </AlertDialogCancel>
-            <Button
-              variant="secondary"
-              className="h-12 gap-2 px-5 text-item font-bold"
-              onClick={() => void remove()}
-            >
-              <Trash2 aria-hidden className="size-5" />
-              Delete item
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Confirm
+        open={asking === "delete"}
+        onOpenChange={(open) => !open && setAsking(null)}
+        title="Delete this item?"
+        description={`${
+          reviews === null
+            ? "Its review history goes with it."
+            : reviews === 0
+              ? "It has no reviews yet."
+              : `Its ${count(reviews, "review")} go with it.`
+        } This can’t be undone.`}
+        confirmLabel="Delete item"
+        confirmIcon={<Trash2 aria-hidden className="size-5" />}
+        onConfirm={() => void remove()}
+      />
     </main>
   );
 }

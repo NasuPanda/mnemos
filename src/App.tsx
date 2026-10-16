@@ -6,8 +6,8 @@ import { matchRoute } from "@/lib/routes";
 import { FlashStartScreen } from "@/screens/flash-start";
 import { ItemEditorScreen } from "@/screens/item-editor";
 import { ItemsScreen } from "@/screens/items";
-import { PlaceholderScreen } from "@/screens/placeholder";
 import { ReviewScreen } from "@/screens/review";
+import { SettingsScreen } from "@/screens/settings";
 import { TodayScreen } from "@/screens/today";
 
 export default function App() {
@@ -30,12 +30,7 @@ export default function App() {
       {route.screen === "edit-item" && (
         <ItemEditorScreen key={route.itemId} itemId={route.itemId} />
       )}
-      {route.screen === "settings" && (
-        <PlaceholderScreen
-          title="Settings"
-          coming="The ladder editor and your account come in phase 4."
-        />
-      )}
+      {route.screen === "settings" && <SettingsScreen />}
       {/* On phones the Undo pop-up sits at the top, so it never covers Show answer. */}
       {/* On desktop it sits above the rating buttons, never over them. */}
       <Toaster
