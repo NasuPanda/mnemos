@@ -57,6 +57,8 @@ An item's review history comes from its reviews; the item itself doesn't keep a 
 
 - **Markdown fields:** Problem description, Answer text and Side note use GitHub-style Markdown, including code blocks.
 - **Inline-only fields:** Name and Description allow only inline code, bold and italic.
+- **Lengths:** Name up to 300 characters, Description up to 1,000, and each Markdown field up to 20,000.
+- **Links:** Problem URL and Answer URL take http and https links only. A link typed without a scheme gets `https://` ("example.edu/x" → "https://example.edu/x").
 - **Not allowed:**
   - raw HTML;
   - images inside Markdown (images go in the image fields);
@@ -277,7 +279,7 @@ Images live only in the image fields; Markdown images are not allowed. The Parli
 
 **Guardrails:**
 
-- Reject files over 2 MB and cap the number of images per user.
+- Reject files over 2 MB and cap the number of images: 10 per side of an item, and 2,000 different images per person across their items (an image used twice counts once).
 - Set a $1 budget alert. It sends an email but doesn't stop use.
 - Keep storage behind one small module, so switching between KV and R2 touches nothing else.
 

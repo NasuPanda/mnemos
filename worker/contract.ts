@@ -1,6 +1,6 @@
 // The API's request and response shapes, shared by the Worker and the app.
 // Types only, importing only from src/core, so the app can import this file safely.
-import type { Confidence, IsoDate, Line } from "../src/core";
+import type { Confidence, IsoDate, ItemTextProblems, Line } from "../src/core";
 
 export type ApiError = { error: string };
 
@@ -107,3 +107,56 @@ export type SectionsResponse = { sections: SectionDto[] };
 
 /** DELETE /api/sections/:id: the section goes, and its items and their reviews with it. */
 export type DeleteSectionResponse = { deletedItems: number };
+
+/** One row of the Items list: what it shows, and the text search looks through. */
+export type ItemSummaryDto = {
+  id: number;
+  sectionId: number;
+  name: string;
+  description: string | null;
+  problemText: string | null;
+  sideNote: string | null;
+  stop: number;
+  dueOn: IsoDate;
+  /** Reviewed on the request's date. */
+  reviewedToday: boolean;
+};
+
+/** GET /api/items?date=YYYY-MM-DD: every item of the person's, oldest first. */
+export type ItemsResponse = { date: IsoDate; items: ItemSummaryDto[] };
+
+/** GET /api/items/:id: one item for the editor, and how many reviews deleting it would take. */
+export type ItemResponse = { item: ItemDto; reviews: number };
+
+/**
+ * What the item editor saves. Empty fields may be "" or null; each side's images are listed in
+ * order. The stop and due date are never part of it.
+ */
+export type ItemFieldsRequest = {
+  sectionId: number;
+  name: string;
+  description: string | null;
+  problemUrl: string | null;
+  problemText: string | null;
+  answerUrl: string | null;
+  answerText: string | null;
+  sideNote: string | null;
+  images: { key: string; side: ImageDto["side"] }[];
+};
+
+/** POST /api/items: a new item starts on stop 1, due `date`, the browser's today. */
+export type CreateItemRequest = ItemFieldsRequest & { date: IsoDate };
+
+/** PUT /api/items/:id: every field again. */
+export type UpdateItemRequest = ItemFieldsRequest;
+
+/** A refused save: per-field problems, or one about the images or the section. */
+export type ItemErrorResponse = {
+  error: "invalid-fields" | "section-not-found" | ItemImagesError;
+  fields?: ItemTextProblems;
+};
+export type ItemImagesError =
+  "images-invalid" | "images-duplicate" | "images-too-many" | "images-limit";
+
+/** DELETE /api/items/:id */
+export type DeleteItemResponse = { id: number };

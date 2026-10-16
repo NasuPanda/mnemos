@@ -1,11 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
+import { isImageKey } from "../../src/core";
 import { getDb } from "../db/client";
 import { itemImages, items } from "../db/schema";
 import type { AppEnv } from "../env";
-
-/** Images are named by the SHA-256 of their content, so a name never changes meaning. */
-const IMAGE_KEY = /^[0-9a-f]{64}\.(webp|jpg|png)$/;
 
 /**
  * GET /img/:key: streams one of the person's images from R2. Images stay behind the login and
@@ -14,7 +12,8 @@ const IMAGE_KEY = /^[0-9a-f]{64}\.(webp|jpg|png)$/;
  */
 export const images = new Hono<AppEnv>().get("/:key", async (c) => {
   const key = c.req.param("key");
-  if (!IMAGE_KEY.test(key)) return c.json({ error: "not_found" }, 404);
+  // Images are named by the SHA-256 of their content, so a name never changes meaning.
+  if (!isImageKey(key)) return c.json({ error: "not_found" }, 404);
 
   const [used] = await getDb(c.env.DB)
     .select({ id: itemImages.id })

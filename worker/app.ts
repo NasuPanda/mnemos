@@ -3,6 +3,7 @@ import type { KeysFor } from "./auth/access";
 import { identity } from "./auth/identity";
 import type { AppEnv } from "./env";
 import { images } from "./routes/images";
+import { itemRoutes } from "./routes/items";
 import { me } from "./routes/me";
 import { reviewRoutes } from "./routes/reviews";
 import { sectionRoutes } from "./routes/sections";
@@ -15,6 +16,7 @@ export function createApp(keysFor: KeysFor) {
   app.use("*", identity(keysFor));
   app.route("/api/me", me);
   app.route("/api/today", today);
+  app.route("/api/items", itemRoutes);
   app.route("/api/reviews", reviewRoutes);
   app.route("/api/sections", sectionRoutes);
   app.route("/img", images);

@@ -7,8 +7,9 @@ import {
   type IsoDate,
   type Ladder,
 } from "../../src/core";
-import type { ImageDto, ItemDto, ReviewDto, TodayResponse } from "../contract";
+import type { ReviewDto, TodayResponse } from "../contract";
 import type { Db } from "./client";
+import { imageColumns, imagesByItem, toItemDto } from "./items";
 import { sectionColumns } from "./sections";
 import { itemImages, items, reviews, sections, settings, type ReviewRow } from "./schema";
 
@@ -51,12 +52,7 @@ export async function loadToday(db: Db, userId: number, date: IsoDate): Promise<
         .orderBy(asc(sections.position), asc(sections.id)),
       db.select().from(items).where(leftToday).orderBy(asc(items.id)),
       db
-        .select({
-          itemId: itemImages.itemId,
-          key: itemImages.imageKey,
-          side: itemImages.side,
-          position: itemImages.position,
-        })
+        .select(imageColumns)
         .from(itemImages)
         .innerJoin(items, eq(items.id, itemImages.itemId))
         .where(leftToday),
@@ -73,29 +69,13 @@ export async function loadToday(db: Db, userId: number, date: IsoDate): Promise<
     ],
   );
 
-  const imagesByItem = new Map<number, ImageDto[]>();
-  for (const { itemId, ...image } of [...imageRows].sort(byImageOrder)) {
-    imagesByItem.set(itemId, [...(imagesByItem.get(itemId) ?? []), image]);
-  }
+  const images = imagesByItem(imageRows);
 
   return {
     date,
     ladder: [...checkedLadder(settingsRows[0]?.ladderDays)],
     sections: sectionRows,
-    items: itemRows.map((row): ItemDto => ({
-      id: row.id,
-      sectionId: row.sectionId,
-      name: row.name,
-      description: row.description,
-      problemUrl: row.problemUrl,
-      problemText: row.problemText,
-      answerUrl: row.answerUrl,
-      answerText: row.answerText,
-      sideNote: row.sideNote,
-      stop: row.stop,
-      dueOn: row.dueOn,
-      images: imagesByItem.get(row.id) ?? [],
-    })),
+    items: itemRows.map((row) => toItemDto(row, images.get(row.id) ?? [])),
     reviewsToday: reviewRows.map(toReviewDto),
     tomorrow: { date: tomorrow, itemIds: tomorrowRows.map((row) => row.id) },
     nextLine: settingsRows[0]?.nextLine ?? FIRST_LINE,
@@ -114,12 +94,6 @@ export function toReviewDto(row: ReviewRow): ReviewDto {
     nextDueOn: row.nextDueOn,
     manual: row.manual,
   };
-}
-
-/** Problem images before answer images, each side in position order. */
-function byImageOrder(a: ImageDto & { itemId: number }, b: ImageDto & { itemId: number }) {
-  const side = (image: ImageDto) => (image.side === "problem" ? 0 : 1);
-  return a.itemId - b.itemId || side(a) - side(b) || a.position - b.position;
 }
 
 function checkedLadder(stored: number[] | undefined): Ladder {
