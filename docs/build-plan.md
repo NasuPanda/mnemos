@@ -126,13 +126,13 @@ The order we build in. Each phase ends with something you can use on your phone,
 
 **Done when:** on your phone you can review the seeded day to the Végállomás, ratings survive a reload, and Undo works.
 
-**Done (15 Oct 2026):** checked on the phone against the deployed app with the production sample day: the dashboard counts, reveal, ratings, Undo, and Végállomás still showing after a reload all work. One bug is open: on the phone, the image zoom can't be closed ([issue #3](https://github.com/NasuPanda/mnemos/issues/3)).
+**Done (15 Oct 2026):** checked on the phone against the deployed app with the production sample day: the dashboard counts, reveal, ratings, Undo, and Végállomás still showing after a reload all work. One bug was found: on iPhone Safari, the image zoom couldn't be closed ([issue #3](https://github.com/NasuPanda/mnemos/issues/3)). Fixed and checked on the iPhone on 16 Oct 2026.
 
 **Changed while building (recorded in the plan):**
 
 - The phone check uses the sample day seeded into your production account (`npm run db:seed:remote`); phase 3 starts by wiping it.
 - End-to-end tests run against their own local database (`.wrangler/e2e-state`), reseeded before each test, one at a time.
-- Image zoom shows "1 / 2" and no caption; alt text names the side and position.
+- Image zoom shows "1 / 2" and no caption; alt text names the side and position. Back and a swipe down close it too (issue #3).
 - T, I and `,` (switch screens) work already, since the sidebar shows them.
 - Not yet built, as planned: the week strip and the calendar button (phase 4), History, Edit and the phone's ··· menu (phases 3–4), New item (phase 3), Review early on All done (phase 4), the final Parliament and doors art (phase 5).
 
