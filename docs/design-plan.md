@@ -265,10 +265,10 @@ Six D1 tables, and each screen is one indexed query by date.
 
 Images are resized in the browser, stored in R2 under a name made from their content, and served through the Worker so they stay behind the login.
 
-1. **Add:** paste, drop or pick an image in the item editor on desktop; use the camera or photo library on the phone.
+1. **Add:** paste, drop or pick an image in the item editor on desktop; use the camera or photo library on the phone. A pasted image goes to the side whose card has the focus, or else the problem side.
 2. **Shrink:** the browser resizes it to at most about 1,600 px, compresses it to WebP or JPEG, and names it by its SHA-256 hash, so the same image is never stored twice.
 3. **Upload:** `PUT /api/images/<hash>.webp` (or `.jpg`), as soon as the image is added. The Worker streams the file straight into R2, which uses almost no CPU. R2 itself checks that the content's SHA-256 matches the name, so nothing else can be stored under an image's name, and an image already stored isn't written again.
-4. **Save:** the item stores only the image name and its position in `item_images`. Images can be reordered and removed in the editor.
+4. **Save:** the item stores only the image name and its position in `item_images`. Images can be reordered (drag, or ← → on a focused handle) and removed in the editor. Save waits for uploads still on their way; an upload that failed can be tried again or removed.
 5. **Show:** `GET /img/<hash>.webp` streams the file back with `Cache-Control: private, max-age=31536000, immutable`, so the browser downloads each image only once.
 
 Images live only in the image fields; Markdown images are not allowed. The Parliament illustration and the Zsolnay pattern are part of the app's static files, not user images.
@@ -340,3 +340,4 @@ Small decisions left for implementation:
 - **Undo on the phone:** place the pop-up at the top, so it never covers Show answer on the next item.
 - **Remove stop:** the confirmation should not remove on a plain Enter.
 - **Math formulas (later):** remark-math + rehype-katex, loaded only for items that use them.
+- **Unused images in R2:** removing an image or deleting an item leaves its file in R2, since another item, or an upload not yet saved, may still use it. The files are small; a cleanup script can delete those no `item_images` row uses.

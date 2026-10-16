@@ -31,20 +31,36 @@ export const patchJson = <T>(path: string, body: unknown) => request<T>("PATCH",
 /** DELETEs on the Worker and returns its JSON answer. */
 export const del = <T>(path: string) => request<T>("DELETE", path);
 
+/** PUTs a file, such as an image, to the Worker and returns its JSON answer. */
+export const putBlob = <T>(path: string, blob: Blob) =>
+  send<T>("PUT", path, { body: blob, contentType: blob.type });
+
 /**
  * When the Access session has expired (after a month), Access answers API calls with a redirect
  * to its login page. fetch can't follow that, so we reload the page and let Access show its
  * login. If we already reloaded a moment ago, we throw instead of reloading in a loop.
  */
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  return send<T>(
+    method,
+    path,
+    body === undefined ? {} : { body: JSON.stringify(body), contentType: "application/json" },
+  );
+}
+
+async function send<T>(
+  method: string,
+  path: string,
+  { body, contentType }: { body?: BodyInit; contentType?: string },
+): Promise<T> {
   const res = await fetch(path, {
     method,
     redirect: "manual",
     headers: {
       Accept: "application/json",
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      ...(contentType ? { "Content-Type": contentType } : {}),
     },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body,
   });
 
   if (res.type === "opaqueredirect") {

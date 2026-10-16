@@ -143,8 +143,15 @@ export function toRequest(form: ItemForm & { sectionId: number }): ItemFieldsReq
     answerUrl: form.answerUrl,
     answerText: form.answerText,
     sideNote: form.sideNote,
-    images: form.images.flatMap((image) =>
-      image.status === "stored" && image.key ? [{ key: image.key, side: image.side }] : [],
+    images: form.images.flatMap((image, index) =>
+      image.status === "stored" &&
+      image.key &&
+      // The same picture added twice at once is saved once.
+      !form.images
+        .slice(0, index)
+        .some((i) => i.side === image.side && i.key === image.key && i.status === "stored")
+        ? [{ key: image.key, side: image.side }]
+        : [],
     ),
   };
 }

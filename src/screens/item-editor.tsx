@@ -9,6 +9,7 @@ import {
   CodeButton,
   MarkdownField,
 } from "@/components/editor/fields";
+import { ImageField } from "@/components/editor/image-field";
 import { SectionPicker } from "@/components/editor/section-picker";
 import { Link } from "@/components/link";
 import { Overdue } from "@/components/overdue";
@@ -47,10 +48,14 @@ import {
   isDirty,
   problemMessages,
   toRequest,
+  type EditorImage,
   type FormField,
   type FormProblems,
+  type ImageSide,
   type ItemForm,
 } from "@/editor/form";
+import { moveImage, sideImages } from "@/editor/images";
+import { useImageUploads } from "@/editor/use-image-uploads";
 import { deleteItem, lastSection, loadItem, rememberSection, saveItem } from "@/state/item-actions";
 import { useItemsState } from "@/state/items-store";
 import { todayView, type TodayData } from "@/state/today-data";
@@ -152,11 +157,28 @@ function Editor({
     item ? formFromItem(item) : emptyForm(startSection ?? null),
   );
   const [form, setForm] = useState<ItemForm>(initial);
-  const [problems, setProblems] = useState<FormProblems>({});
   const [checked, setChecked] = useState(false);
+  const [serverProblems, setServerProblems] = useState<FormProblems>({});
   const [saving, setSaving] = useState(false);
   const [asking, setAsking] = useState<"discard" | "delete" | null>(null);
   const dirty = isDirty(initial, form);
+  /** Once a save was refused, problems update as the person types. */
+  const problems = useMemo(
+    () => (checked ? { ...serverProblems, ...checkForm(form) } : serverProblems),
+    [checked, serverProblems, form],
+  );
+
+  // Uploads finish in the background: every change to the form builds on the latest one.
+  const imagesRef = useRef(form.images);
+  useEffect(() => {
+    imagesRef.current = form.images;
+  }, [form.images]);
+  const setImages = (update: (images: EditorImage[]) => EditorImage[]) =>
+    setForm((current) => ({ ...current, images: update(current.images) }));
+  const uploads = useImageUploads(setImages, () => imagesRef.current);
+  const uploading = form.images.some(
+    (image) => image.status === "preparing" || image.status === "uploading",
+  );
 
   const ids = {
     name: useId(),
@@ -180,11 +202,9 @@ function Editor({
     return perSection;
   }, [items]);
 
-  /** Once a save was refused, problems update as the person types. */
   const change = (next: Partial<ItemForm>) => {
-    const updated = { ...form, ...next };
-    setForm(updated);
-    if (checked) setProblems(checkForm(updated));
+    setForm((current) => ({ ...current, ...next }));
+    setServerProblems({});
   };
 
   // Stays on while saving, so leaving after the save takes the guard off in the same step.
@@ -195,39 +215,74 @@ function Editor({
     else leave("/items");
   };
 
-  const save = async () => {
-    if (saving) return;
-    const found = checkForm(form);
-    setChecked(true);
-    setProblems(found);
-    const first = FIELD_ORDER.find((field) => found[field]);
-    if (first || form.sectionId === null) {
-      if (first) document.getElementById(ids[first])?.focus();
-      return;
-    }
-    setSaving(true);
-    try {
-      await saveItem(item?.id ?? null, toRequest({ ...form, sectionId: form.sectionId }), date);
-      rememberSection(form.sectionId);
-      leave("/items");
-    } catch (error) {
-      setSaving(false);
-      refused(error);
-    }
-  };
-
   const refused = (error: unknown) => {
     const body = error instanceof ApiError ? (error.body as ItemErrorResponse | null) : null;
     if (body?.error === "invalid-fields" && body.fields) {
-      setProblems(problemMessages(body.fields));
+      setServerProblems(problemMessages(body.fields));
     } else if (body?.error === "section-not-found") {
-      setProblems({ sectionId: "That section is gone. Pick another, or create it again." });
+      setServerProblems({ sectionId: "That section is gone. Pick another, or create it again." });
     } else if (body?.error === "images-limit") {
       toast("You’ve reached 2,000 images. Remove some from other items first.");
     } else {
       toast("That didn’t save. Check your connection and try again.");
     }
   };
+
+  /** Save: check the fields, then wait for images still uploading before sending. */
+  const waitingToSave = useRef(false);
+  const save = () => {
+    if (saving) return;
+    setChecked(true);
+    const found = checkForm(form);
+    const first = FIELD_ORDER.find((field) => found[field]);
+    if (first) return document.getElementById(ids[first])?.focus();
+    waitingToSave.current = true;
+    setSaving(true);
+  };
+  const send = useEffectEvent(async (current: ItemForm) => {
+    if (current.sectionId === null) return setSaving(false);
+    if (current.images.some((image) => image.status === "failed")) {
+      setSaving(false);
+      toast("An image didn’t upload. Try it again, or remove it.");
+      return;
+    }
+    try {
+      await saveItem(
+        item?.id ?? null,
+        toRequest({ ...current, sectionId: current.sectionId }),
+        date,
+      );
+      rememberSection(current.sectionId);
+      leave("/items");
+    } catch (error) {
+      setSaving(false);
+      refused(error);
+    }
+  });
+  useEffect(() => {
+    if (!saving || uploading || !waitingToSave.current) return;
+    waitingToSave.current = false;
+    void send(form);
+  }, [saving, uploading, form]);
+
+  /** Pasting an image adds it to the side whose card has the focus, or else the problem side. */
+  const onPaste = useEffectEvent((event: ClipboardEvent) => {
+    const files = [...(event.clipboardData?.files ?? [])].filter((file) =>
+      file.type.startsWith("image/"),
+    );
+    if (files.length === 0) return;
+    const target = event.target as HTMLElement | null;
+    const typing = target?.matches("input, textarea, [contenteditable]");
+    if (typing && event.clipboardData?.types.includes("text/plain")) return;
+    event.preventDefault();
+    const side = target?.closest<HTMLElement>("[data-image-side]")?.dataset.imageSide;
+    uploads.add(side === "answer" ? "answer" : "problem", files, form.images);
+  });
+  useEffect(() => {
+    const listener = (event: ClipboardEvent) => onPaste(event);
+    document.addEventListener("paste", listener);
+    return () => document.removeEventListener("paste", listener);
+  }, []);
 
   const remove = async () => {
     if (!item) return;
@@ -244,7 +299,7 @@ function Editor({
     if (event.isComposing || event.defaultPrevented) return;
     if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
-      void save();
+      save();
     } else if (event.key === "Escape" && asking === null && !openLayer()) {
       event.preventDefault();
       cancel();
@@ -332,7 +387,7 @@ function Editor({
             </Button>
             <Button
               className="h-12 gap-2.5 rounded-full px-6 text-item font-bold"
-              onClick={() => void save()}
+              onClick={save}
               disabled={saving}
             >
               <Check aria-hidden className="size-5" />
@@ -350,7 +405,7 @@ function Editor({
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
-          void save();
+          save();
         }}
         className="mx-auto max-w-[1200px] px-4 pt-5 sm:px-6 lg:px-10 lg:pt-8"
       >
@@ -421,7 +476,7 @@ function Editor({
         </div>
 
         <div className="mt-8 grid items-start gap-x-5 gap-y-8 desk:grid-cols-2">
-          <Side title="Problem side" note="Shown first in review.">
+          <Side side="problem" title="Problem side" note="Shown first in review.">
             <MarkdownField
               id={ids.problemText}
               label="Problem description"
@@ -430,7 +485,16 @@ function Editor({
               help="Leave empty to use the name as the question."
               error={problems.problemText}
             />
-            <ImagesForNow form={form} side="problem" onChange={change} />
+            <ImageField
+              side="problem"
+              label="Problem images"
+              images={sideImages(form.images, "problem")}
+              problem={uploads.problems.problem}
+              onAdd={(files) => uploads.add("problem", files, form.images)}
+              onMove={(id, to) => setImages((images) => moveImage(images, id, to))}
+              onRemove={uploads.remove}
+              onRetry={uploads.retry}
+            />
             <LinkField
               id={ids.problemUrl}
               label="Problem URL"
@@ -441,7 +505,7 @@ function Editor({
             />
           </Side>
 
-          <Side title="Answer side" note="Shown after you reveal the answer.">
+          <Side side="answer" title="Answer side" note="Shown after you reveal the answer.">
             <MarkdownField
               id={ids.answerText}
               label="Answer text"
@@ -449,7 +513,16 @@ function Editor({
               onChange={(answerText) => change({ answerText })}
               error={problems.answerText}
             />
-            <ImagesForNow form={form} side="answer" onChange={change} />
+            <ImageField
+              side="answer"
+              label="Answer images"
+              images={sideImages(form.images, "answer")}
+              problem={uploads.problems.answer}
+              onAdd={(files) => uploads.add("answer", files, form.images)}
+              onMove={(id, to) => setImages((images) => moveImage(images, id, to))}
+              onRemove={uploads.remove}
+              onRetry={uploads.retry}
+            />
             <LinkField
               id={ids.answerUrl}
               label="Answer URL"
@@ -563,16 +636,21 @@ function Editor({
 
 /** One side of the item: a card on desktop, a titled part of the page on the phone. */
 function Side({
+  side,
   title,
   note,
   children,
 }: {
+  side: ImageSide;
   title: string;
   note: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-6 border-t border-border pt-6 lg:rounded-xl lg:border-0 lg:bg-card lg:p-6 lg:shadow-card">
+    <section
+      data-image-side={side}
+      className="flex flex-col gap-6 border-t border-border pt-6 lg:rounded-xl lg:border-0 lg:bg-card lg:p-6 lg:shadow-card"
+    >
       <header>
         <h2 className="text-heading">{title}</h2>
         <p className="text-small text-muted-foreground">{note}</p>
@@ -618,43 +696,6 @@ function LinkField({
         />
       </InputGroup>
     </EditorField>
-  );
-}
-
-/** The item's stored images, until the image field arrives. */
-function ImagesForNow({
-  form,
-  side,
-  onChange,
-}: {
-  form: ItemForm;
-  side: "problem" | "answer";
-  onChange: (next: Partial<ItemForm>) => void;
-}) {
-  const images = form.images.filter((image) => image.side === side);
-  if (images.length === 0) return null;
-  return (
-    <div className="flex flex-wrap gap-3">
-      {images.map((image, index) => (
-        <div key={image.id} className="relative">
-          <img
-            src={image.src}
-            alt={`${side === "problem" ? "Problem" : "Answer"} image ${index + 1}`}
-            className="h-24 w-32 rounded-lg bg-foreground object-contain"
-          />
-          <Button
-            type="button"
-            variant="secondary"
-            size="icon"
-            aria-label={`Remove image ${index + 1}`}
-            className="absolute -top-3 -right-3 size-9 rounded-full"
-            onClick={() => onChange({ images: form.images.filter((i) => i.id !== image.id) })}
-          >
-            <X aria-hidden className="size-4" />
-          </Button>
-        </div>
-      ))}
-    </div>
   );
 }
 
