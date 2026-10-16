@@ -74,6 +74,8 @@ test("a tap anywhere reveals the answer, but images open zoom and links open", a
   // An image opens zoom without revealing.
   await page.getByRole("button", { name: "Zoom problem image 1" }).tap();
   await expect(page.getByRole("dialog")).toContainText("1 / 2");
+  // Playwright has no Safari toolbar, so this only guards the plain layout.
+  await expect(page.getByRole("button", { name: "Close zoom" })).toBeInViewport({ ratio: 1 });
   await page.getByRole("button", { name: "Close zoom" }).tap();
   await expect(page.getByRole("button", { name: /Show answer/ })).toBeVisible();
 
@@ -89,6 +91,57 @@ test("a tap anywhere reveals the answer, but images open zoom and links open", a
   await page.getByText(/Run Dijkstra from S/).tap();
   await expect(page.getByRole("heading", { name: ITEMS.dijkstra })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Confident/ })).toBeVisible();
+});
+
+test("Back closes the zoom and leaves the item as it was", async ({ page }, testInfo) => {
+  phoneOnly(testInfo.project.name);
+  await page.goto("/");
+  await page.getByRole("link", { name: /Start review · 4/ }).tap();
+  await page.getByRole("button", { name: /^Start/ }).tap();
+  await onItem(page, 1);
+
+  await page.getByRole("button", { name: "Zoom problem image 1" }).tap();
+  await page.getByRole("button", { name: "Next image" }).tap();
+  await expect(page.getByRole("dialog")).toContainText("2 / 2");
+  await page.goBack();
+  await expect(page.getByRole("dialog")).toBeHidden();
+  await onItem(page, 1);
+  await expect(page.getByRole("button", { name: /Show answer/ })).toBeVisible();
+
+  // Closed with its button, the zoom leaves nothing in the history: Back leaves the review.
+  await page.getByRole("button", { name: "Zoom problem image 1" }).tap();
+  await page.getByRole("button", { name: "Close zoom" }).tap();
+  await expect(page.getByRole("dialog")).toBeHidden();
+  await page.goBack();
+  await expect(page.getByText("4 left today")).toBeVisible();
+});
+
+test("in zoom, a swipe sideways turns the image and a swipe down closes it", async ({
+  page,
+}, testInfo) => {
+  phoneOnly(testInfo.project.name);
+  await page.goto("/review");
+  await onItem(page, 1);
+  await page.getByRole("button", { name: "Zoom problem image 1" }).tap();
+  const zoom = page.getByRole("dialog");
+
+  // Playwright can't drag a finger, so a mouse drag runs the same pointer handlers.
+  const swipe = async (dx: number, dy: number) => {
+    const box = await zoom.getByRole("img").boundingBox();
+    if (!box) throw new Error("no image in zoom");
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + dx, y + dy, { steps: 5 });
+    await page.mouse.up();
+  };
+
+  await swipe(-150, 0);
+  await expect(zoom).toContainText("2 / 2");
+  await swipe(0, 150);
+  await expect(zoom).toBeHidden();
+  await expect(page.getByRole("button", { name: /Show answer/ })).toBeVisible();
 });
 
 test("Undo puts the item back and returns to it", async ({ page }, testInfo) => {
