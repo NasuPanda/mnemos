@@ -27,7 +27,11 @@ export function ShortcutsDialog() {
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && closeOverlay()}>
-      <DialogContent className="max-h-[90dvh] max-w-[880px]! gap-6 overflow-y-auto rounded-lg p-6 shadow-overlay">
+      {/* Closes at once, without the fade: keys pressed right after go to the screen. */}
+      <DialogContent
+        overlayClassName="data-closed:animate-none!"
+        className="max-h-[90dvh] max-w-[880px]! gap-6 overflow-y-auto rounded-lg p-6 shadow-overlay data-closed:animate-none!"
+      >
         <div className="flex flex-col gap-1 pr-8">
           <DialogTitle className="text-heading">Keyboard shortcuts</DialogTitle>
           <DialogDescription className="text-small text-muted-foreground">

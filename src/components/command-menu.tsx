@@ -67,9 +67,11 @@ export function CommandMenu() {
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && closeOverlay()}>
+      {/* Closes at once, without the fade: keys pressed right after go to the screen. */}
       <DialogContent
         showCloseButton={false}
-        className="top-[12dvh] max-w-[560px]! translate-y-0 gap-0 overflow-hidden rounded-lg p-0 shadow-overlay"
+        overlayClassName="data-closed:animate-none!"
+        className="top-[12dvh] max-w-[560px]! translate-y-0 gap-0 overflow-hidden rounded-lg p-0 shadow-overlay data-closed:animate-none!"
       >
         <DialogTitle className="sr-only">Command menu</DialogTitle>
         <DialogDescription className="sr-only">
@@ -106,7 +108,7 @@ function MenuBody() {
 
   return (
     <Command shouldFilter={false} loop className="rounded-none! bg-transparent p-0">
-      <div className="flex h-14 items-center gap-3 border-b border-border px-4">
+      <div className="flex h-14 items-center gap-3 border-b border-border px-4 has-focus-visible:outline-2 has-focus-visible:-outline-offset-2 has-focus-visible:outline-ring">
         <Search aria-hidden className="size-5 shrink-0 text-muted-foreground" />
         <CommandPrimitive.Input
           autoFocus

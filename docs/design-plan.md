@@ -149,7 +149,7 @@ Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", rou
   - **The yellow M** (app icon and favicon) is the one use of yellow outside these rules, as on the metro signs: a tram yellow square with a Dusk M (Atkinson Hyperlegible Next at weight 800, drawn as a path). Inside the app, the sidebar's M stays neutral.
 - **Shapes:** circles are items and reviews on a section's line; squares are ladder stops.
 - **Type:** Atkinson Hyperlegible Next for text; Atkinson Hyperlegible Mono for code, dates, counts and keys. Nothing under 12 px.
-- **Motion:** 150 ms at most, no spinners or skeletons, and no motion at all with reduced motion.
+- **Motion:** 150 ms at most, no spinners or skeletons, and no motion at all with reduced motion. The command menu and the shortcut list close at once, without the fade, so keys pressed right after belong to the screen; while any other dialog fades out, its fields and buttons no longer take keys.
 - **Phone:** thumb-first. Buttons are at least 48 px tall (confidence buttons 56 px) and sit at the bottom. Key hints are hidden on touch screens.
 - **Layout by width:**
 
