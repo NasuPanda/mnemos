@@ -271,7 +271,6 @@ function TodayBoard({ data, view, ...frame }: Frame & { data: TodayData; view: T
         [["E"], "edit"],
         [["H"], "history"],
         [["[", "]"], "day"],
-        [["T"], "today"],
       ]}
     >
       <div className="mt-6 grid items-start gap-5 desk:grid-cols-2">
@@ -376,7 +375,6 @@ function FutureBoard({
         [["E"], "edit"],
         [["H"], "history"],
         [["[", "]"], "day"],
-        [["T"], "today"],
       ]}
     >
       {view && view.list.length === 0 && (
@@ -474,7 +472,6 @@ function PastBoard({
         [["J", "K"], "move"],
         [["H"], "history"],
         [["[", "]"], "day"],
-        [["T"], "today"],
       ]}
     >
       {reviews && reviews.length === 0 && (

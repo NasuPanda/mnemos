@@ -27,7 +27,7 @@ export function WeekStrip({
   return (
     <nav aria-label="Week" className={cn("flex items-center gap-2 lg:gap-3", className)}>
       <WeekArrow to={dayPath(addDays(selected, -7), today)} label="Previous week" />
-      <ol className="grid flex-1 grid-cols-7 gap-1 lg:flex lg:gap-1.5">
+      <ol className="grid min-w-0 flex-1 grid-cols-7 gap-1 lg:flex lg:gap-1.5">
         {days.map((day) => (
           <li key={day.date} className="lg:min-w-0 lg:flex-1">
             <DayCell day={day} selected={day.date === selected} today={today} />
@@ -60,7 +60,7 @@ function DayCell({ day, selected, today }: { day: StripDay; selected: boolean; t
       aria-label={label}
       aria-current={selected ? "date" : undefined}
       className={cn(
-        "relative flex min-h-[4.5rem] flex-col items-center justify-center gap-0.5 rounded-lg border border-transparent pt-1.5 pb-3 lg:min-h-0 lg:items-start lg:gap-1 lg:px-4 lg:pt-2.5 lg:pb-3.5",
+        "relative flex min-h-[4.5rem] flex-col items-center justify-center gap-0.5 rounded-lg border border-transparent pt-1.5 pb-3 lg:min-h-0 lg:items-start lg:gap-1 lg:px-2.5 lg:pt-2.5 lg:pb-3.5 xl:px-4",
         selected ? "bg-muted" : "hover:bg-accent/60",
         isToday && !selected && "border-subtle-foreground",
       )}
@@ -97,7 +97,7 @@ function DayCell({ day, selected, today }: { day: StripDay; selected: boolean; t
       <span
         aria-hidden
         className={cn(
-          "inline-flex items-center gap-0.5 font-mono text-meta whitespace-nowrap lg:gap-1.5",
+          "inline-flex items-center gap-0.5 font-mono text-meta whitespace-nowrap xl:gap-1.5",
           past ? "text-subtle-foreground" : "text-foreground",
         )}
       >
@@ -106,14 +106,17 @@ function DayCell({ day, selected, today }: { day: StripDay; selected: boolean; t
       {selected && (
         <span
           aria-hidden
-          className="absolute bottom-1.5 left-1/2 h-1 w-6 -translate-x-1/2 rounded-full bg-primary lg:left-4 lg:translate-x-0"
+          className="absolute bottom-1.5 left-1/2 h-1 w-6 -translate-x-1/2 rounded-full bg-primary lg:left-2.5 lg:translate-x-0 xl:left-4"
         />
       )}
     </Link>
   );
 }
 
-/** "✓ 31 done" on desktop and "✓31" on the phone; "38 left", "12 due"; "–" for nothing done. */
+/**
+ * "✓ 31 done", "38 left", "12 due" from 1280 px; below that the number alone, as on the phone.
+ * "–" for a past day with nothing done.
+ */
 function CountText({ day }: { day: StripDay }) {
   const { count } = day;
   switch (count.kind) {
@@ -123,21 +126,21 @@ function CountText({ day }: { day: StripDay }) {
         <>
           <Check aria-hidden className="size-3.5" strokeWidth={2.25} />
           {count.done}
-          <span className="hidden lg:inline">done</span>
+          <span className="hidden xl:inline">done</span>
         </>
       );
     case "today":
       return (
         <>
           {count.left}
-          <span className="hidden lg:inline">left</span>
+          <span className="hidden xl:inline">left</span>
         </>
       );
     case "future":
       return (
         <>
           {count.due}
-          <span className="hidden lg:inline">due</span>
+          <span className="hidden xl:inline">due</span>
         </>
       );
   }
