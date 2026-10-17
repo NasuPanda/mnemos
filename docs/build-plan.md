@@ -142,7 +142,7 @@ The order we build in. Each phase ends with something you can use on your phone,
 
 **Tasks:**
 
-- [ ] Wipe the phase 2 sample day from production first: `node scripts/seed.ts --wipe --remote --email=<you>` (it asks you to type "wipe production").
+- [x] Wipe the phase 2 sample day from production first: `node scripts/seed.ts --wipe --remote --email=<you>` (it asks you to type "wipe production").
 - [x] Item editor:
   - every field, with Name and Section required;
   - Markdown fields with a Write / Preview toggle;
@@ -166,7 +166,12 @@ The order we build in. Each phase ends with something you can use on your phone,
 
 **Done when:** you add a real item from your phone, including a photo, and review it the same day.
 
-**Built (16 Oct 2026), waiting for the phone check:** typecheck, lint, 327 unit and API tests and 14 end-to-end runs pass. Still to do by hand: wipe the sample day from production, deploy, then add a real item with a photo from the phone and review it.
+**Done (17 Oct 2026):** the sample day was wiped from production and the app deployed, then checked on the iPhone. The check found two bugs, both fixed and checked on the phone again:
+
+- [Issue #6](https://github.com/NasuPanda/mnemos/issues/6): in the section sheet, the search box and Create went off screen while the keyboard was open. vaul's own lift for the keyboard came on top of Safari's; the sheets with fields now leave it to Safari, and the section sheet has a fixed height. Safari no longer offers AutoFill Contact for the search box.
+- [Issue #7](https://github.com/NasuPanda/mnemos/issues/7): a new line in a Markdown field showed as a space. `remark-breaks` now makes it a line break, as in GitHub comments.
+
+Typecheck, lint, 331 unit and API tests and 14 end-to-end runs pass.
 
 **Changed while building (recorded in the plan):**
 
