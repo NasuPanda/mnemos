@@ -61,6 +61,13 @@ export function LadderEditor({
   };
   useHotkeys({ a: () => void add() }, removing === null);
 
+  /**
+   * The question has no trigger button to give the focus back to (Del opens it from a stop), so
+   * the stop gets it back once the dialog has let go.
+   */
+  const refocus = (stop: number) =>
+    requestAnimationFrame(() => squares.current.get(stop)?.focus({ preventScroll: true }));
+
   /** ← → (and ↑ ↓ on the phone's column) between stops, Enter to the gap, Del to remove. */
   const onSquareKey = (stop: number) => (event: KeyboardEvent<HTMLButtonElement>) => {
     const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[event.key];
@@ -170,10 +177,16 @@ export function LadderEditor({
         ladder={ladder}
         stop={removing}
         items={removing === null ? 0 : (counts?.get(removing) ?? 0)}
-        onClose={() => setRemoving(null)}
+        onClose={() => {
+          const stop = removing;
+          setRemoving(null);
+          if (stop !== null) refocus(stop);
+        }}
         onRemoved={(stop) => {
           setRemoving(null);
-          setSelected(Math.max(1, Math.min(stop, stops - 1)));
+          const next = Math.max(1, Math.min(stop, stops - 1));
+          setSelected(next);
+          refocus(next);
         }}
       />
     </>
