@@ -153,10 +153,12 @@ Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", rou
 
   | Width | Layout |
   | --- | --- |
-  | Under 640 px (phones) | Tab bar at the bottom, one column, floating Start review, confidence buttons stacked, pickers and confirmations in bottom sheets |
+  | Under 640 px (phones) | Tab bar at the bottom (Review, Items, Settings), one column, floating Start review, confidence buttons stacked, pickers and confirmations in bottom sheets |
   | 640–1023 px (large phones sideways, tablets upright, narrow windows) | The same tab-bar layout, with content centred at up to 760 px and the three confidence buttons side by side |
   | 1024–1279 px (tablets sideways, small laptops) | The 248 px sidebar replaces the tab bar; one column of section cards; pickers and confirmations as popovers and dialogs |
   | 1280 px and up (laptops, desktops) | Sidebar plus two columns of section cards on the dashboard |
+
+  The tab bar and the sidebar call the dashboard **Review**: it shows any day, and today is marked in the week strip, so the name is the place's, not the date's (the mockups' "Today" was changed after the phase 4 phone check, issue #12). It always opens today's board; on another day, the phone header's Today button goes back to today.
 
   The sidebar starts at 1024 px so a phone turned sideways never gets it. Key hints follow the input, not the width: they show wherever there is a mouse or trackpad and hide on touch screens.
 - **Contrast:** every text and background pair meets WCAG AA; the draft lists the ratios.
@@ -194,7 +196,7 @@ The whole review loop works without the mouse, and `?` shows the list in the app
 | Enter | Settings | Edit the gap |
 | Del | Settings | Remove the stop |
 | A | Settings | Add a stop |
-| T / I / , | Anywhere | Today / Items / Settings |
+| T / I / , | Anywhere | Review on today / Items / Settings |
 | N | Anywhere | New item |
 | Ctrl+K | Anywhere | Command menu |
 | Esc | Anywhere | Close or cancel |
