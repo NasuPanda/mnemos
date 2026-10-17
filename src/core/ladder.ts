@@ -62,6 +62,33 @@ function isGapInRange(gap: number): boolean {
   return Number.isInteger(gap) && gap >= MIN_GAP && gap <= MAX_GAP;
 }
 
+export type GapIssue =
+  /** "Use a whole number from 1 to 365." */
+  | { kind: "gap-out-of-range"; min: number; max: number }
+  /** "Make it longer than stop 4 (5 days)." */
+  | { kind: "gap-not-longer"; previous: { stop: number; gap: number } }
+  /** "Make it shorter than stop 4 (5 days)." */
+  | { kind: "gap-not-shorter"; next: { stop: number; gap: number } };
+
+/**
+ * Checks a new gap for one stop against its neighbours on the saved ladder, for the message under
+ * the field being edited. Unlike `validateLadder`, a gap that isn't shorter than the next stop's
+ * is reported here, at the stop being changed, rather than at the next stop. Null when it fits.
+ */
+export function gapIssue(ladder: Ladder, stop: number, gap: number): GapIssue | null {
+  gapFor(ladder, stop);
+  if (!isGapInRange(gap)) return { kind: "gap-out-of-range", min: MIN_GAP, max: MAX_GAP };
+  const previous = ladder[stop - 2];
+  if (previous !== undefined && gap <= previous) {
+    return { kind: "gap-not-longer", previous: { stop: stop - 1, gap: previous } };
+  }
+  const next = ladder[stop];
+  if (next !== undefined && gap >= next) {
+    return { kind: "gap-not-shorter", next: { stop: stop + 1, gap: next } };
+  }
+  return null;
+}
+
 /** The ladder with one stop's gap changed. Check the result with `validateLadder`. */
 export function setGap(ladder: Ladder, stop: number, gap: number): Ladder {
   gapFor(ladder, stop);

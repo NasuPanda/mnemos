@@ -36,6 +36,25 @@ export function compareDates(a: IsoDate, b: IsoDate): number {
   return daysBetween(b, a);
 }
 
+/** The day of the week, Monday 1 to Sunday 7 (ISO 8601). */
+export function dayOfWeek(date: IsoDate): number {
+  // Day 0, 1 January 1970, was a Thursday (4).
+  return mod(toDayNumber(date) + 3, 7) + 1;
+}
+
+/**
+ * The week strip's seven days: Monday to Sunday of the week that contains `date`. Weeks start
+ * on Monday, as they do in Hungary.
+ */
+export function weekOf(date: IsoDate): IsoDate[] {
+  const monday = addDays(date, 1 - dayOfWeek(date));
+  return Array.from({ length: 7 }, (_, index) => addDays(monday, index));
+}
+
+function mod(n: number, m: number): number {
+  return ((n % m) + m) % m;
+}
+
 function toDayNumber(date: IsoDate): number {
   if (!isIsoDate(date)) throw new RangeError(`Not a YYYY-MM-DD date: ${JSON.stringify(date)}`);
   const [year, month, day] = date.split("-").map(Number) as [number, number, number];

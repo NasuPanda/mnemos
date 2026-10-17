@@ -63,6 +63,24 @@ export function futureDayList<T extends ScheduledItem>(
   );
 }
 
+/** A review made on a past day, with the section its item is in now. */
+export type PastReview = { id: number; sectionId: number };
+
+/**
+ * A past day's list: only the reviews made that day (missed items never appear), in section
+ * order, then in the order they were made. Review ids grow with creation, so that is id order.
+ */
+export function pastDayList<T extends PastReview>(
+  reviews: readonly T[],
+  sections: readonly SectionRef[],
+): T[] {
+  const rank = sectionRank(sections);
+  return reviews
+    .map((review) => ({ review, rank: rankOf(rank, review.sectionId, `Review ${review.id}`) }))
+    .sort((a, b) => a.rank - b.rank || a.review.id - b.review.id)
+    .map(({ review }) => review);
+}
+
 /** Sorts entries by their section's position, then by `withinSection`. */
 function inSectionOrder<T extends ScheduledItem>(
   entries: DayEntry<T>[],
@@ -71,7 +89,7 @@ function inSectionOrder<T extends ScheduledItem>(
 ): DayEntry<T>[] {
   const rank = sectionRank(sections);
   return entries
-    .map((entry) => ({ entry, rank: rankOf(rank, entry.item) }))
+    .map((entry) => ({ entry, rank: rankOf(rank, entry.item.sectionId, `Item ${entry.item.id}`) }))
     .sort((a, b) => a.rank - b.rank || withinSection(a.entry, b.entry))
     .map(({ entry }) => entry);
 }
@@ -190,10 +208,9 @@ function sectionRank(sections: readonly SectionRef[]): Map<number, number> {
   return new Map(ordered.map((section, index) => [section.id, index]));
 }
 
-function rankOf(rank: Map<number, number>, item: ScheduledItem): number {
-  const value = rank.get(item.sectionId);
-  if (value === undefined)
-    throw new RangeError(`Item ${item.id} has unknown section ${item.sectionId}`);
+function rankOf(rank: Map<number, number>, sectionId: number, what: string): number {
+  const value = rank.get(sectionId);
+  if (value === undefined) throw new RangeError(`${what} has unknown section ${sectionId}`);
   return value;
 }
 

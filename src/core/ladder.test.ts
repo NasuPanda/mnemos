@@ -4,6 +4,7 @@ import {
   addStopRefusal,
   DEFAULT_LADDER,
   gapFor,
+  gapIssue,
   lastStop,
   newStopGap,
   removalEffect,
@@ -83,6 +84,59 @@ describe("Ladder edits › validation", () => {
   it("changes one stop's gap without touching the others", () => {
     expect(setGap(DEFAULT_LADDER, 5, 4)).toEqual([1, 2, 3, 5, 4, 14, 28]);
     expect(DEFAULT_LADDER).toEqual([1, 2, 3, 5, 7, 14, 28]);
+  });
+});
+
+describe("Ladder edits › the message under the gap being edited (page 20)", () => {
+  it("accepts a gap between its neighbours: stop 4 from 5 to 6 days", () => {
+    expect(gapIssue(DEFAULT_LADDER, 4, 6)).toBeNull();
+    expect(gapIssue(DEFAULT_LADDER, 4, 5)).toBeNull();
+  });
+
+  it("asks for a whole number from 1 to 365: stop 1 set to 0 days", () => {
+    const outOfRange = { kind: "gap-out-of-range", min: 1, max: 365 };
+    expect(gapIssue(DEFAULT_LADDER, 1, 0)).toEqual(outOfRange);
+    expect(gapIssue(DEFAULT_LADDER, 7, 366)).toEqual(outOfRange);
+    expect(gapIssue(DEFAULT_LADDER, 2, 2.5)).toEqual(outOfRange);
+    expect(gapIssue(DEFAULT_LADDER, 2, Number.NaN)).toEqual(outOfRange);
+  });
+
+  it("asks for longer than the stop before: stop 5 set to 4 days → longer than stop 4 (5 days)", () => {
+    expect(gapIssue(DEFAULT_LADDER, 5, 4)).toEqual({
+      kind: "gap-not-longer",
+      previous: { stop: 4, gap: 5 },
+    });
+    expect(gapIssue(DEFAULT_LADDER, 5, 5)).toEqual({
+      kind: "gap-not-longer",
+      previous: { stop: 4, gap: 5 },
+    });
+  });
+
+  it("asks for shorter than the stop after: stop 3 set to 9 days → shorter than stop 4 (5 days)", () => {
+    expect(gapIssue(DEFAULT_LADDER, 3, 9)).toEqual({
+      kind: "gap-not-shorter",
+      next: { stop: 4, gap: 5 },
+    });
+    expect(gapIssue(DEFAULT_LADDER, 3, 5)).toEqual({
+      kind: "gap-not-shorter",
+      next: { stop: 4, gap: 5 },
+    });
+  });
+
+  it("has no stop before stop 1 and none after the last stop", () => {
+    expect(gapIssue(DEFAULT_LADDER, 1, 1)).toBeNull();
+    expect(gapIssue(DEFAULT_LADDER, 7, 365)).toBeNull();
+    expect(gapIssue([5], 1, 365)).toBeNull();
+  });
+
+  it("agrees with validating the whole ladder", () => {
+    for (let stop = 1; stop <= 7; stop++) {
+      for (const gap of [0, 1, 2, 3, 4, 5, 6, 7, 10, 14, 20, 28, 40, 365, 366]) {
+        const fits = gapIssue(DEFAULT_LADDER, stop, gap) === null;
+        const valid = validateLadder(setGap(DEFAULT_LADDER, stop, gap)).length === 0;
+        expect(fits, `stop ${stop}, ${gap} days`).toBe(valid);
+      }
+    }
   });
 });
 
