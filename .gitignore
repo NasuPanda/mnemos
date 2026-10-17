@@ -17,6 +17,9 @@ blob-report/
 coverage/
 .playwright-mcp/
 
+# Scratch files, such as phone screenshots for debugging: they can hold personal details
+docs/tmp/
+
 # Design sources stay local: regenerate the mockup PNGs with scripts/split-mockups.swift
 docs/design/**/*.pdf
 docs/design/**/*.heic

@@ -95,14 +95,19 @@ export function SectionPicker({
   return (
     <>
       {trigger}
-      <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerContent className="max-h-[88dvh]">
+      {/*
+        On iPhone, vaul's own lift for the keyboard comes on top of Safari's, which pushed the
+        search box off screen (issue #6). Safari alone keeps it in view: the sheet has a fixed
+        height, so the search box and Create sit near the top, above the keyboard.
+      */}
+      <Drawer open={open} onOpenChange={setOpen} repositionInputs={false}>
+        <DrawerContent className="data-[vaul-drawer-direction=bottom]:h-[85dvh] data-[vaul-drawer-direction=bottom]:max-h-none">
           <DrawerHeader className="px-4 pt-3 pb-2 text-left group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left">
             <DrawerTitle className="flex items-baseline gap-2 text-heading">
               Section <span className="text-label text-muted-foreground">Required</span>
             </DrawerTitle>
             <DrawerDescription className="sr-only">
-              Pick a section, or type a new name to create one.
+              Pick a section, or type to add a new one.
             </DrawerDescription>
           </DrawerHeader>
           <PickerBody {...props} onPick={pick} phone />
@@ -235,7 +240,11 @@ function PickerBody({
   );
 
   return (
-    <Command shouldFilter={false} loop className="rounded-none! bg-transparent p-0">
+    <Command
+      shouldFilter={false}
+      loop
+      className={cn("rounded-none! bg-transparent p-0", phone && "min-h-0 flex-1")}
+    >
       <div className={cn("p-3 pb-2", phone && "px-4")}>
         <div className="flex h-12 items-center gap-2 rounded-md border border-input bg-muted px-4 has-focus-visible:outline-2 has-focus-visible:outline-offset-3 has-focus-visible:outline-ring max-lg:rounded-full">
           <Search aria-hidden className="size-5 shrink-0 text-muted-foreground" />
@@ -244,13 +253,21 @@ function PickerBody({
             autoFocus={autoFocus}
             value={query}
             onValueChange={changeQuery}
-            placeholder="Find a section or type a new name"
-            aria-label="Find a section or type a new name"
+            // Nothing here reads as a person's name, so Safari doesn't offer AutoFill Contact.
+            autoComplete="off"
+            enterKeyHint="go"
+            placeholder="Find or add a section"
+            aria-label="Find or add a section"
             className="h-full min-w-0 flex-1 bg-transparent text-body outline-none"
           />
         </div>
       </div>
-      <CommandList className={cn("max-h-[min(440px,55dvh)] px-2 pb-2", phone && "px-3 pb-6")}>
+      <CommandList
+        className={cn(
+          "max-h-[min(440px,55dvh)] px-2 pb-2",
+          phone && "max-h-none flex-1 px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))]",
+        )}
+      >
         {phone && !canCreate && (
           <button
             type="button"
