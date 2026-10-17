@@ -93,6 +93,11 @@ export function forgetTodayItem(itemId: number): void {
   updateData((data) => withoutItem(data, itemId));
 }
 
+/** A changed ladder, used at once for the confidence buttons and the stop squares. */
+export function setLadder(ladder: number[]): void {
+  updateData((data) => ({ ...data, ladder }));
+}
+
 /** A new section order, shown at once: the dashboard and flash review follow it. */
 export function orderSections(ids: number[]): void {
   updateData((data) => ({
