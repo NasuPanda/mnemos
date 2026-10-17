@@ -12,6 +12,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/u
 import { Kbd } from "@/components/ui/kbd";
 import { KeyHintBar, type KeyHint } from "@/components/key-hint-bar";
 import { useHotkeys } from "@/hooks/use-hotkeys";
+import { ALL_DONE_ART } from "@/lib/all-done-art";
 import { dayMonth, longDate, relativeDay, shortDate, weekday } from "@/lib/format";
 import { navigate, useLocation } from "@/lib/router";
 import {
@@ -37,8 +38,6 @@ import { openHistory } from "@/state/history-panel";
 import { usePanelOpen } from "@/state/overlay";
 import { todayView, type TodayData, type TodayView } from "@/state/today-data";
 import { load, useTodayState } from "@/state/today-store";
-import wideArt from "@/assets/parliament-placeholder-wide.webp";
-import narrowArt from "@/assets/parliament-placeholder-narrow.webp";
 import type { SectionDto } from "../../worker/contract";
 
 /** The selected row survives a trip into review mode and back. */
@@ -538,7 +537,7 @@ function AllDone({ data, view, day, today, strip }: Frame & { data: TodayData; v
     strip && <WeekStrip weeks={strip} selected={day} today={today} className={className} />;
 
   return (
-    <main className="mx-auto max-w-[1200px] px-4 pt-4 pb-36 sm:px-6 lg:px-10 lg:pt-10 lg:pb-24">
+    <main className="mx-auto max-w-[1200px] px-4 pb-36 sm:px-6 lg:px-10 lg:pt-10 lg:pb-24">
       <div className="hidden lg:block">
         <Heading day={day} today={today} />
         <div className="mt-1">
@@ -547,18 +546,28 @@ function AllDone({ data, view, day, today, strip }: Frame & { data: TodayData; v
         {weekStrip("mt-6")}
       </div>
       <section aria-labelledby="all-done" className="flex flex-col items-center text-center">
-        <div className="relative w-full max-w-[880px]">
-          <picture>
-            <source media="(max-width: 639px)" srcSet={narrowArt} />
-            <img src={wideArt} alt="" className="w-full" />
-          </picture>
-          <span className="absolute top-0 right-0 lg:hidden">
+        {/* Phone: full width at the top, the bottom fading into the page. From 640 px: centred,
+            every edge fading. The words start below the lit part. */}
+        <div className="relative -mx-4 w-[calc(100%+2rem)] sm:mx-0 sm:w-full sm:max-w-[760px] lg:max-w-[840px]">
+          <img
+            src={ALL_DONE_ART.src}
+            srcSet={ALL_DONE_ART.srcSet}
+            sizes={ALL_DONE_ART.sizes}
+            width={ALL_DONE_ART.width}
+            height={ALL_DONE_ART.height}
+            alt=""
+            decoding="async"
+            className="block h-auto w-full [mask-image:linear-gradient(to_bottom,black_70%,transparent)] sm:[mask-image:radial-gradient(closest-side,black_65%,transparent)]"
+          />
+          <span className="absolute top-8 right-4 lg:hidden">
             <DayCalendar day={day} today={today} />
           </span>
         </div>
-        <p className="mt-2 text-label text-muted-foreground lg:hidden">{longDate(day)} · today</p>
+        <p className="-mt-6 text-label text-muted-foreground sm:mt-0 lg:hidden">
+          {longDate(day)} · today
+        </p>
         {weekStrip("mt-3 w-full -mx-1 lg:hidden")}
-        <h2 id="all-done" lang="hu" className="mt-6 text-display lg:mt-2">
+        <h2 id="all-done" lang="hu" className="mt-6 text-display lg:-mt-10">
           Végállomás
         </h2>
         <p className="text-body text-muted-foreground">End of the line</p>

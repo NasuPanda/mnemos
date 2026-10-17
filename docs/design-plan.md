@@ -166,8 +166,9 @@ Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", rou
 - **Art:**
   - **Parliament (All done):** a detailed, lamplit illustration.
     - Size: 3:2, 2400 × 1600, WebP or AVIF under about 400 kB, plus a 1200 × 800 copy for phones.
-    - Faded into the page with a CSS mask.
-    - Loaded in advance while you review the last item.
+    - Faded into the page with a CSS mask: on the phone it runs full width at the top and its bottom edge fades; from 640 px it is centred (up to 760 px, 840 px beside the sidebar) and every edge fades. Végállomás starts below the lit part.
+    - Loaded in advance while you review the last item left today (a flash run or one item opened on its own; Review early ends on its own day, so it doesn't). It loads the copy All done will pick: one `srcset` of both sizes.
+    - Until the illustration is made, a 3:2 placeholder of the navy silhouette stands in.
   - **Zsolnay tile pattern:** stays tone-on-tone: River ground, Swell and Rule diamonds in 28 × 56 px tiles, drawn as an inline SVG pattern with its own three tokens (`zsolnay-ground`, `zsolnay-tile`, `zsolnay-tile-alt`). It is the 84 px band at the top of Settings, on both widths; text never sits on it.
 
   Both ship as static files, not in R2.

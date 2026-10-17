@@ -115,3 +115,13 @@ export function returnTo(session: Session, itemId: number): Session {
   if (index === -1) return session;
   return { ...session, index, revealed: true, pickedDate: null };
 }
+
+/**
+ * Whether rating the current item ends today: it is the last item left today, in a run of
+ * today's items (Review early ends on its own day instead). All done comes next, so its picture
+ * loads meanwhile. `leftToday` is today's Left items.
+ */
+export function endsToday(session: Session, leftToday: readonly number[]): boolean {
+  const current = currentItem(session);
+  return !session.run.day && current !== null && leftToday.length === 1 && leftToday[0] === current;
+}

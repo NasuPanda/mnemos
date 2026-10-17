@@ -20,6 +20,7 @@ import {
 import { Kbd } from "@/components/ui/kbd";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { preloadAllDoneArt } from "@/lib/all-done-art";
 import { navigate, useLocation } from "@/lib/router";
 import { shortDate } from "@/lib/format";
 import { dayPath, editItemPath, runTargetFromQuery } from "@/lib/routes";
@@ -28,6 +29,7 @@ import { cn } from "@/lib/utils";
 import {
   advance,
   currentItem,
+  endsToday,
   isFinished,
   pickDate,
   progress,
@@ -124,6 +126,14 @@ function ReviewRun({
   useEffect(() => onUndone((itemId) => setSession((s) => returnTo(s, itemId))), []);
 
   const finished = isFinished(session);
+  // On the last item left today, All done is next: its picture loads while this one is studied.
+  const last = endsToday(
+    session,
+    source.map((item) => item.id),
+  );
+  useEffect(() => {
+    if (last) preloadAllDoneArt();
+  }, [last]);
   useEffect(() => {
     // Back to the day: All done if nothing is left today, or the rest of the day's lines.
     if (finished) navigate(home, { replace: true });

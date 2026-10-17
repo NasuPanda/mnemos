@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   advance,
   currentItem,
+  endsToday,
   isFinished,
   pickDate,
   progress,
@@ -126,5 +127,33 @@ describe("Runs for today and for Review early", () => {
     ];
     const options = { sections, reviewedToday: new Set<number>(), today: TODAY };
     expect(runQueue({ kind: "all" }, left, options)).toEqual([6, 7]);
+  });
+});
+
+describe("The last item left today", () => {
+  it("ends today in a flash run, so All done's picture can load", () => {
+    const session = advance(advance(all(), everythingLeft), everythingLeft);
+    expect(endsToday(session, [13])).toBe(true);
+  });
+
+  it("doesn't end today while other items are left, even on a run's last item", () => {
+    const single = startSession({ kind: "item", itemId: 12 }, [12]);
+    expect(endsToday(single, [12, 14])).toBe(false);
+    expect(endsToday(all(), [11, 12, 13])).toBe(false);
+  });
+
+  it("ends today when it is opened on its own from the dashboard", () => {
+    const single = startSession({ kind: "item", itemId: 12 }, [12]);
+    expect(endsToday(single, [12])).toBe(true);
+  });
+
+  it("never ends today in Review early, which goes back to its own day", () => {
+    const early = startSession({ kind: "all", day: "2026-09-25" }, [21]);
+    expect(endsToday(early, [21])).toBe(false);
+  });
+
+  it("is over once the run is", () => {
+    const done = advance(startSession({ kind: "all" }, [11]), everythingLeft);
+    expect(endsToday(done, [11])).toBe(false);
   });
 });
