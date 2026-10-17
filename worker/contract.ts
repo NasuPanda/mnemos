@@ -1,6 +1,13 @@
 // The API's request and response shapes, shared by the Worker and the app.
 // Types only, importing only from src/core, so the app can import this file safely.
-import type { Confidence, IsoDate, ItemTextProblems, Line } from "../src/core";
+import type {
+  AddStopRefusal,
+  Confidence,
+  GapIssue,
+  IsoDate,
+  ItemTextProblems,
+  Line,
+} from "../src/core";
 
 export type ApiError = { error: string };
 
@@ -62,6 +69,30 @@ export type TodayResponse = {
   tomorrow: { date: IsoDate; itemIds: number[] };
   /** The colour the next new section gets. */
   nextLine: Line;
+};
+
+/** A review made on a past day, with the name and section its item has now. */
+export type PastReviewDto = ReviewDto & { name: string; sectionId: number };
+
+/** GET /api/days/:date?today=YYYY-MM-DD: another day, as the browser's today sees it. */
+export type DayResponse = {
+  date: IsoDate;
+  today: IsoDate;
+  /**
+   * What the week strip counts for `date`'s week, Monday to Sunday. Today's own count comes from
+   * GET /api/today.
+   */
+  week: {
+    days: IsoDate[];
+    /** Items due on the week's days after today, including ones already reviewed today (Due). */
+    due: { id: number; dueOn: IsoDate }[];
+    /** Reviews made on the week's days before today (a past day's done). */
+    reviews: { itemId: number; reviewedOn: IsoDate }[];
+  };
+  /** A future day: the items due then, with everything review mode shows, for Review early. */
+  items: ItemDto[];
+  /** A past day: the reviews made that day, in the order they were made. */
+  reviews: PastReviewDto[];
 };
 
 /** POST /api/reviews */
@@ -128,6 +159,12 @@ export type ItemsResponse = { date: IsoDate; items: ItemSummaryDto[] };
 /** GET /api/items/:id: one item for the editor, and how many reviews deleting it would take. */
 export type ItemResponse = { item: ItemDto; reviews: number };
 
+/** GET /api/items/:id/history: the item as it is now, and every review of it, newest first. */
+export type ItemHistoryResponse = {
+  item: { id: number; sectionId: number; name: string; stop: number; dueOn: IsoDate };
+  reviews: ReviewDto[];
+};
+
 /**
  * What the item editor saves. Empty fields may be "" or null; each side's images are listed in
  * order. The stop and due date are never part of it.
@@ -163,3 +200,28 @@ export type DeleteItemResponse = { id: number };
 
 /** PUT /api/images/:key: 201 when stored, 200 when it already was. */
 export type UploadImageResponse = { key: string };
+
+/**
+ * Ladder changes. Each request carries the ladder the person saw; if it has changed since (in
+ * another tab), nothing happens and the answer is 409 with the ladder as it is now.
+ *
+ * PATCH /api/ladder/stops/:stop: a new gap for one stop. Items keep their due dates.
+ */
+export type SetGapRequest = { ladder: number[]; gap: number };
+
+/** POST /api/ladder/stops: a new last stop, at double the last gap (at most 365). */
+export type AddStopRequest = { ladder: number[] };
+
+/**
+ * DELETE /api/ladder/stops/:stop?ladder=1,2,3,5,7,14,28: the stop goes, its items move down one
+ * stop and the stops after it renumber; due dates stay.
+ */
+export type LadderResponse = { ladder: number[] };
+
+/** A refused ladder change, with the ladder as it is now. */
+export type LadderErrorResponse = {
+  error: GapIssue["kind"] | AddStopRefusal | "last-stop" | "ladder-changed";
+  ladder: number[];
+  /** For a refused gap: the stop it has to be longer or shorter than. */
+  issue?: GapIssue;
+};

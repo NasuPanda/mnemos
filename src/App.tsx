@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { HistoryPanel } from "@/components/history/history-panel";
 import { Toaster } from "@/components/ui/sonner";
 import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { navigate, useLocation } from "@/lib/router";
@@ -31,6 +32,7 @@ export default function App() {
         <ItemEditorScreen key={route.itemId} itemId={route.itemId} />
       )}
       {route.screen === "settings" && <SettingsScreen />}
+      <HistoryPanel />
       {/* On phones the Undo pop-up sits at the top, so it never covers Show answer. */}
       {/* On desktop it sits above the rating buttons, never over them. */}
       <Toaster

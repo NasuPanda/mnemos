@@ -1,49 +1,55 @@
 import { Play, X } from "lucide-react";
 import { useEffect, useMemo } from "react";
-import { daysLate, reviewQueue } from "@/core";
+import { daysLate } from "@/core";
 import { SectionBadge } from "@/components/section-badge";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { useHotkeys } from "@/hooks/use-hotkeys";
-import { count } from "@/lib/format";
+import { count, shortDate } from "@/lib/format";
 import { navigate, useLocation } from "@/lib/router";
+import { dayPath, reviewPath, runTargetFromQuery } from "@/lib/routes";
 import { useToday } from "@/lib/today";
+import { runFromTarget, runQueue } from "@/review/session";
+import { useDayState } from "@/state/day-store";
 import { useTodayState } from "@/state/today-store";
 
 /**
  * The flash review start: "Kérjük, vigyázzanak, az ajtók záródnak!" and what the run holds.
- * /flash runs everything left today; /flash?section=ID runs one line.
+ * /flash runs everything left today; /flash?section=ID runs one line; with ?day=YYYY-MM-DD, a
+ * future day's items, reviewed early.
  */
 export function FlashStartScreen() {
-  const state = useTodayState(useToday());
+  const today = useToday();
+  const state = useTodayState(today);
   const { query } = useLocation();
-  const sectionId = Number(query.get("section")) || undefined;
+  const target = useMemo(() => runFromTarget(runTargetFromQuery(query), today), [query, today]);
+  const dayState = useDayState(target.day ?? today, today);
   const data = state.status === "ready" ? state.data : null;
+  const dayItems = dayState.status === "ready" ? dayState.data.items : null;
+  const sectionId = target.kind === "section" ? target.sectionId : undefined;
+  const home = dayPath(target.day ?? today, today);
 
   const run = useMemo(() => {
-    if (!data) return null;
+    if (!data || (target.day && !dayItems)) return null;
     const reviewedToday = new Set(data.reviewsToday.map((r) => r.itemId));
-    const items = reviewQueue(data.items, {
-      sections: data.sections,
-      reviewedToday,
-      today: data.date,
-      sectionId,
-    });
+    const source = target.day && dayItems ? dayItems : data.items;
+    const ids = runQueue(target, source, { sections: data.sections, reviewedToday, today });
+    const byId = new Map(source.map((item) => [item.id, item]));
+    const items = ids.flatMap((id) => byId.get(id) ?? []);
     const lines = data.sections
       .map((section) => ({ section, left: items.filter((i) => i.sectionId === section.id).length }))
       .filter((line) => line.left > 0);
-    const late = items.filter((item) => daysLate(item.dueOn, data.date) > 0).length;
+    const late = items.filter((item) => daysLate(item.dueOn, today) > 0).length;
     return { items, lines, late };
-  }, [data, sectionId]);
+  }, [data, dayItems, target, today]);
 
   const empty = run !== null && run.items.length === 0;
   useEffect(() => {
-    if (empty) navigate("/", { replace: true });
-  }, [empty]);
+    if (empty) navigate(home, { replace: true });
+  }, [empty, home]);
 
-  const start = () =>
-    navigate(sectionId ? `/review?section=${sectionId}` : "/review", { replace: true });
-  useHotkeys({ Enter: start, f: start, Escape: () => navigate("/") }, !!run && !empty);
+  const start = () => navigate(reviewPath({ day: target.day, sectionId }), { replace: true });
+  useHotkeys({ Enter: start, f: start, Escape: () => navigate(home) }, !!run && !empty);
 
   if (!run || empty) return null;
   const single = sectionId ? run.lines[0]?.section : undefined;
@@ -54,7 +60,7 @@ export function FlashStartScreen() {
         <Button
           variant="ghost"
           className="h-12 gap-2 px-3 text-item font-bold"
-          onClick={() => navigate("/")}
+          onClick={() => navigate(home)}
         >
           <X aria-hidden className="size-5" />
           <span className="hidden lg:inline">Close</span>
@@ -82,6 +88,11 @@ export function FlashStartScreen() {
               <span className="text-small text-muted-foreground">{run.late} late</span>
             )}
           </p>
+          {target.day && (
+            <p className="mt-1 text-small text-muted-foreground">
+              Review early, due {shortDate(target.day)}. Reviewing early counts as done today.
+            </p>
+          )}
           <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-3">
             {run.lines.map(({ section, left }) => (
               <li key={section.id} className="inline-flex items-center gap-2">

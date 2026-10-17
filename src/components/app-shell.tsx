@@ -8,12 +8,14 @@ import { useHotkeys } from "@/hooks/use-hotkeys";
 import { Link } from "@/components/link";
 import { navigate, useLocation } from "@/lib/router";
 import { newItemPath } from "@/lib/routes";
+import { useHistoryTarget } from "@/state/history-panel";
 import type { SectionDto } from "../../worker/contract";
 
 type Nav = { to: string; label: string; icon: LucideIcon; hint: string; phone: boolean };
 
 const NAV: Nav[] = [
-  { to: "/", label: "Today", icon: House, hint: "T", phone: true },
+  // The dashboard shows any day, so it is named for the place, not the date (issue #12).
+  { to: "/", label: "Review", icon: House, hint: "T", phone: true },
   { to: "/flash", label: "Flash review", icon: Play, hint: "F", phone: false },
   { to: "/items", label: "Items", icon: List, hint: "I", phone: true },
   { to: "/settings", label: "Settings", icon: SlidersHorizontal, hint: ",", phone: true },
@@ -37,12 +39,15 @@ export function AppShell({
   children: ReactNode;
 }) {
   const { path } = useLocation();
-  useHotkeys({
-    t: () => navigate("/"),
-    i: () => navigate("/items"),
-    ",": () => navigate("/settings"),
-    n: () => navigate(newItemPath()),
-  });
+  useHotkeys(
+    {
+      t: () => navigate("/"),
+      i: () => navigate("/items"),
+      ",": () => navigate("/settings"),
+      n: () => navigate(newItemPath()),
+    },
+    useHistoryTarget() === null,
+  );
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">

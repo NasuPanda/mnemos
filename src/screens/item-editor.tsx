@@ -1,4 +1,4 @@
-import { Check, Ellipsis, Link2, Trash2, X } from "lucide-react";
+import { Check, Ellipsis, History, Link2, Trash2, X } from "lucide-react";
 import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { daysLate, type IsoDate } from "@/core";
@@ -26,6 +26,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { useHotkeys } from "@/hooks/use-hotkeys";
 import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { ApiError } from "@/lib/api";
 import { count, shortDate } from "@/lib/format";
@@ -51,6 +52,7 @@ import { useImageUploads } from "@/editor/use-image-uploads";
 import { deleteItem, lastSection, loadItem, rememberSection, saveItem } from "@/state/item-actions";
 import { useItemsState } from "@/state/items-store";
 import { todayView, type TodayData } from "@/state/today-data";
+import { openHistory, useHistoryTarget } from "@/state/history-panel";
 import { useTodayState } from "@/state/today-store";
 import type { ItemDto, ItemErrorResponse } from "../../worker/contract";
 
@@ -313,6 +315,11 @@ function Editor({
     };
   }, []);
 
+  /** H: the item's history, over the editor; the changes stay as they are. */
+  const showHistory = () => item && openHistory(item.id);
+  const historyOpen = useHistoryTarget() !== null;
+  useHotkeys({ h: showHistory }, !!item && asking === null && !historyOpen);
+
   const late = item ? daysLate(item.dueOn, date) : 0;
   const title = item ? "Edit item" : "New item";
 
@@ -336,6 +343,10 @@ function Editor({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-52 rounded-lg p-1.5 shadow-raised">
+              <DropdownMenuItem className="h-12 gap-3 text-body" onSelect={showHistory}>
+                <History aria-hidden className="size-5" />
+                History
+              </DropdownMenuItem>
               <DropdownMenuItem
                 className="h-12 gap-3 text-body"
                 onSelect={() => setAsking("delete")}
@@ -379,6 +390,17 @@ function Editor({
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-3">
+            {item && (
+              <Button
+                variant="ghost"
+                className="h-12 gap-2 px-4 text-item font-bold"
+                onClick={showHistory}
+              >
+                <History aria-hidden className="size-5" />
+                History
+                <Kbd>H</Kbd>
+              </Button>
+            )}
             <Button
               variant="ghost"
               className="h-12 gap-2 px-4 text-item font-bold"

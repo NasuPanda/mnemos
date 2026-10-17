@@ -199,29 +199,57 @@ Typecheck, lint, 331 unit and API tests and 14 end-to-end runs pass.
 
 **Tasks:**
 
-- [ ] Week strip:
+- [x] Week strip:
   - past days show the reviews done that day;
   - future days show the items due;
   - `[` and `]` move a day, and T jumps to today.
-- [ ] Future day:
+- [x] Future day:
   - items already reviewed today are dimmed, listed last in their section, and skipped by J/K;
   - Review early, with the Early count.
-- [ ] Item history:
+- [x] Item history:
   - the line map and the table;
   - picked-date and early-review marks;
   - on the phone, the latest 10 reviews, with scrolling for older ones;
   - the H panel inside review mode.
-- [ ] Settings ("Menetrend"):
+- [x] Settings ("Menetrend"):
   - the ladder editor with validation;
   - add stop (its gap starts at double the last one, capped at 365);
   - remove stop, with a confirmation that doesn't act on a plain Enter;
   - the preview of where each rating leads;
   - Account and Sign out (`/cdn-cgi/access/logout`).
-- [ ] End-to-end tests: review an item early from Friday's view; remove a stop and check where its items moved.
+- [x] End-to-end tests: review an item early from Friday's view; remove a stop and check where its items moved.
 
 **Mockups:** 10, 20, 30, 31 and 32.
 
 **Done when:** you can plan around a busy day by reviewing early, and change your ladder without surprises.
+
+**Phone check:** the deployed build was tried on the phone. Phase 4 is done when every box here is ticked and checked on the phone again.
+
+- [x] [Issue #12](https://github.com/NasuPanda/mnemos/issues/12): the tab bar's "Today" becomes "Review" (the sidebar's too), since the board shows any day and today is marked in the week strip.
+- [x] [Issue #13](https://github.com/NasuPanda/mnemos/issues/13): on the phone, swipe the week strip to the previous or next week; until now only the calendar reached other weeks. Settling on a side week moves the board to the same weekday there, as the desktop arrows do.
+
+**Built (17 Oct 2026), waiting for the phone check:** on the branch `other-days-history-and-ladder`. Typecheck, lint, 421 unit and API tests and 19 end-to-end runs pass (with the phone check's two fixes). Screenshots at 390, 1024, 1280 and 1440 px were compared with pages 01, 05–08, 10, 20 and 30–32.
+
+**Changed while building (recorded in the plan):**
+
+- The week strip is the calendar week, Monday to Sunday, of the day on show. The desktop arrows move a week; the phone gets a calendar sheet for any day, and a Today button. The day is in the address (`/?day=…`); moving between days doesn't add Back steps.
+- A past day shows the reviews done that day in the line cards, with the confidence and the marks; a row opens its item's history. A past day with no reviews shows "–" in the strip.
+- Review early goes through the flash start screen, like Start review, and returns to its day. All done's Review early runs tomorrow's items.
+- History is one panel over every screen (a dialog on desktop, a sheet on the phone) rather than a screen of its own. In review before the reveal it hides the Name. Desktop shows up to 20 reviews before scrolling. Reviews keep the stop numbers they had when a stop is removed later.
+- Ladder changes send the ladder the person saw, so two windows can't remove a stop twice.
+- Settings: the ladder, then the preview and Account, then Lines. The preview follows the selected stop.
+- The phone's confirmation sheet now puts the focus on Cancel too (it was on the action), which also covers deleting a line or an item. After the remove-stop dialog closes, the stop gets the focus back.
+- The phone's All done counts the day under the picture as "0 left · 47 done" (page 05); the tap run's end-to-end test checks that.
+- The sample data has past reviews: the draft's Dijkstra history, and a worked-out history for every other dev item.
+
+**Differences from the mockups:**
+
+- Between 1024 and 1279 px the week strip shows the number alone ("✓ 25", "38"), as the phone does; the words come back from 1280 px.
+- The dashboard's key hints leave out T today (the sidebar shows it), N and `?` (phase 5).
+- The history dialog has a ✕ in its corner; the phone's sheet shows the item's name (page 20's phone card doesn't).
+- With only a few reviews, the line map keeps its columns narrow and leaves space on the right.
+- Settings has no Zsolnay band yet (phase 5), and its Lines card (phase 3) sits below the mockup's cards.
+- On desktop, the Undo pop-up after the last rating covers All done's Review early for its 4 seconds.
 
 ## Phase 5 — Rest moments and polish
 

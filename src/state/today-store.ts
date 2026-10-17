@@ -16,6 +16,7 @@ import type {
   SectionDto,
   TodayResponse,
 } from "../../worker/contract";
+import { moveDayItem } from "./day-store";
 import {
   applyRating,
   confirmReview,
@@ -92,6 +93,11 @@ export function forgetTodayItem(itemId: number): void {
   updateData((data) => withoutItem(data, itemId));
 }
 
+/** A changed ladder, used at once for the confidence buttons and the stop squares. */
+export function setLadder(ladder: number[]): void {
+  updateData((data) => ({ ...data, ladder }));
+}
+
 /** A new section order, shown at once: the dashboard and flash review follow it. */
 export function orderSections(ids: number[]): void {
   updateData((data) => ({
@@ -116,19 +122,27 @@ export function putSection(section: SectionDto, nextLine?: Line): void {
 
 export type LocalRating = { reviewId: number; itemId: number; review: ReviewDto };
 
+/** An item as a rating leaves it. */
+const ratedCopy = (item: ItemDto, review: ReviewDto): ItemDto => ({
+  ...item,
+  stop: review.stopAfter,
+  dueOn: review.nextDueOn,
+});
+
 /**
- * Rates an item now and tells the Worker in the background. The rules come from src/core, so
- * the screen updates at once; if the Worker refuses, the rating is rolled back with a message.
+ * Rates an item now and tells the Worker in the background. `item` is the run's own copy, so an
+ * item due on a later day (Review early) rates the same way as one left today. The rules come
+ * from src/core, so today, other days and the week strip update at once; if the Worker refuses,
+ * the rating is rolled back with a message.
  */
 export function rateItem(
-  itemId: number,
+  item: ItemDto,
   confidence: Confidence,
   pickedDate?: IsoDate,
-): Result<LocalRating, RateRefusal | "not-left"> {
-  if (state.status !== "ready") return { ok: false, error: "not-left" };
+): Result<LocalRating, RateRefusal | "not-ready"> {
+  if (state.status !== "ready") return { ok: false, error: "not-ready" };
   const { data, date } = state;
-  const item = data.items.find((i) => i.id === itemId);
-  if (!item) return { ok: false, error: "not-left" };
+  const itemId = item.id;
 
   const result = rate({
     item,
@@ -144,6 +158,7 @@ export function rateItem(
   const review: ReviewDto = { id: tempId, itemId, ...result.value };
   ratedItems.set(itemId, item);
   updateData((d) => applyRating(d, item, review));
+  moveDayItem(ratedCopy(item, review));
 
   const saved = postJson<RateResponse>("/api/reviews", { itemId, date, confidence, pickedDate })
     .then((response) => {
@@ -152,14 +167,15 @@ export function rateItem(
     })
     .catch(() => {
       updateData((d) => revertRating(d, item, tempId));
-      toast("That rating didn’t save. The item is back on today’s list.");
+      moveDayItem(item);
+      toast("That rating didn’t save. The item is back where it was.");
       return null;
     });
   pending.set(tempId, saved);
   return { ok: true, value: { reviewId: tempId, itemId, review } };
 }
 
-/** Undo a rating made in this session: the item comes back as it was. */
+/** Undo a rating made in this session: the item comes back as it was, on whichever day. */
 export async function undoRating(rating: LocalRating): Promise<boolean> {
   if (state.status !== "ready") return false;
   const item = ratedItems.get(rating.itemId);
@@ -171,11 +187,13 @@ export async function undoRating(rating: LocalRating): Promise<boolean> {
   const review = state.data.reviewsToday.find((r) => r.id === reviewId);
   if (!review) return false;
   updateData((d) => revertRating(d, item, reviewId));
+  moveDayItem(item);
   try {
     await del(`/api/reviews/${reviewId}?date=${date}`);
     return true;
   } catch {
     updateData((d) => applyRating(d, item, review));
+    moveDayItem(ratedCopy(item, review));
     toast("Undo didn’t go through. The rating stands.");
     return false;
   }

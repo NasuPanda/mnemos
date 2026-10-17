@@ -7,6 +7,9 @@ import {
   progress,
   returnTo,
   reveal,
+  runFromTarget,
+  runKey,
+  runQueue,
   startSession,
   toggleAnswer,
 } from "./session";
@@ -75,5 +78,53 @@ describe("A review run", () => {
     const one = startSession({ kind: "item", itemId: 42 }, [42]);
     expect(progress(one)).toEqual({ number: 1, total: 1 });
     expect(isFinished(advance(one, everythingLeft))).toBe(true);
+  });
+});
+
+describe("Runs for today and for Review early", () => {
+  const TODAY = "2026-09-24";
+  const FRIDAY = "2026-09-25";
+  const sections = [
+    { id: 1, position: 1 },
+    { id: 2, position: 2 },
+  ];
+
+  it("reads a run from its address; a day that isn't ahead means today", () => {
+    expect(runFromTarget({}, TODAY)).toEqual({ kind: "all" });
+    expect(runFromTarget({ day: FRIDAY, sectionId: 2 }, TODAY)).toEqual({
+      kind: "section",
+      sectionId: 2,
+      day: FRIDAY,
+    });
+    expect(runFromTarget({ day: TODAY, itemId: 5 }, TODAY)).toEqual({ kind: "item", itemId: 5 });
+    expect(runFromTarget({ day: "2026-09-20" }, TODAY)).toEqual({ kind: "all" });
+  });
+
+  it("tells today's runs from a day's", () => {
+    expect(runKey({ kind: "all" })).toBe("all");
+    expect(runKey({ kind: "all", day: FRIDAY })).toBe("2026-09-25-all");
+    expect(runKey({ kind: "item", itemId: 5, day: FRIDAY })).toBe("2026-09-25-item-5");
+  });
+
+  it("reviews Friday early: its items not reviewed today, in dashboard order", () => {
+    const friday = [
+      { id: 3, sectionId: 2, dueOn: FRIDAY },
+      { id: 1, sectionId: 1, dueOn: FRIDAY },
+      { id: 2, sectionId: 1, dueOn: FRIDAY },
+    ];
+    const options = { sections, reviewedToday: new Set([2]), today: TODAY };
+    expect(runQueue({ kind: "all", day: FRIDAY }, friday, options)).toEqual([1, 3]);
+    expect(runQueue({ kind: "section", sectionId: 2, day: FRIDAY }, friday, options)).toEqual([3]);
+    expect(runQueue({ kind: "item", itemId: 2, day: FRIDAY }, friday, options)).toEqual([]);
+    expect(runQueue({ kind: "item", itemId: 1, day: FRIDAY }, friday, options)).toEqual([1]);
+  });
+
+  it("reviews today's Left items when there is no day", () => {
+    const left = [
+      { id: 7, sectionId: 1, dueOn: TODAY },
+      { id: 6, sectionId: 1, dueOn: "2026-09-21" },
+    ];
+    const options = { sections, reviewedToday: new Set<number>(), today: TODAY };
+    expect(runQueue({ kind: "all" }, left, options)).toEqual([6, 7]);
   });
 });

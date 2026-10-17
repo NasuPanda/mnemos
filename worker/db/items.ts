@@ -1,7 +1,14 @@
-import { and, asc, count, countDistinct, eq } from "drizzle-orm";
+import { and, asc, count, countDistinct, desc, eq } from "drizzle-orm";
 import type { IsoDate, ItemImageInput, ItemText } from "../../src/core";
-import type { ImageDto, ItemDto, ItemResponse, ItemSummaryDto } from "../contract";
+import type {
+  ImageDto,
+  ItemDto,
+  ItemHistoryResponse,
+  ItemResponse,
+  ItemSummaryDto,
+} from "../contract";
 import type { Db } from "./client";
+import { toReviewDto } from "./reviews";
 import { itemImages, items, reviews, sections, type Item } from "./schema";
 
 const NOW = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now')";
@@ -97,6 +104,36 @@ export async function loadItem(
     item: toItemDto(row, imagesByItem(imageRows).get(row.id) ?? []),
     reviews: reviewRows[0]?.n ?? 0,
   };
+}
+
+/**
+ * One item of the person's with every review of it, newest first, through the
+ * (item_id, reviewed_on) index; null when it isn't theirs.
+ */
+export async function loadHistory(
+  db: Db,
+  userId: number,
+  itemId: number,
+): Promise<ItemHistoryResponse | null> {
+  const [itemRows, reviewRows] = await db.batch([
+    db
+      .select({
+        id: items.id,
+        sectionId: items.sectionId,
+        name: items.name,
+        stop: items.stop,
+        dueOn: items.dueOn,
+      })
+      .from(items)
+      .where(and(eq(items.id, itemId), eq(items.userId, userId))),
+    db
+      .select()
+      .from(reviews)
+      .where(and(eq(reviews.itemId, itemId), eq(reviews.userId, userId)))
+      .orderBy(desc(reviews.reviewedOn)),
+  ]);
+  const [item] = itemRows;
+  return item ? { item, reviews: reviewRows.map(toReviewDto) } : null;
 }
 
 /** Whether a section is the person's. */

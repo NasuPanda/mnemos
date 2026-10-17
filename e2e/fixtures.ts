@@ -26,4 +26,6 @@ export const ITEMS = {
   bellmanFord: "Bellman–Ford: detect a negative cycle",
   mutex: "Mutex vs semaphore",
   pageReplacement: "Page replacement: clock algorithm",
+  /** Due tomorrow, on stop 5. */
+  binaryHeap: "Dijkstra with a binary heap",
 } as const;

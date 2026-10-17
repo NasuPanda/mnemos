@@ -55,12 +55,13 @@ test("reviews with taps until All done, and it survives a reload", async ({ page
     await page.getByRole("button", { name: /^Confident/ }).tap();
   }
 
+  // The phone's All done counts the day under the picture (page 05).
   await expect(page.getByRole("heading", { name: "Végállomás" })).toBeVisible();
-  await expect(page.getByText("4 reviewed today.")).toBeVisible();
+  await expect(page.getByText("0 left · 4 done")).toBeVisible();
 
   await page.reload();
   await expect(page.getByRole("heading", { name: "Végállomás" })).toBeVisible();
-  await expect(page.getByText("4 reviewed today.")).toBeVisible();
+  await expect(page.getByText("0 left · 4 done")).toBeVisible();
 });
 
 test("a tap anywhere reveals the answer, but images open zoom and links open", async ({

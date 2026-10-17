@@ -3,6 +3,7 @@ import {
   futureDayCounts,
   futureDayList,
   lineCounts,
+  pastDayList,
   reviewQueue,
   stripCount,
   todayCounts,
@@ -327,9 +328,29 @@ describe("Other days in the week strip", () => {
     ).toThrow(RangeError);
   });
 
+  it("lists a past day's reviews in section order, then in the order they were made", () => {
+    const sections = [
+      { id: 1, position: 2 },
+      { id: 2, position: 1 },
+    ];
+    const monday = [
+      { id: 10, sectionId: 1, name: "Graphs, first" },
+      { id: 14, sectionId: 2, name: "Data structures, second" },
+      { id: 11, sectionId: 2, name: "Data structures, first" },
+      { id: 12, sectionId: 1, name: "Graphs, second" },
+    ];
+    expect(pastDayList(monday, sections).map((review) => review.name)).toEqual([
+      "Data structures, first",
+      "Data structures, second",
+      "Graphs, first",
+      "Graphs, second",
+    ]);
+  });
+
   it("refuses an item whose section isn't in the list instead of misplacing it", () => {
     expect(() => todayList([{ id: 1, sectionId: 99, dueOn: TODAY }], [], new Set(), TODAY)).toThrow(
       RangeError,
     );
+    expect(() => pastDayList([{ id: 1, sectionId: 99 }], [])).toThrow(RangeError);
   });
 });

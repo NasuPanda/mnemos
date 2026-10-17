@@ -1,7 +1,7 @@
-import { Ellipsis, Eye, Lightbulb, Pencil, X } from "lucide-react";
+import { Ellipsis, Eye, History, Lightbulb, Pencil, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { toast } from "sonner";
-import { daysLate, ratingOptions, reviewQueue, type Confidence, type IsoDate } from "@/core";
+import { daysLate, ratingOptions, type Confidence, type IsoDate } from "@/core";
 import { Overdue } from "@/components/overdue";
 import { ExternalLink } from "@/components/review/external-link";
 import { ImageZoom } from "@/components/review/image-zoom";
@@ -21,7 +21,8 @@ import { Kbd } from "@/components/ui/kbd";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { navigate, useLocation } from "@/lib/router";
-import { editItemPath } from "@/lib/routes";
+import { shortDate } from "@/lib/format";
+import { dayPath, editItemPath, runTargetFromQuery } from "@/lib/routes";
 import { useToday } from "@/lib/today";
 import { cn } from "@/lib/utils";
 import {
@@ -32,6 +33,9 @@ import {
   progress,
   returnTo,
   reveal,
+  runFromTarget,
+  runKey,
+  runQueue,
   startSession,
   toggleAnswer,
   type Run,
@@ -39,32 +43,67 @@ import {
 } from "@/review/session";
 import { clearParkedRun, parkedRun, parkRun } from "@/review/parked";
 import { offerUndo, onUndone, undoLast } from "@/review/undo";
+import { useDayState } from "@/state/day-store";
+import { openHistory, useHistoryTarget } from "@/state/history-panel";
 import type { TodayData } from "@/state/today-data";
 import { rateItem, useTodayState } from "@/state/today-store";
 import type { ImageDto, ItemDto } from "../../worker/contract";
 
-/** Review mode: /review?item=ID (one item), ?section=ID (one line) or no query (everything). */
+/**
+ * Review mode: /review?item=ID (one item), ?section=ID (one line) or no query (everything left
+ * today). With ?day=YYYY-MM-DD, the same for a future day's items: Review early.
+ */
 export function ReviewScreen() {
-  const date = useToday();
-  const state = useTodayState(date);
+  const today = useToday();
+  const state = useTodayState(today);
   const { query } = useLocation();
-  const run = useMemo(() => parseRun(query), [query]);
+  const run = useMemo(() => runFromTarget(runTargetFromQuery(query), today), [query, today]);
+  const dayState = useDayState(run.day ?? today, today);
   if (state.status !== "ready") return null;
-  return <ReviewRun key={runKey(run)} data={state.data} run={run} />;
+  if (run.day && dayState.status !== "ready") return null;
+  const dayItems = run.day && dayState.status === "ready" ? dayState.data.items : null;
+  return <ReviewRun key={runKey(run)} data={state.data} dayItems={dayItems} run={run} />;
 }
 
-function ReviewRun({ data, run }: { data: TodayData; run: Run }) {
+/**
+ * One run. `dayItems` is the future day's items for Review early; null for today's run, which
+ * takes today's Left items.
+ */
+function ReviewRun({
+  data,
+  dayItems,
+  run,
+}: {
+  data: TodayData;
+  dayItems: ItemDto[] | null;
+  run: Run;
+}) {
   const key = runKey(run);
-  // The run's items, kept for the whole run: a rated item leaves today's list but stays on screen
+  const home = dayPath(run.day ?? data.date, data.date);
+  const reviewedToday = useMemo(
+    () => new Set(data.reviewsToday.map((review) => review.itemId)),
+    [data.reviewsToday],
+  );
+  // The items this run can still rate: today's Left items, or the day's not yet reviewed today.
+  const source = useMemo(
+    () => (dayItems ?? data.items).filter((item) => !reviewedToday.has(item.id)),
+    [dayItems, data.items, reviewedToday],
+  );
+  // The run's items, kept for the whole run: a rated item leaves its list but stays on screen
   // until the next one, and comes back as it was on Undo.
   const [items] = useState(
-    () => parkedRun(key)?.items ?? new Map(data.items.map((item) => [item.id, item])),
+    () => parkedRun(key)?.items ?? new Map(source.map((item) => [item.id, item])),
   );
   // Back from the editor, the run goes on where it was; an item deleted there is skipped.
   const [session, setSession] = useState<Session>(() => {
     const parked = parkedRun(key);
-    if (!parked) return startSession(run, queueFor(data, run));
-    const live = new Set(data.items.map((item) => item.id));
+    if (!parked) {
+      return startSession(
+        run,
+        runQueue(run, source, { sections: data.sections, reviewedToday, today: data.date }),
+      );
+    }
+    const live = new Set(source.map((item) => item.id));
     const current = currentItem(parked.session);
     return current !== null && !live.has(current)
       ? advance(parked.session, (id) => live.has(id))
@@ -78,19 +117,19 @@ function ReviewRun({ data, run }: { data: TodayData; run: Run }) {
 
   const left = useRef(new Set<number>());
   useEffect(() => {
-    left.current = new Set(data.items.map((item) => item.id));
-  }, [data.items]);
+    left.current = new Set(source.map((item) => item.id));
+  }, [source]);
 
   useEffect(() => onUndone((itemId) => setSession((s) => returnTo(s, itemId))), []);
 
   const finished = isFinished(session);
   useEffect(() => {
-    // Back to the dashboard: All done if nothing is left, or the rest of today's lines.
-    if (finished) navigate("/", { replace: true });
-  }, [finished]);
+    // Back to the day: All done if nothing is left today, or the rest of the day's lines.
+    if (finished) navigate(home, { replace: true });
+  }, [finished, home]);
 
-  // Today's copy first, so an edit shows; the run's own copy once the item is rated.
-  const liveItems = useMemo(() => new Map(data.items.map((i) => [i.id, i])), [data.items]);
+  // The list's copy first, so an edit shows; the run's own copy once the item is rated.
+  const liveItems = useMemo(() => new Map(source.map((i) => [i.id, i])), [source]);
   const itemId = currentItem(session);
   const item = itemId === null ? undefined : (liveItems.get(itemId) ?? items.get(itemId));
   const section = data.sections.find((s) => s.id === item?.sectionId);
@@ -104,7 +143,7 @@ function ReviewRun({ data, run }: { data: TodayData; run: Run }) {
 
   const rate = (confidence: Confidence) => {
     if (!item || !session.revealed || pressed) return;
-    const result = rateItem(item.id, confidence, session.pickedDate ?? undefined);
+    const result = rateItem(item, confidence, session.pickedDate ?? undefined);
     if (!result.ok) return void toast(REFUSALS[result.error]);
     offerUndo(result.value);
     setPressed(confidence);
@@ -117,6 +156,10 @@ function ReviewRun({ data, run }: { data: TodayData; run: Run }) {
       reducedMotion ? 0 : 120,
     );
   };
+
+  /** H: the item's history over the run; before the reveal it keeps the name hidden too. */
+  const showHistory = () => item && openHistory(item.id, { hideName: !session.revealed });
+  const historyOpen = useHistoryTarget() !== null;
 
   const visibleImages = item
     ? item.images.filter((image) => session.revealed || image.side === "problem")
@@ -134,9 +177,10 @@ function ReviewRun({ data, run }: { data: TodayData; run: Run }) {
       z: () => visibleImages[0] && openZoom(visibleImages[0]),
       u: () => void undoLast(),
       e: edit,
-      Escape: () => navigate("/"),
+      h: showHistory,
+      Escape: () => navigate(home),
     },
-    zoom === null && !pickerOpen,
+    zoom === null && !pickerOpen && !historyOpen,
   );
 
   if (!item || !section) return null;
@@ -159,7 +203,7 @@ function ReviewRun({ data, run }: { data: TodayData; run: Run }) {
         <Button
           variant="ghost"
           className="h-12 gap-2 px-3 text-item font-bold"
-          onClick={() => navigate("/")}
+          onClick={() => navigate(home)}
         >
           <X aria-hidden className="size-5" />
           <span className="hidden lg:inline">Close</span>
@@ -189,7 +233,16 @@ function ReviewRun({ data, run }: { data: TodayData; run: Run }) {
         </div>
         <Button
           variant="ghost"
-          className="hidden h-12 w-32 justify-end gap-2 px-3 text-item font-bold lg:inline-flex"
+          className="hidden h-12 gap-2 px-3 text-item font-bold lg:inline-flex"
+          onClick={showHistory}
+        >
+          <History aria-hidden className="size-5" />
+          History
+          <Kbd>H</Kbd>
+        </Button>
+        <Button
+          variant="ghost"
+          className="hidden h-12 gap-2 px-3 text-item font-bold lg:inline-flex"
           onClick={edit}
         >
           <Pencil aria-hidden className="size-5" />
@@ -203,6 +256,10 @@ function ReviewRun({ data, run }: { data: TodayData; run: Run }) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-52 rounded-lg p-1.5 shadow-raised">
+            <DropdownMenuItem className="h-12 gap-3 text-body" onSelect={showHistory}>
+              <History aria-hidden className="size-5" />
+              History
+            </DropdownMenuItem>
             <DropdownMenuItem className="h-12 gap-3 text-body" onSelect={edit}>
               <Pencil aria-hidden className="size-5" />
               Edit item
@@ -394,36 +451,17 @@ const REFUSALS = {
   "already-reviewed-today": "Already reviewed today. It comes back on its next date.",
   "picked-date-invalid": "That date doesn’t exist. Pick another.",
   "picked-date-not-after-today": "Pick a date after today.",
-  "not-left": "This item isn’t on today’s list any more.",
+  "not-ready": "Today hasn’t loaded yet. Try again in a moment.",
 } as const;
 
-function parseRun(query: URLSearchParams): Run {
-  const item = Number(query.get("item"));
-  if (Number.isSafeInteger(item) && item > 0) return { kind: "item", itemId: item };
-  const section = Number(query.get("section"));
-  if (Number.isSafeInteger(section) && section > 0) return { kind: "section", sectionId: section };
-  return { kind: "all" };
-}
-
-function runKey(run: Run): string {
-  return run.kind === "all"
-    ? "all"
-    : `${run.kind}-${run.kind === "item" ? run.itemId : run.sectionId}`;
-}
-
 function runLabel(run: Run, sectionName: string): string {
+  if (run.day) {
+    const day = shortDate(run.day);
+    if (run.kind === "item") return `Review early · ${day}`;
+    if (run.kind === "section") return `Review early · ${day} · ${sectionName}`;
+    return `Review early · ${day} · all lines`;
+  }
   if (run.kind === "item") return `Review · ${sectionName}`;
   if (run.kind === "section") return `Flash review · ${sectionName}`;
   return "Flash review · all lines";
-}
-
-function queueFor(data: TodayData, run: Run): number[] {
-  if (run.kind === "item") return data.items.some((i) => i.id === run.itemId) ? [run.itemId] : [];
-  const reviewedToday = new Set(data.reviewsToday.map((r) => r.itemId));
-  return reviewQueue(data.items, {
-    sections: data.sections,
-    reviewedToday,
-    today: data.date,
-    sectionId: run.kind === "section" ? run.sectionId : undefined,
-  }).map((item) => item.id);
 }

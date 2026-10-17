@@ -7,11 +7,12 @@ import {
   type IsoDate,
   type Ladder,
 } from "../../src/core";
-import type { ReviewDto, TodayResponse } from "../contract";
+import type { TodayResponse } from "../contract";
 import type { Db } from "./client";
 import { imageColumns, imagesByItem, toItemDto } from "./items";
+import { toReviewDto } from "./reviews";
 import { sectionColumns } from "./sections";
-import { itemImages, items, reviews, sections, settings, type ReviewRow } from "./schema";
+import { itemImages, items, reviews, sections, settings } from "./schema";
 
 /** The person's ladder from their settings; the default when they have none yet. */
 export async function loadLadder(db: Db, userId: number): Promise<Ladder> {
@@ -79,20 +80,6 @@ export async function loadToday(db: Db, userId: number, date: IsoDate): Promise<
     reviewsToday: reviewRows.map(toReviewDto),
     tomorrow: { date: tomorrow, itemIds: tomorrowRows.map((row) => row.id) },
     nextLine: settingsRows[0]?.nextLine ?? FIRST_LINE,
-  };
-}
-
-export function toReviewDto(row: ReviewRow): ReviewDto {
-  return {
-    id: row.id,
-    itemId: row.itemId,
-    reviewedOn: row.reviewedOn,
-    confidence: row.confidence,
-    stopBefore: row.stopBefore,
-    stopAfter: row.stopAfter,
-    wasDueOn: row.wasDueOn,
-    nextDueOn: row.nextDueOn,
-    manual: row.manual,
   };
 }
 

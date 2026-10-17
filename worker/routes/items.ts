@@ -17,6 +17,7 @@ import {
   deleteItem,
   imagesInUse,
   insertItem,
+  loadHistory,
   loadItem,
   loadItemList,
   ownsSection,
@@ -58,6 +59,13 @@ export const itemRoutes = new Hono<AppEnv>()
     const itemId = parseId(c.req.param("id"));
     if (!itemId) return c.json({ error: "an item id is required" }, 400);
     const found = await loadItem(getDb(c.env.DB), c.var.user.id, itemId);
+    return found ? c.json(found) : c.json({ error: "not_found" }, 404);
+  })
+  /** GET /api/items/:id/history: the item's reviews, newest first, for its history. */
+  .get("/:id/history", async (c) => {
+    const itemId = parseId(c.req.param("id"));
+    if (!itemId) return c.json({ error: "an item id is required" }, 400);
+    const found = await loadHistory(getDb(c.env.DB), c.var.user.id, itemId);
     return found ? c.json(found) : c.json({ error: "not_found" }, 404);
   })
   /** POST /api/items: a new item on stop 1, due on the browser's today. */

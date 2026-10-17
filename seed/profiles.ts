@@ -22,6 +22,20 @@ export type SeedItem = {
   sideNote?: string;
   /** A review made today, which moved the item to its current stop and due date. */
   reviewedToday?: { confidence: Confidence; stopBefore: number; wasDueIn: number };
+  /** Reviews before today, oldest first; the last one led to the item's stop before today. */
+  history?: SeedReview[];
+};
+
+/** A review on a past day. Days are counted from today: -3 is three days ago. */
+export type SeedReview = {
+  on: number;
+  confidence: Confidence;
+  stopBefore: number;
+  stopAfter: number;
+  wasDueIn: number;
+  nextDueIn: number;
+  /** The next date was picked instead of the ladder's gap. */
+  manual?: boolean;
 };
 
 export type Profile = {
@@ -53,6 +67,46 @@ const DIJKSTRA: Omit<SeedItem, "section" | "stop" | "dueIn"> = {
   answerImages: ["fig3-steps.webp", "fig4-compare.webp"],
   sideNote:
     "Negative weights? Reach for **Bellman–Ford**. Dijkstra only works when every weight is zero or more.",
+  // The design draft's history, 3 to 16 September seen from Thursday the 24th (page 20): the date
+  // picked on 4 Sep, the drop on 10 Sep, and the review on 12 Sep, one day early.
+  history: [
+    { on: -21, confidence: "neutral", stopBefore: 1, stopAfter: 1, wasDueIn: -21, nextDueIn: -20 },
+    {
+      on: -20,
+      confidence: "confident",
+      stopBefore: 1,
+      stopAfter: 2,
+      wasDueIn: -20,
+      nextDueIn: -17,
+      manual: true,
+    },
+    {
+      on: -17,
+      confidence: "confident",
+      stopBefore: 2,
+      stopAfter: 3,
+      wasDueIn: -17,
+      nextDueIn: -14,
+    },
+    {
+      on: -14,
+      confidence: "not_at_all",
+      stopBefore: 3,
+      stopAfter: 1,
+      wasDueIn: -14,
+      nextDueIn: -13,
+    },
+    {
+      on: -13,
+      confidence: "confident",
+      stopBefore: 1,
+      stopAfter: 2,
+      wasDueIn: -13,
+      nextDueIn: -11,
+    },
+    { on: -12, confidence: "confident", stopBefore: 2, stopAfter: 3, wasDueIn: -11, nextDueIn: -9 },
+    { on: -8, confidence: "confident", stopBefore: 3, stopAfter: 4, wasDueIn: -9, nextDueIn: -3 },
+  ],
 };
 
 /** A short problem and a Markdown answer, so every item has something to review. */
@@ -211,6 +265,72 @@ const TOPICS: Record<string, string[]> = {
   ],
 };
 
+const LADDER = [1, 2, 3, 5, 7, 14, 28];
+/** How far back generated histories go. */
+const HISTORY_DAYS = 42;
+
+/**
+ * A plausible history for an item, worked out backwards from where it is now: each review put
+ * it on a stop due that stop's gap later. Mostly climbs, with some Neutral and Not at all, a few
+ * late reviews and the odd early one. It stops at the item's first review or six weeks back.
+ */
+function pastReviews(stop: number, dueIn: number, next: () => number): SeedReview[] {
+  const reviews: SeedReview[] = [];
+  let stopAfter = stop;
+  let nextDueIn = dueIn;
+  for (;;) {
+    const planned = nextDueIn - gapOf(stopAfter);
+    if (planned >= 0 || planned < -HISTORY_DAYS) break;
+
+    let stopBefore: number;
+    let first = false;
+    const pick = next();
+    if (stopAfter > 1) stopBefore = pick < 0.85 ? stopAfter - 1 : stopAfter;
+    else if (pick < 0.5) [stopBefore, first] = [1, true];
+    else stopBefore = pick < 0.8 ? 2 + Math.floor(next() * 3) : 1;
+
+    // How late the review was: mostly on time, sometimes a day or two late, rarely a day early.
+    const timing = next();
+    let late = timing < 0.8 ? 0 : timing < 0.95 ? 1 + Math.floor(next() * 2) : -1;
+    if (first || (late < 0 && gapOf(stopBefore) < 2)) late = 0;
+
+    const wasDueIn = planned - late;
+    reviews.unshift({
+      on: planned,
+      confidence: confidenceFor(stopBefore, stopAfter),
+      stopBefore,
+      stopAfter,
+      wasDueIn,
+      nextDueIn,
+    });
+    if (first) break;
+    stopAfter = stopBefore;
+    nextDueIn = wasDueIn;
+  }
+  return reviews;
+}
+
+function gapOf(stop: number): number {
+  return LADDER[stop - 1] ?? 1;
+}
+
+function confidenceFor(before: number, after: number): Confidence {
+  if (after > before) return "confident";
+  return after === before ? "neutral" : "not_at_all";
+}
+
+/** Gives every item without a history one that leads to where it is now (or to today's review). */
+function withHistories(items: SeedItem[], seed: number): SeedItem[] {
+  const next = random(seed);
+  return items.map((i) => {
+    if (i.history) return i;
+    const from = i.reviewedToday
+      ? { stop: i.reviewedToday.stopBefore, dueIn: i.reviewedToday.wasDueIn }
+      : { stop: i.stop, dueIn: i.dueIn };
+    return { ...i, history: pastReviews(from.stop, from.dueIn, next) };
+  });
+}
+
 /** A small deterministic random generator, so every seed gives the same account. */
 function random(seed: number): () => number {
   let state = seed >>> 0;
@@ -348,12 +468,15 @@ export function devProfile(): Profile {
 
   return {
     sections,
-    items: [...leftToday, ...reviewedThisMorning, ...dueTomorrow, ...later],
+    items: withHistories([...leftToday, ...reviewedThisMorning, ...dueTomorrow, ...later], 24),
     nextLine: "m3",
   };
 }
 
-/** A small fixed set for the end-to-end tests: four items left today, one due tomorrow. */
+/**
+ * A small fixed set for the end-to-end tests: four items left today, one due tomorrow. Only the
+ * Dijkstra item has a history (the design draft's).
+ */
 export function e2eProfile(): Profile {
   return {
     sections: [
