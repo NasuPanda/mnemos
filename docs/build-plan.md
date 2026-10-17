@@ -223,12 +223,12 @@ Typecheck, lint, 331 unit and API tests and 14 end-to-end runs pass.
 
 **Done when:** you can plan around a busy day by reviewing early, and change your ladder without surprises.
 
-**Phone check:** the deployed build was tried on the phone. Phase 4 is done when every box here is ticked and checked on the phone again.
+**Done (17 Oct 2026):** deployed and checked on the phone. The check asked for two changes, both made, merged ([#11](https://github.com/NasuPanda/mnemos/pull/11)) and checked on the phone again:
 
 - [x] [Issue #12](https://github.com/NasuPanda/mnemos/issues/12): the tab bar's "Today" becomes "Review" (the sidebar's too), since the board shows any day and today is marked in the week strip.
-- [x] [Issue #13](https://github.com/NasuPanda/mnemos/issues/13): on the phone, swipe the week strip to the previous or next week; until now only the calendar reached other weeks. Settling on a side week moves the board to the same weekday there, as the desktop arrows do.
+- [x] [Issue #13](https://github.com/NasuPanda/mnemos/issues/13): on the phone, swipe the week strip to the previous or next week; until then only the calendar reached other weeks. Settling on a side week moves the board to the same weekday there, as the desktop arrows do.
 
-**Built (17 Oct 2026), waiting for the phone check:** on the branch `other-days-history-and-ladder`. Typecheck, lint, 421 unit and API tests and 19 end-to-end runs pass (with the phone check's two fixes). Screenshots at 390, 1024, 1280 and 1440 px were compared with pages 01, 05–08, 10, 20 and 30–32.
+Typecheck, lint, 421 unit and API tests and 19 end-to-end runs pass. Screenshots at 390, 1024, 1280 and 1440 px were compared with pages 01, 05–08, 10, 20 and 30–32.
 
 **Changed while building (recorded in the plan):**
 
