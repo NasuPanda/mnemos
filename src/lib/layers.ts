@@ -1,6 +1,17 @@
-/** Whether a popover, menu, sheet or dialog is open; it has the keys until it closes. */
+/**
+ * Whether a popover, menu, sheet or dialog is open; it has the keys until it closes. One that is
+ * fading out after closing doesn't count.
+ */
 export function openLayer(): boolean {
   return !!document.querySelector(
-    '[data-slot="popover-content"], [data-slot="dropdown-menu-content"], [data-slot="drawer-content"], [data-slot="alert-dialog-content"], [data-slot="dialog-content"]',
+    [
+      "popover-content",
+      "dropdown-menu-content",
+      "drawer-content",
+      "alert-dialog-content",
+      "dialog-content",
+    ]
+      .map((slot) => `[data-slot="${slot}"][data-state="open"]`)
+      .join(", "),
   );
 }
