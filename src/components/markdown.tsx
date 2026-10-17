@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 
@@ -24,13 +25,14 @@ const linkAndImage: Components = {
 
 /**
  * GitHub-style Markdown for the problem description, answer text and side note: code blocks,
- * lists and tables, but no raw HTML, no Markdown images and no math.
+ * lists and tables, but no raw HTML, no Markdown images and no math. As in GitHub comments, a
+ * new line is a line break; a blank line starts a new paragraph.
  */
 export function Markdown({ children, className }: { children: string; className?: string }) {
   return (
     <div className={cn("markdown", className)}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkBreaks]}
         skipHtml
         disallowedElements={["img"]}
         components={linkAndImage}

@@ -16,6 +16,27 @@ describe("Markdown fields: problem description, answer text and side note", () =
     expect(html).toContain("<table>");
   });
 
+  it("keeps a new line as a line break, as GitHub comments do", () => {
+    expect(block("`Hello`\nYo")).toBe(
+      '<div class="markdown"><p><code>Hello</code><br/>\nYo</p></div>',
+    );
+  });
+
+  it("starts a new paragraph after a blank line", () => {
+    expect(block("First\n\nSecond")).toBe(
+      '<div class="markdown"><p>First</p>\n<p>Second</p></div>',
+    );
+  });
+
+  it("keeps the lines of a code block as they are", () => {
+    expect(block("```\npop S\npop A\n```")).toContain("<pre><code>pop S\npop A\n</code></pre>");
+    expect(block("```\npop S\npop A\n```")).not.toContain("<br");
+  });
+
+  it("keeps new lines inside a list item", () => {
+    expect(block("- Dijkstra\n  needs weights ≥ 0")).toContain("Dijkstra<br/>\nneeds weights ≥ 0");
+  });
+
   it("drops raw HTML", () => {
     const html = block('Hi <script>alert(1)</script><b onclick="x()">there</b>');
     expect(html).not.toContain("<script");
