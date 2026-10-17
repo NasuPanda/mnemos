@@ -86,7 +86,8 @@ export function LineDialog({
     );
   }
   return (
-    <Drawer open={open} onOpenChange={(next) => !next && onClose()}>
+    // vaul's lift for the keyboard doubles Safari's own on iPhone (issue #6): Safari alone.
+    <Drawer open={open} onOpenChange={(next) => !next && onClose()} repositionInputs={false}>
       <DrawerContent className="max-h-[92dvh]">
         <DrawerHeader className="px-5 pt-3 pb-0 text-left group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left">
           <DrawerTitle className="text-heading">{title}</DrawerTitle>
