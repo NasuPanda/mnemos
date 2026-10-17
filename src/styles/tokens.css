@@ -223,6 +223,8 @@
   --ease-quick: cubic-bezier(0.2, 0.8, 0.2, 1);
   --animate-reveal: reveal 120ms var(--ease-quick);
   --animate-sheet-in: sheet-in 150ms var(--ease-quick);
+  --animate-door-left: door-left 150ms var(--ease-quick);   /* flash review start */
+  --animate-door-right: door-right 150ms var(--ease-quick);
   --breakpoint-desk: 80rem;     /* 1280 px: two columns */
 
   @keyframes reveal {
@@ -230,6 +232,12 @@
   }
   @keyframes sheet-in {
     from { opacity: 0; transform: translateY(24px); }
+  }
+  @keyframes door-left {
+    from { transform: translateX(-7px); }
+  }
+  @keyframes door-right {
+    from { transform: translateX(7px); }
   }
 }
 
