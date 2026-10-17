@@ -95,6 +95,7 @@ describe("Contrast (page 22)", () => {
 
   it("Foam on the image number chip (Dusk at 86 % over a white image) meets AA", () => {
     const chip = overWhite(hex("background"), 0.86);
+    // eslint-disable-next-line no-restricted-syntax -- the mix page 22 lists, checked as written.
     expect(chip).toBe("#303744");
     expect(ratio(hex("foreground"), chip)).toBeCloseTo(10.64, 1);
   });
