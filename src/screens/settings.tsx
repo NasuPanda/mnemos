@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import type { Line } from "@/core";
 import { AppShell } from "@/components/app-shell";
 import { SectionBadge } from "@/components/section-badge";
+import { AccountCard } from "@/components/settings/account-card";
+import { LadderEditor } from "@/components/settings/ladder-editor";
 import { DeleteLine, LineDialog, type LineDialogMode } from "@/components/settings/line-dialog";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
@@ -33,8 +35,8 @@ import { useTodayState } from "@/state/today-store";
 import type { SectionDto } from "../../worker/contract";
 
 /**
- * Settings, "Menetrend": for now the lines, in order; the ladder editor and the account come
- * in phase 4.
+ * Settings, "Menetrend" (timetable): the ladder with where each rating leads, the account, and
+ * the lines in order.
  */
 export function SettingsScreen() {
   const date = useToday();
@@ -42,13 +44,15 @@ export function SettingsScreen() {
   const list = useItemsState(date);
   const data = today.status === "ready" ? today.data : null;
   const lines = useMemo(() => (data ? todayView(data).lines : new Map<number, number>()), [data]);
-  const items = useMemo(() => {
-    if (list.status !== "ready") return undefined;
-    const perSection = new Map<number, number>();
+  const { perSection, perStop } = useMemo(() => {
+    if (list.status !== "ready") return { perSection: undefined, perStop: undefined };
+    const sections = new Map<number, number>();
+    const stops = new Map<number, number>();
     for (const item of list.items) {
-      perSection.set(item.sectionId, (perSection.get(item.sectionId) ?? 0) + 1);
+      sections.set(item.sectionId, (sections.get(item.sectionId) ?? 0) + 1);
+      stops.set(item.stop, (stops.get(item.stop) ?? 0) + 1);
     }
-    return perSection;
+    return { perSection: sections, perStop: stops };
   }, [list]);
 
   useEffect(() => {
@@ -61,18 +65,35 @@ export function SettingsScreen() {
     <AppShell sections={data?.sections ?? []} lines={lines}>
       <main className="mx-auto max-w-[1200px] px-4 pt-8 pb-12 sm:px-6 lg:px-10 lg:pt-10">
         <header className="flex flex-col gap-1 lg:flex-row lg:items-start lg:gap-10">
-          <div>
-            <h1 lang="hu" className="text-title lg:text-display">
-              Menetrend
-            </h1>
-            <p className="text-small text-muted-foreground">Timetable</p>
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h1 lang="hu" className="text-title lg:text-display">
+                Menetrend
+              </h1>
+              <p className="text-small text-muted-foreground">Timetable</p>
+            </div>
+            {data && (
+              <p className="pb-0.5 font-mono text-meta text-muted-foreground lg:hidden">
+                {data.ladder.length} of 7 stops
+              </p>
+            )}
           </div>
-          <p className="mt-3 max-w-xl text-body text-muted-foreground lg:mt-2">
-            Your lines, in the order the dashboard and flash review go through them. The ladder and
-            your account come here next.
+          <p className="mt-3 hidden max-w-xl text-body text-muted-foreground lg:mt-2 lg:block">
+            Your ladder decides when an item comes back. New items start on stop 1 and are due the
+            day you add them.
           </p>
         </header>
-        {data && <LinesCard sections={data.sections} nextLine={data.nextLine} items={items} />}
+        {data && (
+          <>
+            <LadderEditor
+              ladder={data.ladder}
+              counts={perStop}
+              today={date}
+              account={<AccountCard />}
+            />
+            <LinesCard sections={data.sections} nextLine={data.nextLine} items={perSection} />
+          </>
+        )}
       </main>
     </AppShell>
   );
