@@ -306,7 +306,7 @@ Cloudflare Access with Google login: each person signs in about once a month per
 
 **Things to handle in code:**
 
-- **No sign-in screen in the app:** Access shows its own login page before the app loads. The design draft's sign-in screen can only carry over as Access's login-page customization (name, logo, colours).
+- **No sign-in screen in the app:** Access shows its own login page before the app loads. The design draft's sign-in screen can only carry over as Access's login-page customization (name, logo, colours). With Instant Auth on, Access goes straight to Google, so that page rarely shows; it gets the name Mnemos and the Dusk background, and no logo, since a logo needs a public address and everything on the app's address is behind Access (`docs/setup.md`, step 15).
 - **Sign out:** the Account card's Sign out links to `/cdn-cgi/access/logout`.
 - **Session expiry:** after a month, API calls get redirected to the login page. Call `fetch` with `redirect: "manual"`, and if `res.type === "opaqueredirect"`, reload the page.
 - **Phone install:** the manifest link needs `crossorigin="use-credentials"`, or installing fails behind Access. The manifest, icons and favicon are static files in `public/`. The installed app opens standalone with a black status bar; content starts below it.
