@@ -49,8 +49,15 @@ test("reviews with taps until All done, and it survives a reload", async ({ page
   await page.getByRole("link", { name: /Start review · 4/ }).tap();
   await page.getByRole("button", { name: /^Start/ }).tap();
 
+  // All done's picture loads while the last item is on screen, and not before.
+  const artLoaded = () =>
+    page.evaluate(() =>
+      performance.getEntriesByType("resource").some((entry) => entry.name.includes("/parliament-")),
+    );
   for (let number = 1; number <= 4; number++) {
     await onItem(page, number);
+    if (number < 4) expect(await artLoaded()).toBe(false);
+    else await expect.poll(artLoaded).toBe(true);
     await page.getByRole("button", { name: /Show answer/ }).tap();
     await page.getByRole("button", { name: /^Confident/ }).tap();
   }

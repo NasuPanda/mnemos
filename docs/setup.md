@@ -68,6 +68,23 @@ The app lives at `https://mnemos.<your-subdomain>.workers.dev`. `<team>` below i
     - Until both are set, every API request answers 401.
 14. Open the `workers.dev` address on your laptop and your phone. It should ask for Google, then show "Signed in as \<your email\>".
 
+### E. The Access login page (phase 5)
+
+With Instant Auth on (step 12), Access goes straight to Google and its own login page rarely shows: only if Instant Auth is ever off. It is set to match the app anyway.
+
+15. **Zero Trust → Reusable components → Custom pages → Access login page → Manage:**
+    - Organization name: **Mnemos**;
+    - Background colour: **#0E1726** (Dusk);
+    - header and footer: leave empty;
+    - Logo: leave empty. A logo needs a public address, and everything on the app's address is behind Access;
+    - Save.
+
+## Installing on your phone
+
+- **iPhone:** open the app in Safari, then Share → **Add to Home Screen**. The yellow M is the icon, and Mnemos opens on its own, without Safari's bars, with a black status bar.
+- **Android:** in Chrome, ⋮ → **Add to Home screen** (or Install app).
+- The installed app keeps its own sign-in, apart from the browser's: sign in with Google once inside it, about once a month after that. If that sign-in doesn't come back to Mnemos, remove the icon and keep using the browser; the install is optional.
+
 ## Deploying
 
 The first deploy creates the resources. Every later deploy is only the last two commands.

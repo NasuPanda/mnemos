@@ -11,6 +11,7 @@ import { dayPath, reviewPath, runTargetFromQuery } from "@/lib/routes";
 import { useToday } from "@/lib/today";
 import { runFromTarget, runQueue } from "@/review/session";
 import { useDayState } from "@/state/day-store";
+import { usePanelOpen } from "@/state/overlay";
 import { useTodayState } from "@/state/today-store";
 
 /**
@@ -49,7 +50,11 @@ export function FlashStartScreen() {
   }, [empty, home]);
 
   const start = () => navigate(reviewPath({ day: target.day, sectionId }), { replace: true });
-  useHotkeys({ Enter: start, f: start, Escape: () => navigate(home) }, !!run && !empty);
+  const panelOpen = usePanelOpen();
+  useHotkeys(
+    { Enter: start, f: start, Escape: () => navigate(home) },
+    !!run && !empty && !panelOpen,
+  );
 
   if (!run || empty) return null;
   const single = sectionId ? run.lines[0]?.section : undefined;
@@ -115,47 +120,48 @@ export function FlashStartScreen() {
   );
 }
 
-/** Two metro doors meeting in the middle. A placeholder for the phase 5 doors screen. */
+/**
+ * Two metro doors (page 04). They slide shut once in 150 ms as the screen opens; with reduced
+ * motion they are simply shut. Start never waits for them.
+ */
 function Doors() {
   return (
     <svg viewBox="0 0 216 168" aria-hidden className="h-auto w-[216px]">
       <rect
-        x="2"
-        y="2"
-        width="212"
-        height="164"
+        x="1"
+        y="1"
+        width="214"
+        height="166"
         rx="12"
         className="fill-none stroke-input"
-        strokeWidth="3"
+        strokeWidth="1.75"
       />
-      {[12, 112].map((x) => (
-        <g key={x}>
+      {(
+        [
+          { x: 11, chevron: "M76 115l11 12-11 12", motion: "animate-door-left" },
+          { x: 113, chevron: "M140 115l-11 12 11 12", motion: "animate-door-right" },
+        ] as const
+      ).map(({ x, chevron, motion }) => (
+        <g key={x} className={motion}>
           <rect
             x={x}
-            y="12"
+            y="11"
             width="92"
-            height="144"
-            rx="8"
+            height="146"
+            rx="10"
             className="fill-secondary stroke-input"
-            strokeWidth="2"
+            strokeWidth="1.5"
           />
-          <rect x={x + 12} y="26" width="68" height="56" rx="5" className="fill-background" />
+          <rect x={x + 12} y="27" width="68" height="60" rx="7" className="fill-card" />
+          <path
+            d={chevron}
+            className="fill-none stroke-foreground"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </g>
       ))}
-      <path
-        d="M84 116 l10 10 l-10 10"
-        className="fill-none stroke-foreground"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M132 116 l-10 10 l10 10"
-        className="fill-none stroke-foreground"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </svg>
   );
 }

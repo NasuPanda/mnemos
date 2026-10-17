@@ -88,6 +88,9 @@
   --rail: var(--mist-300);            /* ladder rails */
   --illustration: var(--lamplight-400); /* warm light in illustrations; never text, controls or state */
   --illustration-shade: var(--dusk-700); /* shapes and silhouettes in drawings */
+  --zsolnay-ground: var(--dusk-900);  /* Zsolnay tiles: ground and inner diamonds */
+  --zsolnay-tile: var(--dusk-800);    /* Zsolnay tiles: diamonds with a centre */
+  --zsolnay-tile-alt: var(--dusk-750); /* Zsolnay tiles: the rows between */
   --elevation-card: inset 0 1px 0 rgb(255 255 255 / 0.03),
     0 4px 14px rgb(4 9 20 / 0.35);
   --elevation-raised: 0 8px 24px rgb(4 9 20 / 0.45);
@@ -149,6 +152,9 @@
   --color-rail: var(--rail);
   --color-illustration: var(--illustration);
   --color-illustration-shade: var(--illustration-shade);
+  --color-zsolnay-ground: var(--zsolnay-ground);
+  --color-zsolnay-tile: var(--zsolnay-tile);
+  --color-zsolnay-tile-alt: var(--zsolnay-tile-alt);
   --shadow-card: var(--elevation-card);
   --shadow-raised: var(--elevation-raised);
   --shadow-overlay: var(--elevation-overlay);
@@ -217,6 +223,8 @@
   --ease-quick: cubic-bezier(0.2, 0.8, 0.2, 1);
   --animate-reveal: reveal 120ms var(--ease-quick);
   --animate-sheet-in: sheet-in 150ms var(--ease-quick);
+  --animate-door-left: door-left 150ms var(--ease-quick);   /* flash review start */
+  --animate-door-right: door-right 150ms var(--ease-quick);
   --breakpoint-desk: 80rem;     /* 1280 px: two columns */
 
   @keyframes reveal {
@@ -224,6 +232,12 @@
   }
   @keyframes sheet-in {
     from { opacity: 0; transform: translateY(24px); }
+  }
+  @keyframes door-left {
+    from { transform: translateX(-7px); }
+  }
+  @keyframes door-right {
+    from { transform: translateX(7px); }
   }
 }
 

@@ -10,8 +10,9 @@ import { Link } from "@/components/link";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Kbd } from "@/components/ui/kbd";
-import { KeyHintBar } from "@/components/key-hint-bar";
+import { KeyHintBar, type KeyHint } from "@/components/key-hint-bar";
 import { useHotkeys } from "@/hooks/use-hotkeys";
+import { ALL_DONE_ART } from "@/lib/all-done-art";
 import { dayMonth, longDate, relativeDay, shortDate, weekday } from "@/lib/format";
 import { navigate, useLocation } from "@/lib/router";
 import {
@@ -33,11 +34,10 @@ import {
   type DayData,
 } from "@/state/day-data";
 import { retryDay, useAnyDayAnswered, useDayState, useWeek } from "@/state/day-store";
-import { openHistory, useHistoryTarget } from "@/state/history-panel";
+import { openHistory } from "@/state/history-panel";
+import { usePanelOpen } from "@/state/overlay";
 import { todayView, type TodayData, type TodayView } from "@/state/today-data";
 import { load, useTodayState } from "@/state/today-store";
-import wideArt from "@/assets/parliament-placeholder-wide.webp";
-import narrowArt from "@/assets/parliament-placeholder-narrow.webp";
 import type { SectionDto } from "../../worker/contract";
 
 /** The selected row survives a trip into review mode and back. */
@@ -72,13 +72,13 @@ export function TodayScreen() {
     };
   }, [view, week, previousWeek, nextWeek, day, today]);
 
-  const historyOpen = useHistoryTarget() !== null;
+  const panelOpen = usePanelOpen();
   useHotkeys(
     {
       "[": () => navigate(dayPath(addDays(day, -1), today), { replace: true }),
       "]": () => navigate(dayPath(addDays(day, 1), today), { replace: true }),
     },
-    !historyOpen,
+    !panelOpen,
   );
 
   // The first screen waits for the week strip's counts too, so nothing moves when they arrive;
@@ -139,7 +139,7 @@ function Board({
 }: Frame & {
   summary: ReactNode;
   action?: { href: string; label: string };
-  hints: [keys: string[], label: string][];
+  hints: KeyHint[];
   children: ReactNode;
 }) {
   return (
@@ -267,7 +267,7 @@ function TodayBoard({ data, view, ...frame }: Frame & { data: TodayData; view: T
       e: () => selected !== null && navigate(editItemPath(selected)),
       h: () => selected !== null && openHistory(selected),
     },
-    useHistoryTarget() === null,
+    !usePanelOpen(),
   );
 
   return (
@@ -278,10 +278,13 @@ function TodayBoard({ data, view, ...frame }: Frame & { data: TodayData; view: T
       hints={[
         [["J", "K"], "move"],
         [["Enter"], "open"],
-        [["Shift", "F"], "review line"],
+        // The selected line's card shows Shift F, and the sidebar shows N.
+        [["Shift", "F"], "review line", { wide: true }],
         [["E"], "edit"],
         [["H"], "history"],
         [["[", "]"], "day"],
+        [["N"], "new item", { wide: true }],
+        [["?"], "all keys"],
       ]}
     >
       <div className="mt-6 grid items-start gap-5 desk:grid-cols-2">
@@ -369,7 +372,7 @@ function FutureBoard({
       e: () => selected !== null && navigate(editItemPath(selected)),
       h: () => selected !== null && openHistory(selected),
     },
-    useHistoryTarget() === null,
+    !usePanelOpen(),
   );
 
   return (
@@ -382,10 +385,12 @@ function FutureBoard({
       hints={[
         [["J", "K"], "move"],
         [["Enter"], "review early"],
-        [["Shift", "F"], "review line"],
+        [["Shift", "F"], "review line", { wide: true }],
         [["E"], "edit"],
         [["H"], "history"],
         [["[", "]"], "day"],
+        [["N"], "new item", { wide: true }],
+        [["?"], "all keys"],
       ]}
     >
       {view && view.list.length === 0 && (
@@ -464,10 +469,7 @@ function PastBoard({
   const { selected, move } = useSelection(reviews?.map((review) => review.id) ?? []);
   const selectedItem = reviews?.find((review) => review.id === selected)?.itemId;
   const history = () => selectedItem !== undefined && openHistory(selectedItem);
-  useHotkeys(
-    { j: () => move(1), k: () => move(-1), Enter: history, h: history },
-    useHistoryTarget() === null,
-  );
+  useHotkeys({ j: () => move(1), k: () => move(-1), Enter: history, h: history }, !usePanelOpen());
 
   return (
     <Board
@@ -483,6 +485,8 @@ function PastBoard({
         [["J", "K"], "move"],
         [["H"], "history"],
         [["[", "]"], "day"],
+        [["N"], "new item"],
+        [["?"], "all keys"],
       ]}
     >
       {reviews && reviews.length === 0 && (
@@ -526,14 +530,14 @@ function AllDone({ data, view, day, today, strip }: Frame & { data: TodayData; v
   const { tomorrow } = view;
   const early = tomorrow.due - tomorrow.reviewedToday;
   const reviewEarly = flashPath({ day: tomorrow.date });
-  useHotkeys({ f: () => early > 0 && navigate(reviewEarly) }, useHistoryTarget() === null);
+  useHotkeys({ f: () => early > 0 && navigate(reviewEarly) }, !usePanelOpen());
 
   if (data.sections.length === 0) return <NoItemsYet day={day} today={today} />;
   const weekStrip = (className: string) =>
     strip && <WeekStrip weeks={strip} selected={day} today={today} className={className} />;
 
   return (
-    <main className="mx-auto max-w-[1200px] px-4 pt-4 pb-36 sm:px-6 lg:px-10 lg:pt-10 lg:pb-24">
+    <main className="mx-auto max-w-[1200px] px-4 pb-36 sm:px-6 lg:px-10 lg:pt-10 lg:pb-24">
       <div className="hidden lg:block">
         <Heading day={day} today={today} />
         <div className="mt-1">
@@ -542,18 +546,29 @@ function AllDone({ data, view, day, today, strip }: Frame & { data: TodayData; v
         {weekStrip("mt-6")}
       </div>
       <section aria-labelledby="all-done" className="flex flex-col items-center text-center">
-        <div className="relative w-full max-w-[880px]">
-          <picture>
-            <source media="(max-width: 639px)" srcSet={narrowArt} />
-            <img src={wideArt} alt="" className="w-full" />
-          </picture>
-          <span className="absolute top-0 right-0 lg:hidden">
+        {/* Phone: full width at the top, the bottom fading into the page. From 640 px: centred,
+            every edge fading. The words start below the lit part. */}
+        <div className="relative -mx-4 w-[calc(100%+2rem)] sm:mx-0 sm:w-full sm:max-w-[760px] lg:max-w-[840px]">
+          <img
+            src={ALL_DONE_ART.src}
+            srcSet={ALL_DONE_ART.srcSet}
+            sizes={ALL_DONE_ART.sizes}
+            width={ALL_DONE_ART.width}
+            height={ALL_DONE_ART.height}
+            alt=""
+            decoding="async"
+            className="block h-auto w-full [mask-image:linear-gradient(to_bottom,black_70%,transparent)] sm:[mask-image:radial-gradient(closest-side,black_65%,transparent)]"
+          />
+          <span className="absolute top-8 right-4 lg:hidden">
             <DayCalendar day={day} today={today} />
           </span>
         </div>
-        <p className="mt-2 text-label text-muted-foreground lg:hidden">{longDate(day)} · today</p>
+        {/* The phone's page heading; the desktop's sits above the strip. */}
+        <h1 className="-mt-6 text-label text-muted-foreground sm:mt-0 lg:hidden">
+          {longDate(day)} · today
+        </h1>
         {weekStrip("mt-3 w-full -mx-1 lg:hidden")}
-        <h2 id="all-done" lang="hu" className="mt-6 text-display lg:mt-2">
+        <h2 id="all-done" lang="hu" className="mt-6 text-display lg:-mt-10">
           Végállomás
         </h2>
         <p className="text-body text-muted-foreground">End of the line</p>
@@ -591,9 +606,10 @@ function AllDone({ data, view, day, today, strip }: Frame & { data: TodayData; v
       )}
       <KeyHintBar
         hints={[
-          ...(early > 0 ? [[["F"], "review early"] as [string[], string]] : []),
+          ...(early > 0 ? [[["F"], "review early"] satisfies KeyHint] : []),
           [["[", "]"], "day"],
           [["N"], "new item"],
+          [["?"], "all keys"],
         ]}
       />
     </main>

@@ -20,6 +20,8 @@ import {
 import { Kbd } from "@/components/ui/kbd";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { preloadAllDoneArt } from "@/lib/all-done-art";
+import { hasTaggedCodeBlock, loadHighlighting } from "@/lib/highlight";
 import { navigate, useLocation } from "@/lib/router";
 import { shortDate } from "@/lib/format";
 import { dayPath, editItemPath, runTargetFromQuery } from "@/lib/routes";
@@ -28,6 +30,7 @@ import { cn } from "@/lib/utils";
 import {
   advance,
   currentItem,
+  endsToday,
   isFinished,
   pickDate,
   progress,
@@ -44,7 +47,8 @@ import {
 import { clearParkedRun, parkedRun, parkRun } from "@/review/parked";
 import { offerUndo, onUndone, undoLast } from "@/review/undo";
 import { useDayState } from "@/state/day-store";
-import { openHistory, useHistoryTarget } from "@/state/history-panel";
+import { openHistory } from "@/state/history-panel";
+import { usePanelOpen } from "@/state/overlay";
 import type { TodayData } from "@/state/today-data";
 import { rateItem, useTodayState } from "@/state/today-store";
 import type { ImageDto, ItemDto } from "../../worker/contract";
@@ -110,6 +114,11 @@ function ReviewRun({
       : parked.session;
   });
   useEffect(() => clearParkedRun(), []);
+  // Code that names its language gets highlighted: fetch the highlighter before it's reached.
+  useEffect(() => {
+    const fields = [...items.values()].flatMap((i) => [i.problemText, i.answerText, i.sideNote]);
+    if (fields.some(hasTaggedCodeBlock)) void loadHighlighting();
+  }, [items]);
   const [pressed, setPressed] = useState<Confidence | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [zoom, setZoom] = useState<{ images: ImageDto[]; index: number } | null>(null);
@@ -123,6 +132,14 @@ function ReviewRun({
   useEffect(() => onUndone((itemId) => setSession((s) => returnTo(s, itemId))), []);
 
   const finished = isFinished(session);
+  // On the last item left today, All done is next: its picture loads while this one is studied.
+  const last = endsToday(
+    session,
+    source.map((item) => item.id),
+  );
+  useEffect(() => {
+    if (last) preloadAllDoneArt();
+  }, [last]);
   useEffect(() => {
     // Back to the day: All done if nothing is left today, or the rest of the day's lines.
     if (finished) navigate(home, { replace: true });
@@ -145,7 +162,7 @@ function ReviewRun({
     if (!item || !session.revealed || pressed) return;
     const result = rateItem(item, confidence, session.pickedDate ?? undefined);
     if (!result.ok) return void toast(REFUSALS[result.error]);
-    offerUndo(result.value);
+    offerUndo(result.value, { endsToday: last });
     setPressed(confidence);
     window.setTimeout(
       () => {
@@ -159,7 +176,7 @@ function ReviewRun({
 
   /** H: the item's history over the run; before the reveal it keeps the name hidden too. */
   const showHistory = () => item && openHistory(item.id, { hideName: !session.revealed });
-  const historyOpen = useHistoryTarget() !== null;
+  const panelOpen = usePanelOpen();
 
   const visibleImages = item
     ? item.images.filter((image) => session.revealed || image.side === "problem")
@@ -180,7 +197,7 @@ function ReviewRun({
       h: showHistory,
       Escape: () => navigate(home),
     },
-    zoom === null && !pickerOpen && !historyOpen,
+    zoom === null && !pickerOpen && !panelOpen,
   );
 
   if (!item || !section) return null;
@@ -274,6 +291,8 @@ function ReviewRun({
         aria-live="polite"
       >
         <article className="mx-auto flex max-w-[760px] flex-col gap-5 px-4 py-6 lg:py-8">
+          {/* One page heading for screen readers; the name is the heading under it. */}
+          <h1 className="sr-only">Review</h1>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <SectionBadge code={section.code} line={section.line} />
             <span className="text-label text-muted-foreground">{section.name}</span>
@@ -349,9 +368,9 @@ function Question({ item }: { item: ItemDto }) {
     return <Markdown className="text-problem-sm lg:text-problem">{item.problemText}</Markdown>;
   }
   return (
-    <h1 className="text-heading lg:text-title">
+    <h2 className="text-heading lg:text-title">
       <InlineMarkdown>{item.name}</InlineMarkdown>
-    </h1>
+    </h2>
   );
 }
 

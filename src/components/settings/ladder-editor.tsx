@@ -10,6 +10,7 @@ import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { count } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { addLadderStop, checkGapDraft, saveGap } from "@/state/ladder";
+import { usePanelOpen } from "@/state/overlay";
 import { LadderPreview } from "./ladder-preview";
 import { RemoveStop } from "./remove-stop";
 
@@ -59,7 +60,8 @@ export function LadderEditor({
     setSuggested(added);
     requestAnimationFrame(() => fields.current.get(added)?.focus());
   };
-  useHotkeys({ a: () => void add() }, removing === null);
+  const panelOpen = usePanelOpen();
+  useHotkeys({ a: () => void add() }, removing === null && !panelOpen);
 
   /**
    * The question has no trigger button to give the focus back to (Del opens it from a stop), so

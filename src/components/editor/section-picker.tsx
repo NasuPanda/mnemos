@@ -262,17 +262,13 @@ function PickerBody({
           />
         </div>
       </div>
-      <CommandList
-        className={cn(
-          "max-h-[min(440px,55dvh)] px-2 pb-2",
-          phone && "max-h-none flex-1 px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))]",
-        )}
-      >
-        {phone && !canCreate && (
+      {/* Outside the list: a list of options holds options only. */}
+      {phone && !canCreate && (
+        <div className="px-4 pb-2">
           <button
             type="button"
             onClick={() => inputRef.current?.focus()}
-            className="mb-2 flex min-h-14 w-full items-center gap-3 rounded-lg border border-border bg-card px-3 text-left"
+            className="flex min-h-14 w-full items-center gap-3 rounded-lg border border-border bg-card px-3 text-left"
           >
             <Plus aria-hidden className="size-5" />
             <span className="flex flex-1 flex-col">
@@ -283,7 +279,14 @@ function PickerBody({
             </span>
             <SectionBadge code="+" line={nextLine} />
           </button>
+        </div>
+      )}
+      <CommandList
+        className={cn(
+          "max-h-[min(440px,55dvh)] px-2 pb-2",
+          phone && "max-h-none flex-1 px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))]",
         )}
+      >
         {name && matches.length === 0 && createRow}
         {matches.length > 0 ? (
           <CommandGroup heading={name ? "Matching sections" : phone ? undefined : "All sections"}>

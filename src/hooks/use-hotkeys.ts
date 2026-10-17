@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent } from "react";
+import { inClosingLayer } from "@/lib/layers";
 
 /**
  * Keys are written as they appear in the shortcut list: "j", "Enter", "Space", "1", "Escape",
@@ -43,11 +44,12 @@ export function keyName(event: Pick<KeyboardEvent, "key" | "shiftKey">): string 
 }
 
 function isActivatable(target: EventTarget | null): boolean {
-  return target instanceof HTMLElement && !!target.closest("button, a[href], [role=button]");
+  if (!(target instanceof HTMLElement) || inClosingLayer(target)) return false;
+  return !!target.closest("button, a[href], [role=button]");
 }
 
 function isTyping(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
+  if (!(target instanceof HTMLElement) || inClosingLayer(target)) return false;
   return (
     target.isContentEditable ||
     target instanceof HTMLInputElement ||

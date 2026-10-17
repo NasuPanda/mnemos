@@ -13,9 +13,40 @@ if (typeof window !== "undefined") window.addEventListener("popstate", notify);
  */
 export function navigate(to: string, options: { replace?: boolean } = {}): void {
   if (to === currentUrl()) return;
-  if (options.replace) window.history.replaceState(window.history.state, "", to);
+  if (guarded && window.history.state?.guard) {
+    // A Back guard's entry gives way to the new screen, so Back from there skips it.
+    guarded = false;
+    window.history.replaceState({ from: currentUrl() }, "", to);
+  } else if (options.replace) window.history.replaceState(window.history.state, "", to);
   else window.history.pushState({ from: currentUrl() }, "", to);
   notify();
+}
+
+/** The open screen's question before it is left for another one, while it has unsaved changes. */
+let leaveCheck: ((proceed: () => void) => void) | null = null;
+
+/**
+ * Goes to `to` like `navigate`, but a screen with unsaved changes asks first ("Discard your
+ * changes?"), and `proceed` goes on if the person says yes. Links, the T, I, , and N keys and
+ * the command menu leave this way.
+ */
+export function navigateAsking(to: string, options: { replace?: boolean } = {}): void {
+  if (to === currentUrl()) return;
+  if (leaveCheck) leaveCheck(() => navigate(to, options));
+  else navigate(to, options);
+}
+
+/** While `active`, leaving through `navigateAsking` calls `ask` instead, with the way on. */
+export function useLeaveCheck(active: boolean, ask: (proceed: () => void) => void): void {
+  const onAsk = useEffectEvent(ask);
+  useEffect(() => {
+    if (!active) return;
+    const check = (proceed: () => void) => onAsk(proceed);
+    leaveCheck = check;
+    return () => {
+      if (leaveCheck === check) leaveCheck = null;
+    };
+  }, [active]);
 }
 
 /**

@@ -23,6 +23,8 @@ export default defineConfig({
           include: ["src/**/*.test.{ts,tsx}"],
           exclude: ["src/core/**", "**/node_modules/**"],
           environment: "node",
+          // CSS imports are empty in tests; the contrast test reads the tokens' own text.
+          css: { include: [/src\/styles\/tokens\.css/] },
         },
       },
       {
