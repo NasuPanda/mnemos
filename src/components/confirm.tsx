@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -23,8 +23,9 @@ import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 
 /**
  * A question before something that can't be taken back: a dialog on desktop, a sheet at the
- * bottom on the phone, in thumb reach. Cancel has the focus, so a plain Enter never confirms.
- * The action is a secondary button, never red.
+ * bottom on the phone, in thumb reach. Cancel has the focus in both, so a plain Enter (from a
+ * keyboard on a tablet too) never confirms. The action is a secondary button, never red.
+ * `children` adds more below the description, such as what a removal moves where.
  */
 export function Confirm({
   open,
@@ -36,6 +37,7 @@ export function Confirm({
   cancelLabel = "Cancel",
   busy = false,
   onConfirm,
+  children,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -46,8 +48,10 @@ export function Confirm({
   cancelLabel?: string;
   busy?: boolean;
   onConfirm: () => void;
+  children?: ReactNode;
 }) {
   const desktop = useMediaQuery(DESKTOP);
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
   if (desktop) {
     return (
@@ -59,6 +63,7 @@ export function Confirm({
               {description}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {children}
           <AlertDialogFooter className="m-0 border-0 bg-transparent p-0">
             <AlertDialogCancel className="h-12 gap-2 px-5 text-item font-bold" autoFocus>
               {cancelLabel}
@@ -81,13 +86,19 @@ export function Confirm({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent>
+      <DrawerContent
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          cancelRef.current?.focus();
+        }}
+      >
         <DrawerHeader className="px-5 pt-4 pb-0 text-left group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left">
           <DrawerTitle className="text-heading">{title}</DrawerTitle>
           <DrawerDescription className="pt-2 text-body text-muted-foreground">
             {description}
           </DrawerDescription>
         </DrawerHeader>
+        {children && <div className="px-5 pt-4">{children}</div>}
         <DrawerFooter className="gap-3 px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           <Button
             variant="secondary"
@@ -99,7 +110,7 @@ export function Confirm({
             {confirmLabel}
           </Button>
           <DrawerClose asChild>
-            <Button variant="ghost" className="h-12 w-full text-item font-bold">
+            <Button ref={cancelRef} variant="ghost" className="h-12 w-full text-item font-bold">
               {cancelLabel}
             </Button>
           </DrawerClose>
