@@ -1,4 +1,4 @@
-import { Ellipsis, Eye, Lightbulb, Pencil, X } from "lucide-react";
+import { Ellipsis, Eye, History, Lightbulb, Pencil, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { toast } from "sonner";
 import { daysLate, ratingOptions, type Confidence, type IsoDate } from "@/core";
@@ -44,6 +44,7 @@ import {
 import { clearParkedRun, parkedRun, parkRun } from "@/review/parked";
 import { offerUndo, onUndone, undoLast } from "@/review/undo";
 import { useDayState } from "@/state/day-store";
+import { openHistory, useHistoryTarget } from "@/state/history-panel";
 import type { TodayData } from "@/state/today-data";
 import { rateItem, useTodayState } from "@/state/today-store";
 import type { ImageDto, ItemDto } from "../../worker/contract";
@@ -156,6 +157,10 @@ function ReviewRun({
     );
   };
 
+  /** H: the item's history over the run; before the reveal it keeps the name hidden too. */
+  const showHistory = () => item && openHistory(item.id, { hideName: !session.revealed });
+  const historyOpen = useHistoryTarget() !== null;
+
   const visibleImages = item
     ? item.images.filter((image) => session.revealed || image.side === "problem")
     : [];
@@ -172,9 +177,10 @@ function ReviewRun({
       z: () => visibleImages[0] && openZoom(visibleImages[0]),
       u: () => void undoLast(),
       e: edit,
+      h: showHistory,
       Escape: () => navigate(home),
     },
-    zoom === null && !pickerOpen,
+    zoom === null && !pickerOpen && !historyOpen,
   );
 
   if (!item || !section) return null;
@@ -227,7 +233,16 @@ function ReviewRun({
         </div>
         <Button
           variant="ghost"
-          className="hidden h-12 w-32 justify-end gap-2 px-3 text-item font-bold lg:inline-flex"
+          className="hidden h-12 gap-2 px-3 text-item font-bold lg:inline-flex"
+          onClick={showHistory}
+        >
+          <History aria-hidden className="size-5" />
+          History
+          <Kbd>H</Kbd>
+        </Button>
+        <Button
+          variant="ghost"
+          className="hidden h-12 gap-2 px-3 text-item font-bold lg:inline-flex"
           onClick={edit}
         >
           <Pencil aria-hidden className="size-5" />
@@ -241,6 +256,10 @@ function ReviewRun({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-52 rounded-lg p-1.5 shadow-raised">
+            <DropdownMenuItem className="h-12 gap-3 text-body" onSelect={showHistory}>
+              <History aria-hidden className="size-5" />
+              History
+            </DropdownMenuItem>
             <DropdownMenuItem className="h-12 gap-3 text-body" onSelect={edit}>
               <Pencil aria-hidden className="size-5" />
               Edit item

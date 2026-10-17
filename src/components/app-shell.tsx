@@ -8,6 +8,7 @@ import { useHotkeys } from "@/hooks/use-hotkeys";
 import { Link } from "@/components/link";
 import { navigate, useLocation } from "@/lib/router";
 import { newItemPath } from "@/lib/routes";
+import { useHistoryTarget } from "@/state/history-panel";
 import type { SectionDto } from "../../worker/contract";
 
 type Nav = { to: string; label: string; icon: LucideIcon; hint: string; phone: boolean };
@@ -37,12 +38,15 @@ export function AppShell({
   children: ReactNode;
 }) {
   const { path } = useLocation();
-  useHotkeys({
-    t: () => navigate("/"),
-    i: () => navigate("/items"),
-    ",": () => navigate("/settings"),
-    n: () => navigate(newItemPath()),
-  });
+  useHotkeys(
+    {
+      t: () => navigate("/"),
+      i: () => navigate("/items"),
+      ",": () => navigate("/settings"),
+      n: () => navigate(newItemPath()),
+    },
+    useHistoryTarget() === null,
+  );
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">

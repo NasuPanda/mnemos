@@ -8,12 +8,15 @@ export function StopIndicator({
   stop,
   stops,
   long = false,
+  bare = false,
   dimmed = false,
   className,
 }: {
   stop: number;
   stops: number;
   long?: boolean;
+  /** Just the number after the squares, as in the history table: "■■■■□□□ 4". */
+  bare?: boolean;
   /** Fog squares, for a row already reviewed today. */
   dimmed?: boolean;
   className?: string;
@@ -40,7 +43,7 @@ export function StopIndicator({
         ))}
       </span>
       <span aria-hidden className={cn(long ? "font-sans text-label" : "font-mono text-meta")}>
-        {long ? `Stop ${stop} of ${stops}` : `${stop}/${stops}`}
+        {long ? `Stop ${stop} of ${stops}` : bare ? stop : `${stop}/${stops}`}
       </span>
     </span>
   );

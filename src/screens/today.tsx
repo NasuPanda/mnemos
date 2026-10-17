@@ -33,6 +33,7 @@ import {
   type StripDay,
 } from "@/state/day-data";
 import { retryDay, useDayState, useWeek } from "@/state/day-store";
+import { openHistory, useHistoryTarget } from "@/state/history-panel";
 import { todayView, type TodayData, type TodayView } from "@/state/today-data";
 import { load, useTodayState } from "@/state/today-store";
 import wideArt from "@/assets/parliament-placeholder-wide.webp";
@@ -61,10 +62,14 @@ export function TodayScreen() {
     [week, today, view],
   );
 
-  useHotkeys({
-    "[": () => navigate(dayPath(addDays(day, -1), today), { replace: true }),
-    "]": () => navigate(dayPath(addDays(day, 1), today), { replace: true }),
-  });
+  const historyOpen = useHistoryTarget() !== null;
+  useHotkeys(
+    {
+      "[": () => navigate(dayPath(addDays(day, -1), today), { replace: true }),
+      "]": () => navigate(dayPath(addDays(day, 1), today), { replace: true }),
+    },
+    !historyOpen,
+  );
 
   // The first screen waits for the week strip too, so nothing moves when it arrives.
   const stripSettled = strip !== null || dayState.status === "failed";
@@ -239,16 +244,20 @@ function TodayBoard({ data, view, ...frame }: Frame & { data: TodayData; view: T
   const { selected, move } = useSelection(view.list.map((entry) => entry.item.id));
   const selectedSection = view.list.find((entry) => entry.item.id === selected)?.item.sectionId;
 
-  useHotkeys({
-    j: () => move(1),
-    k: () => move(-1),
-    Enter: () => selected !== null && navigate(reviewPath({ itemId: selected })),
-    f: () => navigate(flashPath()),
-    "Shift+F": () =>
-      selectedSection !== undefined && navigate(flashPath({ sectionId: selectedSection })),
-    "/": openItemSearch,
-    e: () => selected !== null && navigate(editItemPath(selected)),
-  });
+  useHotkeys(
+    {
+      j: () => move(1),
+      k: () => move(-1),
+      Enter: () => selected !== null && navigate(reviewPath({ itemId: selected })),
+      f: () => navigate(flashPath()),
+      "Shift+F": () =>
+        selectedSection !== undefined && navigate(flashPath({ sectionId: selectedSection })),
+      "/": openItemSearch,
+      e: () => selected !== null && navigate(editItemPath(selected)),
+      h: () => selected !== null && openHistory(selected),
+    },
+    useHistoryTarget() === null,
+  );
 
   return (
     <Board
@@ -260,6 +269,7 @@ function TodayBoard({ data, view, ...frame }: Frame & { data: TodayData; view: T
         [["Enter"], "open"],
         [["Shift", "F"], "review line"],
         [["E"], "edit"],
+        [["H"], "history"],
         [["[", "]"], "day"],
         [["T"], "today"],
       ]}
@@ -337,16 +347,20 @@ function FutureBoard({
   const { day } = frame;
   const early = view?.counts.early ?? 0;
 
-  useHotkeys({
-    j: () => move(1),
-    k: () => move(-1),
-    Enter: () => selected !== null && navigate(reviewPath({ day, itemId: selected })),
-    f: () => early > 0 && navigate(flashPath({ day })),
-    "Shift+F": () =>
-      selectedSection !== undefined && navigate(flashPath({ day, sectionId: selectedSection })),
-    "/": openItemSearch,
-    e: () => selected !== null && navigate(editItemPath(selected)),
-  });
+  useHotkeys(
+    {
+      j: () => move(1),
+      k: () => move(-1),
+      Enter: () => selected !== null && navigate(reviewPath({ day, itemId: selected })),
+      f: () => early > 0 && navigate(flashPath({ day })),
+      "Shift+F": () =>
+        selectedSection !== undefined && navigate(flashPath({ day, sectionId: selectedSection })),
+      "/": openItemSearch,
+      e: () => selected !== null && navigate(editItemPath(selected)),
+      h: () => selected !== null && openHistory(selected),
+    },
+    useHistoryTarget() === null,
+  );
 
   return (
     <Board
@@ -360,6 +374,7 @@ function FutureBoard({
         [["Enter"], "review early"],
         [["Shift", "F"], "review line"],
         [["E"], "edit"],
+        [["H"], "history"],
         [["[", "]"], "day"],
         [["T"], "today"],
       ]}
@@ -437,6 +452,13 @@ function PastBoard({
     [dayData, data.sections],
   );
   const { day } = frame;
+  const { selected, move } = useSelection(reviews?.map((review) => review.id) ?? []);
+  const selectedItem = reviews?.find((review) => review.id === selected)?.itemId;
+  const history = () => selectedItem !== undefined && openHistory(selectedItem);
+  useHotkeys(
+    { j: () => move(1), k: () => move(-1), Enter: history, h: history },
+    useHistoryTarget() === null,
+  );
 
   return (
     <Board
@@ -449,6 +471,8 @@ function PastBoard({
         )
       }
       hints={[
+        [["J", "K"], "move"],
+        [["H"], "history"],
         [["[", "]"], "day"],
         [["T"], "today"],
       ]}
@@ -472,6 +496,8 @@ function PastBoard({
                   rowId={review.id}
                   first={index === 0}
                   last={index === rows.length - 1}
+                  selected={review.id === selected}
+                  onOpen={() => openHistory(review.itemId)}
                 >
                   <ReviewRow review={review} stops={data.ladder.length} />
                 </Station>
@@ -492,7 +518,7 @@ function AllDone({ data, view, day, today, strip }: Frame & { data: TodayData; v
   const { tomorrow } = view;
   const early = tomorrow.due - tomorrow.reviewedToday;
   const reviewEarly = flashPath({ day: tomorrow.date });
-  useHotkeys({ f: () => early > 0 && navigate(reviewEarly) });
+  useHotkeys({ f: () => early > 0 && navigate(reviewEarly) }, useHistoryTarget() === null);
 
   if (data.sections.length === 0) return <NoItemsYet day={day} today={today} />;
   const weekStrip = (className: string) =>
