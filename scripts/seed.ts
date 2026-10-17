@@ -8,7 +8,8 @@
 // Production asks you to type "seed production" (or "wipe production"). Where there is no
 // keyboard, such as Claude Code's "!" commands, pass it instead: --confirm="seed production".
 //
-// It replaces the person's sections, items, images and reviews; users and settings stay.
+// It replaces the person's sections, items, images and reviews (past ones included); users and
+// settings stay.
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -94,6 +95,15 @@ function seedSql({ sections, items, nextLine }: Profile): string[] {
           `INSERT INTO item_images (item_id, side, image_key, position) VALUES (${itemId(i.name)}, '${side}', '${imageKey(name)}', ${index + 1});`,
         );
       });
+    }
+    if (i.history?.length) {
+      const rows = i.history.map(
+        (r) =>
+          `(${user}, ${itemId(i.name)}, '${addDays(today, r.on)}', '${r.confidence}', ${r.stopBefore}, ${r.stopAfter}, '${addDays(today, r.wasDueIn)}', '${addDays(today, r.nextDueIn)}', ${r.manual ? 1 : 0})`,
+      );
+      statements.push(
+        `INSERT INTO reviews (user_id, item_id, reviewed_on, confidence, stop_before, stop_after, was_due_on, next_due_on, manual) VALUES ${rows.join(", ")};`,
+      );
     }
     if (i.reviewedToday) {
       const r = i.reviewedToday;
