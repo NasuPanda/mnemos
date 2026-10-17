@@ -64,6 +64,30 @@ export type TodayResponse = {
   nextLine: Line;
 };
 
+/** A review made on a past day, with the name and section its item has now. */
+export type PastReviewDto = ReviewDto & { name: string; sectionId: number };
+
+/** GET /api/days/:date?today=YYYY-MM-DD: another day, as the browser's today sees it. */
+export type DayResponse = {
+  date: IsoDate;
+  today: IsoDate;
+  /**
+   * What the week strip counts for `date`'s week, Monday to Sunday. Today's own count comes from
+   * GET /api/today.
+   */
+  week: {
+    days: IsoDate[];
+    /** Items due on the week's days after today, including ones already reviewed today (Due). */
+    due: { id: number; dueOn: IsoDate }[];
+    /** Reviews made on the week's days before today (a past day's done). */
+    reviews: { itemId: number; reviewedOn: IsoDate }[];
+  };
+  /** A future day: the items due then, with everything review mode shows, for Review early. */
+  items: ItemDto[];
+  /** A past day: the reviews made that day, in the order they were made. */
+  reviews: PastReviewDto[];
+};
+
 /** POST /api/reviews */
 export type RateRequest = {
   itemId: number;

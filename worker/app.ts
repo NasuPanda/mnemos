@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import type { KeysFor } from "./auth/access";
 import { identity } from "./auth/identity";
 import type { AppEnv } from "./env";
+import { days } from "./routes/days";
 import { imageUploads, images } from "./routes/images";
 import { itemRoutes } from "./routes/items";
 import { me } from "./routes/me";
@@ -16,6 +17,7 @@ export function createApp(keysFor: KeysFor) {
   app.use("*", identity(keysFor));
   app.route("/api/me", me);
   app.route("/api/today", today);
+  app.route("/api/days", days);
   app.route("/api/items", itemRoutes);
   app.route("/api/reviews", reviewRoutes);
   app.route("/api/sections", sectionRoutes);
