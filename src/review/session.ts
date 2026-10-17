@@ -1,13 +1,58 @@
-import type { IsoDate } from "@/core";
+import {
+  compareDates,
+  reviewQueue,
+  type IsoDate,
+  type ScheduledItem,
+  type SectionRef,
+} from "@/core";
+import type { RunTarget } from "@/lib/routes";
 
 /** What a review run goes through. */
 export type Run =
-  /** Flash review over everything left today. */
-  | { kind: "all" }
-  /** One section's items left today (Shift+F, or a line card's review button). */
-  | { kind: "section"; sectionId: number }
-  /** One item opened from the dashboard; the run returns there after rating. */
-  | { kind: "item"; itemId: number };
+  /** Flash review over everything left today, or a future day's items (Review early). */
+  (
+    | { kind: "all" }
+    /** One section's items (Shift+F, or a line card's review button). */
+    | { kind: "section"; sectionId: number }
+    /** One item opened from the dashboard; the run returns there after rating. */
+    | { kind: "item"; itemId: number }
+  ) & {
+    /** A future day to review early; left out for today. */
+    day?: IsoDate;
+  };
+
+/** The run an address asks for. A day that isn't after today means today. */
+export function runFromTarget(target: RunTarget, today: IsoDate): Run {
+  const day = target.day && compareDates(target.day, today) > 0 ? { day: target.day } : {};
+  if (target.itemId) return { kind: "item", itemId: target.itemId, ...day };
+  if (target.sectionId) return { kind: "section", sectionId: target.sectionId, ...day };
+  return { kind: "all", ...day };
+}
+
+/** Tells runs apart, so leaving one for the editor and coming back continues the same one. */
+export function runKey(run: Run): string {
+  const what =
+    run.kind === "all" ? "all" : `${run.kind}-${run.kind === "item" ? run.itemId : run.sectionId}`;
+  return run.day ? `${run.day}-${what}` : what;
+}
+
+/**
+ * The run's items in the dashboard's order: today's Left items, or a future day's items not yet
+ * reviewed today. `items` is today's list, or the day's. One item runs only if it is still to
+ * review.
+ */
+export function runQueue(
+  run: Run,
+  items: readonly ScheduledItem[],
+  options: { sections: readonly SectionRef[]; reviewedToday: ReadonlySet<number>; today: IsoDate },
+): number[] {
+  const queue = reviewQueue(items, {
+    ...options,
+    day: run.day,
+    sectionId: run.kind === "section" ? run.sectionId : undefined,
+  }).map((item) => item.id);
+  return run.kind === "item" ? queue.filter((id) => id === run.itemId) : queue;
+}
 
 /**
  * A review run. The queue is fixed when the run starts, so "3 of 38" stays true while items are

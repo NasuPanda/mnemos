@@ -88,6 +88,23 @@ describe("Today's data on the client", () => {
     expect(undone).toEqual(data);
   });
 
+  it("counts an early review of tomorrow's item as done, and takes it off tomorrow", () => {
+    const early = applyRating(data, item(60, TOMORROW), review(-1, 60, "2026-09-28"));
+    expect(todayView(early).counts).toEqual({ left: 3, late: 1, done: 2 });
+    expect(early.items.map((i) => i.id)).toEqual([1, 2, 3]);
+    expect(todayView(early).tomorrow).toEqual({ date: TOMORROW, due: 0, reviewedToday: 0 });
+  });
+
+  it("keeps an early review that lands on tomorrow again on tomorrow's count, as reviewed today", () => {
+    const early = applyRating(data, item(60, TOMORROW), review(-1, 60, TOMORROW));
+    expect(todayView(early).tomorrow).toEqual({ date: TOMORROW, due: 1, reviewedToday: 1 });
+  });
+
+  it("undoes an early review without putting the item on today's list", () => {
+    const early = applyRating(data, item(60, TOMORROW), review(-1, 60, "2026-09-28"));
+    expect(revertRating(early, item(60, TOMORROW), -1)).toEqual(data);
+  });
+
   it("swaps the temporary id for the stored review's id once the Worker confirms", () => {
     const rated = applyRating(data, item(2, TODAY), review(-1, 2, "2026-09-27"));
     const confirmed = confirmReview(rated, -1, review(91, 2, "2026-09-27"));

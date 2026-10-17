@@ -14,31 +14,47 @@ import type { ItemDto, ReviewDto, TodayResponse } from "../../worker/contract";
  */
 export type TodayData = TodayResponse;
 
-/** A rating applied: the item leaves today's list and the review counts as Done. */
+/**
+ * A rating applied: the item leaves today's list (if it was on it) and the review counts as Done.
+ * Early reviews count too. Tomorrow's count follows the item: it joins when rated onto tomorrow,
+ * and leaves when an item due tomorrow is reviewed early onto a later day.
+ */
 export function applyRating(data: TodayData, item: ItemDto, review: ReviewDto): TodayData {
   return {
     ...data,
     items: data.items.filter((i) => i.id !== item.id),
     reviewsToday: [...data.reviewsToday, review],
-    tomorrow:
-      review.nextDueOn === data.tomorrow.date && !data.tomorrow.itemIds.includes(item.id)
-        ? { ...data.tomorrow, itemIds: [...data.tomorrow.itemIds, item.id] }
-        : data.tomorrow,
+    tomorrow: withTomorrow(data.tomorrow, item.id, review.nextDueOn),
   };
 }
 
-/** The inverse of applyRating: for Undo, or when the Worker refuses a rating. */
+/**
+ * The inverse of applyRating, for Undo or when the Worker refuses a rating: `item` as it was
+ * before. It goes back on today's list only if it was due today or earlier.
+ */
 export function revertRating(data: TodayData, item: ItemDto, reviewId: number): TodayData {
-  const review = data.reviewsToday.find((r) => r.id === reviewId);
-  const landedTomorrow = review?.nextDueOn === data.tomorrow.date;
+  const others = data.items.filter((i) => i.id !== item.id);
+  const wasLeft = compareDates(item.dueOn, data.date) <= 0;
   return {
     ...data,
-    items: [...data.items.filter((i) => i.id !== item.id), item].sort((a, b) => a.id - b.id),
+    items: wasLeft ? [...others, item].sort((a, b) => a.id - b.id) : others,
     reviewsToday: data.reviewsToday.filter((r) => r.id !== reviewId),
-    tomorrow: landedTomorrow
-      ? { ...data.tomorrow, itemIds: data.tomorrow.itemIds.filter((id) => id !== item.id) }
-      : data.tomorrow,
+    tomorrow: withTomorrow(data.tomorrow, item.id, item.dueOn),
   };
+}
+
+/** Tomorrow's due items with `itemId` now due on `dueOn`. */
+function withTomorrow(
+  tomorrow: TodayData["tomorrow"],
+  itemId: number,
+  dueOn: string,
+): TodayData["tomorrow"] {
+  const others = tomorrow.itemIds.filter((id) => id !== itemId);
+  const itemIds = dueOn === tomorrow.date ? [...others, itemId].sort((a, b) => a - b) : others;
+  return itemIds.length === tomorrow.itemIds.length &&
+    itemIds.every((id, i) => id === tomorrow.itemIds[i])
+    ? tomorrow
+    : { ...tomorrow, itemIds };
 }
 
 /** Swaps the temporary id of an optimistic review for the one the Worker stored. */
