@@ -1,9 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { keyName } from "@/hooks/use-hotkeys";
-import { count, dayMonth, lateLabel, longDate, shortDate, shortUrl, weekday } from "./format";
+import {
+  count,
+  dayMonth,
+  lateLabel,
+  longDate,
+  relativeDay,
+  shortDate,
+  shortUrl,
+  stripDate,
+  weekday,
+} from "./format";
 import { localToday } from "./today";
 
 describe("Dates as the mockups write them", () => {
+  it("names the week strip's days: Mon 21", () => {
+    expect(stripDate("2026-09-21")).toEqual({ weekday: "Mon", day: 21 });
+    expect(stripDate("2026-09-27")).toEqual({ weekday: "Sun", day: 27 });
+  });
+
+  it("says Today, Tomorrow or Yesterday under the heading, and nothing for other days", () => {
+    expect(relativeDay("2026-09-24", "2026-09-24")).toBe("Today");
+    expect(relativeDay("2026-09-25", "2026-09-24")).toBe("Tomorrow");
+    expect(relativeDay("2026-09-23", "2026-09-24")).toBe("Yesterday");
+    expect(relativeDay("2026-09-26", "2026-09-24")).toBeNull();
+    expect(relativeDay("2026-09-21", "2026-09-24")).toBeNull();
+  });
+
   it("writes the confidence buttons' dates short: Thu 1 Oct", () => {
     expect(shortDate("2026-10-01")).toBe("Thu 1 Oct");
     expect(shortDate("2026-09-29")).toBe("Tue 29 Sep");

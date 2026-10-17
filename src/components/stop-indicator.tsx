@@ -8,11 +8,14 @@ export function StopIndicator({
   stop,
   stops,
   long = false,
+  dimmed = false,
   className,
 }: {
   stop: number;
   stops: number;
   long?: boolean;
+  /** Fog squares, for a row already reviewed today. */
+  dimmed?: boolean;
   className?: string;
 }) {
   return (
@@ -27,7 +30,11 @@ export function StopIndicator({
             key={index}
             className={cn(
               "size-[7px] rounded-[1px]",
-              index < stop ? "bg-stop-filled" : "border border-stop-empty",
+              index >= stop
+                ? "border border-stop-empty"
+                : dimmed
+                  ? "bg-subtle-foreground"
+                  : "bg-stop-filled",
             )}
           />
         ))}
