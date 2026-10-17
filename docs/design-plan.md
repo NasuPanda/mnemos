@@ -145,6 +145,7 @@ Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", rou
   - **Section lines** use M2 red, M3 blue and M4 green.
   - **No colour** for confidence, overdue, success or errors. They use words, icons, weight and size.
   - **Lamplight gold (#E3A857)** appears only inside illustrations.
+  - **The yellow M** (app icon and favicon) is the one use of yellow outside these rules, as on the metro signs: a tram yellow square with a Dusk M (Atkinson Hyperlegible Next at weight 800, drawn as a path). Inside the app, the sidebar's M stays neutral.
 - **Shapes:** circles are items and reviews on a section's line; squares are ladder stops.
 - **Type:** Atkinson Hyperlegible Next for text; Atkinson Hyperlegible Mono for code, dates, counts and keys. Nothing under 12 px.
 - **Motion:** 150 ms at most, no spinners or skeletons, and no motion at all with reduced motion.
@@ -215,7 +216,7 @@ Everything runs on one free Cloudflare account as a single Worker, so there are 
 | Frontend | Vite + React + TypeScript, Tailwind CSS v4, shadcn/ui (Radix primitives, Nova preset, restyled by the tokens; Calendar, Drawer and Sonner bring react-day-picker, vaul and sonner), a small in-house router on the History API, Motion, dnd-kit | Polished look, smooth transitions, keyboard-friendly; dnd-kit reorders images |
 | Text | react-markdown + remark-gfm + remark-breaks; rehype-highlight loaded only when an item has a code block | Safe by default (no raw HTML) and light |
 | Fonts | @fontsource-variable/atkinson-hyperlegible-next and -mono, self-hosted | No third-party requests; the latin-ext subset loads only when a page needs it |
-| Mobile | Responsive layout, designed for the phone as much as the desktop; PWA via vite-plugin-pwa (optional) | Reviews on the go; installs to a phone's home screen |
+| Mobile | Responsive layout, designed for the phone as much as the desktop; installable from a web manifest alone, with no service worker (so no vite-plugin-pwa): every launch passes Access and loads the current app | Reviews on the go; installs to a phone's home screen |
 
 **Cost:** $0. R2 requires a card on file, and use beyond its free amounts is billed, not blocked.
 
@@ -306,7 +307,7 @@ Cloudflare Access with Google login: each person signs in about once a month per
 - **No sign-in screen in the app:** Access shows its own login page before the app loads. The design draft's sign-in screen can only carry over as Access's login-page customization (name, logo, colours).
 - **Sign out:** the Account card's Sign out links to `/cdn-cgi/access/logout`.
 - **Session expiry:** after a month, API calls get redirected to the login page. Call `fetch` with `redirect: "manual"`, and if `res.type === "opaqueredirect"`, reload the page.
-- **Phone install:** the manifest link needs `crossorigin="use-credentials"`, or installing fails behind Access.
+- **Phone install:** the manifest link needs `crossorigin="use-credentials"`, or installing fails behind Access. The manifest, icons and favicon are static files in `public/`. The installed app opens standalone with a black status bar; content starts below it.
 - **Identity:** the Worker checks `Cf-Access-Jwt-Assertion` itself with `jose` (team keys, issuer, AUD tag). Cloudflare's `ctx.access` (August 2026) can't replace this: the router in front of a Worker with static assets doesn't pass it on.
 - **Local development:** Access doesn't sit in front of `npm run dev`, so the Worker uses `DEV_USER_EMAIL` from `.dev.vars`, and only on localhost.
 
