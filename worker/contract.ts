@@ -152,6 +152,12 @@ export type ItemsResponse = { date: IsoDate; items: ItemSummaryDto[] };
 /** GET /api/items/:id: one item for the editor, and how many reviews deleting it would take. */
 export type ItemResponse = { item: ItemDto; reviews: number };
 
+/** GET /api/items/:id/history: the item as it is now, and every review of it, newest first. */
+export type ItemHistoryResponse = {
+  item: { id: number; sectionId: number; name: string; stop: number; dueOn: IsoDate };
+  reviews: ReviewDto[];
+};
+
 /**
  * What the item editor saves. Empty fields may be "" or null; each side's images are listed in
  * order. The stop and due date are never part of it.

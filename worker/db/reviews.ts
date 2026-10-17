@@ -6,6 +6,7 @@ import {
   type Ladder,
   type Review,
 } from "../../src/core";
+import type { ReviewDto } from "../contract";
 import type { Db } from "./client";
 import { items, reviews, settings, type ReviewRow } from "./schema";
 
@@ -157,5 +158,19 @@ function fromRaw(row: RawReview): ReviewRow {
     nextDueOn: row.next_due_on,
     manual: row.manual === 1,
     reviewedAt: row.reviewed_at,
+  };
+}
+
+export function toReviewDto(row: ReviewRow): ReviewDto {
+  return {
+    id: row.id,
+    itemId: row.itemId,
+    reviewedOn: row.reviewedOn,
+    confidence: row.confidence,
+    stopBefore: row.stopBefore,
+    stopAfter: row.stopAfter,
+    wasDueOn: row.wasDueOn,
+    nextDueOn: row.nextDueOn,
+    manual: row.manual,
   };
 }

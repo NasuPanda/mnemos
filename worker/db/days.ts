@@ -3,7 +3,7 @@ import { compareDates, weekOf, type IsoDate } from "../../src/core";
 import type { DayResponse } from "../contract";
 import type { Db } from "./client";
 import { imageColumns, imagesByItem, toItemDto } from "./items";
-import { toReviewDto } from "./today";
+import { toReviewDto } from "./reviews";
 import { itemImages, items, reviews } from "./schema";
 
 /**
