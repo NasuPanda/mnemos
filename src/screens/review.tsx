@@ -291,6 +291,8 @@ function ReviewRun({
         aria-live="polite"
       >
         <article className="mx-auto flex max-w-[760px] flex-col gap-5 px-4 py-6 lg:py-8">
+          {/* One page heading for screen readers; the name is the heading under it. */}
+          <h1 className="sr-only">Review</h1>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <SectionBadge code={section.code} line={section.line} />
             <span className="text-label text-muted-foreground">{section.name}</span>
@@ -366,9 +368,9 @@ function Question({ item }: { item: ItemDto }) {
     return <Markdown className="text-problem-sm lg:text-problem">{item.problemText}</Markdown>;
   }
   return (
-    <h1 className="text-heading lg:text-title">
+    <h2 className="text-heading lg:text-title">
       <InlineMarkdown>{item.name}</InlineMarkdown>
-    </h1>
+    </h2>
   );
 }
 

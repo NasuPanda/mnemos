@@ -563,9 +563,10 @@ function AllDone({ data, view, day, today, strip }: Frame & { data: TodayData; v
             <DayCalendar day={day} today={today} />
           </span>
         </div>
-        <p className="-mt-6 text-label text-muted-foreground sm:mt-0 lg:hidden">
+        {/* The phone's page heading; the desktop's sits above the strip. */}
+        <h1 className="-mt-6 text-label text-muted-foreground sm:mt-0 lg:hidden">
           {longDate(day)} · today
-        </p>
+        </h1>
         {weekStrip("mt-3 w-full -mx-1 lg:hidden")}
         <h2 id="all-done" lang="hu" className="mt-6 text-display lg:-mt-10">
           Végállomás
