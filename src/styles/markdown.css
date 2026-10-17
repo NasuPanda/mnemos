@@ -74,4 +74,36 @@
   .markdown hr {
     border-color: var(--border);
   }
+
+  /* Code that names its language (rehype-highlight), tone-on-tone: weight and the three text
+     greys, never a hue, since colours mean lines and yellow means focus. No italics: the mono
+     face ships upright only. Fog on River is 6.3:1, Mist 9.3:1. */
+  .markdown .hljs-keyword,
+  .markdown .hljs-built_in,
+  .markdown .hljs-type,
+  .markdown .hljs-literal,
+  .markdown .hljs-selector-tag,
+  .markdown .hljs-section,
+  .markdown .hljs-name {
+    font-weight: 700;
+  }
+  .markdown .hljs-string,
+  .markdown .hljs-number,
+  .markdown .hljs-regexp,
+  .markdown .hljs-symbol,
+  .markdown .hljs-attr,
+  .markdown .hljs-attribute,
+  .markdown .hljs-variable,
+  .markdown .hljs-template-variable,
+  .markdown .hljs-selector-attr,
+  .markdown .hljs-selector-class,
+  .markdown .hljs-selector-id {
+    color: var(--muted-foreground);
+  }
+  .markdown .hljs-comment,
+  .markdown .hljs-quote,
+  .markdown .hljs-doctag,
+  .markdown .hljs-meta {
+    color: var(--subtle-foreground);
+  }
 }

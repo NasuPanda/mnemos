@@ -56,6 +56,7 @@ An item's review history comes from its reviews; the item itself doesn't keep a 
 **Text formatting:**
 
 - **Markdown fields:** Problem description, Answer text and Side note use GitHub-style Markdown, including code blocks. As in GitHub comments, a new line is a line break and a blank line starts a new paragraph.
+- **Code highlighting:** only a code block that names its language (```` ```python ````) is highlighted; one without a language, such as pseudo-code, stays plain, and so does a language the highlighter doesn't know. Tone-on-tone, with no hue: keywords and built-ins bold, strings and numbers Mist, comments Fog. No italics (the mono face ships upright only).
 - **Inline-only fields:** Name and Description allow only inline code, bold and italic.
 - **Lengths:** Name up to 300 characters, Description up to 1,000, and each Markdown field up to 20,000.
 - **Links:** Problem URL and Answer URL take http and https links only. A link typed without a scheme gets `https://` ("example.edu/x" → "https://example.edu/x").
@@ -215,7 +216,7 @@ Everything runs on one free Cloudflare account as a single Worker, so there are 
 | Images | Cloudflare R2, or Workers KV to avoid adding a card | Built for files, with no bandwidth fees; stays behind the login |
 | Login | Cloudflare Access + Google login, 1-month session | No login code to write; strangers can't load the app |
 | Frontend | Vite + React + TypeScript, Tailwind CSS v4, shadcn/ui (Radix primitives, Nova preset, restyled by the tokens; Calendar, Drawer and Sonner bring react-day-picker, vaul and sonner), a small in-house router on the History API, Motion, dnd-kit | Polished look, smooth transitions, keyboard-friendly; dnd-kit reorders images |
-| Text | react-markdown + remark-gfm + remark-breaks; rehype-highlight loaded only when an item has a code block | Safe by default (no raw HTML) and light |
+| Text | react-markdown + remark-gfm + remark-breaks; rehype-highlight (its own 54 kB gzipped file) fetched only when a field has a code block that names its language, and at the start of a review run that has one | Safe by default (no raw HTML) and light |
 | Fonts | @fontsource-variable/atkinson-hyperlegible-next and -mono, self-hosted | No third-party requests; the latin-ext subset loads only when a page needs it |
 | Mobile | Responsive layout, designed for the phone as much as the desktop; installable from a web manifest alone, with no service worker (so no vite-plugin-pwa): every launch passes Access and loads the current app | Reviews on the go; installs to a phone's home screen |
 

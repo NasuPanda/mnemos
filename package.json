@@ -42,6 +42,7 @@
     "react-day-picker": "^10.0.2",
     "react-dom": "^19.2.8",
     "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1",
     "sonner": "^2.0.8",

@@ -21,6 +21,7 @@ import { Kbd } from "@/components/ui/kbd";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { preloadAllDoneArt } from "@/lib/all-done-art";
+import { hasTaggedCodeBlock, loadHighlighting } from "@/lib/highlight";
 import { navigate, useLocation } from "@/lib/router";
 import { shortDate } from "@/lib/format";
 import { dayPath, editItemPath, runTargetFromQuery } from "@/lib/routes";
@@ -113,6 +114,11 @@ function ReviewRun({
       : parked.session;
   });
   useEffect(() => clearParkedRun(), []);
+  // Code that names its language gets highlighted: fetch the highlighter before it's reached.
+  useEffect(() => {
+    const fields = [...items.values()].flatMap((i) => [i.problemText, i.answerText, i.sideNote]);
+    if (fields.some(hasTaggedCodeBlock)) void loadHighlighting();
+  }, [items]);
   const [pressed, setPressed] = useState<Confidence | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [zoom, setZoom] = useState<{ images: ImageDto[]; index: number } | null>(null);
