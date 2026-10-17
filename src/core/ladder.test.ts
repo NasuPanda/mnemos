@@ -6,6 +6,7 @@ import {
   gapFor,
   gapIssue,
   lastStop,
+  lowestStopMovedDown,
   newStopGap,
   removalEffect,
   removeStop,
@@ -199,6 +200,8 @@ describe("Ladder edits › removing a stop", () => {
   });
 
   it("matches stop = stop − 1 where stop ≥ max(k, 2), for every stop and every k", () => {
+    expect(lowestStopMovedDown(1)).toBe(2);
+    expect(lowestStopMovedDown(3)).toBe(3);
     for (let removed = 1; removed <= 7; removed++) {
       for (let stop = 1; stop <= 7; stop++) {
         const expected = stop >= Math.max(removed, 2) ? stop - 1 : stop;

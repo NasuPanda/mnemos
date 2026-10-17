@@ -134,7 +134,15 @@ export function removeStop(ladder: Ladder, removed: number): Result<Ladder, "las
  * one. In SQL: `stop = stop − 1` where `stop ≥ max(removed, 2)`.
  */
 export function stopAfterRemoval(stop: number, removed: number): number {
-  return stop >= Math.max(removed, 2) ? stop - 1 : stop;
+  return stop >= lowestStopMovedDown(removed) ? stop - 1 : stop;
+}
+
+/**
+ * The lowest stop whose items move down one when stop `removed` is taken out: the removed stop
+ * itself, except stop 1, whose items stay on the new stop 1. The database update uses it.
+ */
+export function lowestStopMovedDown(removed: number): number {
+  return Math.max(removed, 2);
 }
 
 export type RemovalEffect = {

@@ -85,3 +85,17 @@ export async function itemState(itemId: number) {
     .bind(itemId)
     .first<{ stop: number; dueOn: string }>();
 }
+
+export async function setLadder(userId: number, ladder: number[]): Promise<void> {
+  await env.DB.prepare("UPDATE settings SET ladder_days = ? WHERE user_id = ?")
+    .bind(JSON.stringify(ladder), userId)
+    .run();
+}
+
+export async function storedLadder(userId: number): Promise<number[]> {
+  const row = await env.DB.prepare("SELECT ladder_days AS ladder FROM settings WHERE user_id = ?")
+    .bind(userId)
+    .first<{ ladder: string }>();
+  if (!row) throw new Error("settings row missing");
+  return JSON.parse(row.ladder) as number[];
+}

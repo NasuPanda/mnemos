@@ -5,6 +5,7 @@ import type { AppEnv } from "./env";
 import { days } from "./routes/days";
 import { imageUploads, images } from "./routes/images";
 import { itemRoutes } from "./routes/items";
+import { ladderRoutes } from "./routes/ladder";
 import { me } from "./routes/me";
 import { reviewRoutes } from "./routes/reviews";
 import { sectionRoutes } from "./routes/sections";
@@ -21,6 +22,7 @@ export function createApp(keysFor: KeysFor) {
   app.route("/api/items", itemRoutes);
   app.route("/api/reviews", reviewRoutes);
   app.route("/api/sections", sectionRoutes);
+  app.route("/api/ladder", ladderRoutes);
   app.route("/api/images", imageUploads);
   app.route("/img", images);
 

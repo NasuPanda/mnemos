@@ -1,6 +1,13 @@
 // The API's request and response shapes, shared by the Worker and the app.
 // Types only, importing only from src/core, so the app can import this file safely.
-import type { Confidence, IsoDate, ItemTextProblems, Line } from "../src/core";
+import type {
+  AddStopRefusal,
+  Confidence,
+  GapIssue,
+  IsoDate,
+  ItemTextProblems,
+  Line,
+} from "../src/core";
 
 export type ApiError = { error: string };
 
@@ -193,3 +200,28 @@ export type DeleteItemResponse = { id: number };
 
 /** PUT /api/images/:key: 201 when stored, 200 when it already was. */
 export type UploadImageResponse = { key: string };
+
+/**
+ * Ladder changes. Each request carries the ladder the person saw; if it has changed since (in
+ * another tab), nothing happens and the answer is 409 with the ladder as it is now.
+ *
+ * PATCH /api/ladder/stops/:stop: a new gap for one stop. Items keep their due dates.
+ */
+export type SetGapRequest = { ladder: number[]; gap: number };
+
+/** POST /api/ladder/stops: a new last stop, at double the last gap (at most 365). */
+export type AddStopRequest = { ladder: number[] };
+
+/**
+ * DELETE /api/ladder/stops/:stop?ladder=1,2,3,5,7,14,28: the stop goes, its items move down one
+ * stop and the stops after it renumber; due dates stay.
+ */
+export type LadderResponse = { ladder: number[] };
+
+/** A refused ladder change, with the ladder as it is now. */
+export type LadderErrorResponse = {
+  error: GapIssue["kind"] | AddStopRefusal | "last-stop" | "ladder-changed";
+  ladder: number[];
+  /** For a refused gap: the stop it has to be longer or shorter than. */
+  issue?: GapIssue;
+};
