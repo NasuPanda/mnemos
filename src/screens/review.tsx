@@ -162,7 +162,7 @@ function ReviewRun({
     if (!item || !session.revealed || pressed) return;
     const result = rateItem(item, confidence, session.pickedDate ?? undefined);
     if (!result.ok) return void toast(REFUSALS[result.error]);
-    offerUndo(result.value);
+    offerUndo(result.value, { endsToday: last });
     setPressed(confidence);
     window.setTimeout(
       () => {

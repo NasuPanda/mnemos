@@ -10,14 +10,18 @@ const LABELS = { confident: "Confident", neutral: "Neutral", not_at_all: "Not at
 let last: { rating: LocalRating; until: number; toastId: string | number } | null = null;
 const listeners = new Set<(itemId: number) => void>();
 
-/** After a rating: "✓ Confident · Thu 1 Oct · stop 5   Undo U", for 4 s. */
-export function offerUndo(rating: LocalRating): void {
+/**
+ * After a rating: "✓ Confident · Thu 1 Oct · stop 5   Undo U", for 4 s. After the day's last
+ * rating it sits at the top right on desktop, clear of All done and its Review early.
+ */
+export function offerUndo(rating: LocalRating, { endsToday = false } = {}): void {
   if (last) toast.dismiss(last.toastId);
   const { review } = rating;
   const toastId = toast(
     `${LABELS[review.confidence]} · ${shortDate(review.nextDueOn)} · stop ${review.stopAfter}`,
     {
       duration: UNDO_MS,
+      position: endsToday ? "top-right" : undefined,
       icon: <Check aria-hidden className="size-4" />,
       action: {
         label: (
