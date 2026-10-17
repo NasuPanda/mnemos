@@ -228,7 +228,8 @@
 }
 
 @layer base {
-  * { @apply border-border; }
+  /* outline-ring at rest too, so a transition never fades the focus ring in from the text colour */
+  * { @apply border-border outline-ring; }
   body { @apply bg-background text-foreground font-sans antialiased; }
   /* one focus style: solid yellow, 2 px, 3 px gap */
   :focus-visible {

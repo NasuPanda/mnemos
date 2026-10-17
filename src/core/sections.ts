@@ -20,6 +20,18 @@ export function assignLine(counter: Line): { line: Line; nextLine: Line } {
   return { line: counter, nextLine: nextLine(counter) };
 }
 
+export const MAX_SECTION_NAME_LENGTH = 60;
+
+export type SectionNameProblem = "required" | "too-long";
+
+/** A section needs a name of up to 60 characters; surrounding spaces don't count. */
+export function validateSectionName(input: string): Result<string, SectionNameProblem> {
+  const name = input.trim();
+  if (name === "") return refuse("required");
+  if (name.length > MAX_SECTION_NAME_LENGTH) return refuse("too-long");
+  return ok(name);
+}
+
 const CODE_CHARACTERS = /^[A-Z0-9]*$/;
 export const MIN_CODE_LENGTH = 2;
 export const MAX_CODE_LENGTH = 3;

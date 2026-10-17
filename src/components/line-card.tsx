@@ -1,7 +1,9 @@
 import { ImageIcon, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { DayEntry, Line } from "@/core";
+import type { DayEntry } from "@/core";
 import { Link } from "@/components/link";
+import { LineMarker } from "@/components/line-marker";
+import { LINE_CLASSES } from "@/lib/line-classes";
 import { InlineMarkdown } from "@/components/markdown";
 import { Overdue } from "@/components/overdue";
 import { SectionBadge } from "@/components/section-badge";
@@ -10,13 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import type { ItemDto, SectionDto } from "../../worker/contract";
-
-// Full class names so Tailwind can see them; the colour comes from the section's stored line.
-const LINE: Record<Line, { rail: string; ring: string }> = {
-  m2: { rail: "bg-line-m2", ring: "border-line-m2" },
-  m3: { rail: "bg-line-m3", ring: "border-line-m3" },
-  m4: { rail: "bg-line-m4", ring: "border-line-m4" },
-};
 
 /**
  * One section drawn as a metro line: its items are stations, each with its stop and how late
@@ -37,7 +32,7 @@ export function LineCard({
   selectedId: number | null;
   reviewHref: string;
 }) {
-  const colours = LINE[section.line];
+  const colours = LINE_CLASSES[section.line];
   const hasSelection = entries.some((entry) => entry.item.id === selectedId);
   return (
     <Card className="gap-0 rounded-xl bg-card px-3 pt-3 pb-2 shadow-card ring-0">
@@ -97,12 +92,10 @@ export function LineCard({
                   selected && "bg-secondary hover:bg-secondary",
                 )}
               >
-                <span
-                  aria-hidden
-                  className={cn(
-                    "mt-[5px] size-4 shrink-0 rounded-full border-[3px] bg-card",
-                    selected ? "border-ring bg-secondary" : colours.ring,
-                  )}
+                <LineMarker
+                  line={section.line}
+                  selected={selected}
+                  className={cn("mt-[5px]", selected ? "bg-secondary" : "bg-card")}
                 />
                 <span className="flex min-w-0 flex-col gap-1">
                   <span className="text-item lg:text-item-sm">

@@ -17,6 +17,7 @@ Mnemos is a sleek, fast study scheduler that uses simple spaced repetition on a 
 The app has four things: sections that group items, items you study, reviews that record each study session, and a ladder that turns confidence into days.
 
 - **Section:** a named group of items, such as a subject or problem set, drawn as a metro line. Each section has:
+  - a name of up to 60 characters;
   - a short code: 2–3 characters (A–Z, 0–9), unique per person. The app suggests one from the name, but you can always type your own instead, when creating the section or later. The suggestion:
     - strips accents (Gráfok → GRA);
     - for two or more words, takes the initials of the first three (Data structures → DS, Operating systems 2 → OS2);
@@ -26,6 +27,8 @@ The app has four things: sections that group items, items you study, reviews tha
   - a line colour, assigned once when the section is created, cycling M2 red → M3 blue → M4 green.
 
   Reordering or deleting sections never changes a colour. The code, not the colour, identifies a section.
+
+  Deleting a section deletes its items and their reviews too. The confirmation names how many items go, and a plain Enter doesn't confirm it.
 - **Item:** one thing to study (fields below). It sits on one stop of the ladder.
 - **Review:** one record per time you review an item. It stores the date, your confidence, the stop before and after, the due date the item had, the next due date, and whether you picked that date yourself.
 - **Ladder:** up to 7 stops, each with a gap in days (1–365, each longer than the one before). The default is 1, 2, 3, 5, 7, 14 and 28 days. The last stop is the Végállomás ("end of the line").
@@ -54,6 +57,8 @@ An item's review history comes from its reviews; the item itself doesn't keep a 
 
 - **Markdown fields:** Problem description, Answer text and Side note use GitHub-style Markdown, including code blocks.
 - **Inline-only fields:** Name and Description allow only inline code, bold and italic.
+- **Lengths:** Name up to 300 characters, Description up to 1,000, and each Markdown field up to 20,000.
+- **Links:** Problem URL and Answer URL take http and https links only. A link typed without a scheme gets `https://` ("example.edu/x" → "https://example.edu/x").
 - **Not allowed:**
   - raw HTML;
   - images inside Markdown (images go in the image fields);
@@ -77,18 +82,18 @@ flowchart LR
   I --> B
 ```
 
-Opening one item from the dashboard returns there after rating. Flash review runs the loop over a whole set, and when nothing is left for today, the All done screen appears.
+Opening one item from the dashboard returns there after rating. On phones, confirmations (deleting an item or a line, discarding changes) are sheets at the bottom with the action above Cancel; on desktop they are dialogs with Cancel focused, so a plain Enter never confirms. Flash review runs the loop over a whole set, and when nothing is left for today, the All done screen appears.
 
 | Screen | Purpose | Shows |
 | --- | --- | --- |
 | Dashboard | See one day at a glance | **Week strip:** reviews done on past days, items left today, items due on future days. **Summary line:** left · late · done. **Sections:** each drawn as a metro line, listing its items with their stop and overdue delay. **Start review** button. **On a future day:** that day's items, with the ones already reviewed today dimmed and listed last in their section, and a Review early button |
-| Review mode | Study one item | **Problem side:** description, problem, images and link. **Reveal:** tap or click anywhere, or press Space; images open zoom and links open normally instead. **Answer side:** the name as a heading, then answer text, images, link and side note; the problem shrinks to a card with thumbnails. **Rating:** three confidence buttons, each showing the date and stop it leads to, plus Pick a date (pick the date first; the buttons then show it, and you still rate). **Undo:** available for 4 s after rating, from the pop-up or U; it brings the item back as the current one, answer showing |
+| Review mode | Study one item | **Problem side:** description, problem, images and link. **Reveal:** tap or click anywhere, or press Space; images open zoom and links open normally instead. **Answer side:** the name as a heading, then answer text, images, link and side note; the problem shrinks to a card with thumbnails. **Rating:** three confidence buttons, each showing the date and stop it leads to, plus Pick a date (pick the date first; the buttons then show it, and you still rate). **Undo:** available for 4 s after rating, from the pop-up or U; it brings the item back as the current one, answer showing. **Edit:** E, Edit in the header, or ··· on the phone opens the item in the editor; saving or cancelling comes back to the same place in the run, and an item deleted there is skipped |
 | Flash review | Review a set in one run | All items due today, or all of one section's. Goes section by section in your section order; within a section, the latest items come first (most days late first), then the ones due today, with equally late items in creation order, oldest first. Starts with "Kérjük, vigyázzanak, az ajtók záródnak!" |
 | All done | The rest moment when nothing is left today | Végállomás over the Parliament illustration, today's count, tomorrow's due count, and a neutral Review early button |
-| Items | Find and manage items | Search (names, descriptions and notes), filter by section, and sort by next due. A table on desktop, two-line rows on the phone |
-| Item editor | Add or edit an item | **Fields:** every item field. **Images:** paste or drop on desktop, camera or photo library on the phone; reorder and remove. **Section picker:** can create a new section on the spot. **Markdown fields:** a Write / Preview toggle. **Save:** stays within reach |
+| Items | Find and manage items | **Search:** Name, Description, Problem description and Side note, ignoring case and accents. **Filter** by section. **Sort:** by next due (earliest first, equal dates oldest first) or recently added (newest first). **Status:** each row shows "+3 days", Due today or Reviewed today; above the list, "23 items · 3 late · 5 more due today · 1 reviewed today". A table on desktop, two-line rows on the phone |
+| Item editor | Add or edit an item | **Fields:** every item field. **Images:** paste or drop on desktop, camera or photo library on the phone; reorder and remove. **Section picker:** find a section by name or code, or type a new name to create it on the spot: the section is made at once, with the suggested code (or one the person types) and the next colour. **Markdown fields:** a Write / Preview toggle; on touch screens, a Code button wraps the selection in backticks (a fenced block when it spans lines), on the Name and Description too. **Save:** stays within reach: a bar at the top on desktop (Ctrl/⌘+Enter), a button at the bottom on the phone. **Leaving:** Save, Cancel (Esc) and ✕ go back to where the editor was opened from; with unsaved changes, Cancel, Esc, ✕ and Back ask "Discard your changes?" first. **New items** start in the line the Items list is filtered to, or else the line of the last item saved in this browser. **Delete** (the ··· menu on the phone) asks first and says how many reviews go with the item |
 | Item history | See how an item has gone | A line map (reviews left to right, stops bottom to top, dot size = confidence, marks for picked dates and early reviews), plus the same data as a table. On the phone, the line map shows the latest 10 reviews; scroll back for older ones. The table always lists them all |
-| Settings ("Menetrend") | Tune the ladder; manage the account | The ladder drawn as a metro line: each stop's gap and item count, add / edit / remove stops, and a preview of where each rating leads. Account and sign out |
+| Settings ("Menetrend") | Tune the ladder; manage the lines and the account | The ladder drawn as a metro line: each stop's gap and item count, add / edit / remove stops, and a preview of where each rating leads. **Lines:** every line in order with its item count; drag a handle (or focus it and use ↑ ↓) to reorder, which sets the order of the dashboard and flash review; Edit opens the name and code (the colour shows but never changes) and Delete line…; New line makes one with the suggested code and the next colour. The sidebar's "Lines" heading links here. Account and sign out |
 
 ## Scheduling rules
 
@@ -253,15 +258,17 @@ Six D1 tables, and each screen is one indexed query by date.
 - **An item's history:** reviews by `item_id`, newest first.
 - **Removing stop k:** one update sets `stop = stop − 1` where `stop ≥ max(k, 2)`, and the gap is removed from `ladder_days`.
 - **Undo:** delete the review and put `stop_before` and `was_due_on` back on the item.
+- **Deleting a section:** one batch deletes its items, then the section; the items' images and reviews go with them (`ON DELETE CASCADE`).
+- **Reordering sections:** one update sets every position from the new list of ids.
 
 ## Images
 
 Images are resized in the browser, stored in R2 under a name made from their content, and served through the Worker so they stay behind the login.
 
-1. **Add:** paste, drop or pick an image in the item editor on desktop; use the camera or photo library on the phone.
+1. **Add:** paste, drop or pick an image in the item editor on desktop; use the camera or photo library on the phone. A pasted image goes to the side whose card has the focus, or else the problem side.
 2. **Shrink:** the browser resizes it to at most about 1,600 px, compresses it to WebP or JPEG, and names it by its SHA-256 hash, so the same image is never stored twice.
-3. **Upload:** `PUT /api/images/<hash>.webp`. The Worker streams the file straight into R2, which uses almost no CPU.
-4. **Save:** the item stores only the image name and its position in `item_images`. Images can be reordered and removed in the editor.
+3. **Upload:** `PUT /api/images/<hash>.webp` (or `.jpg`), as soon as the image is added. The Worker streams the file straight into R2, which uses almost no CPU. R2 itself checks that the content's SHA-256 matches the name, so nothing else can be stored under an image's name, and an image already stored isn't written again.
+4. **Save:** the item stores only the image name and its position in `item_images`. Images can be reordered (drag, or ← → on a focused handle) and removed in the editor. Save waits for uploads still on their way; an upload that failed can be tried again or removed.
 5. **Show:** `GET /img/<hash>.webp` streams the file back with `Cache-Control: private, max-age=31536000, immutable`, so the browser downloads each image only once.
 
 Images live only in the image fields; Markdown images are not allowed. The Parliament illustration and the Zsolnay pattern are part of the app's static files, not user images.
@@ -272,7 +279,7 @@ Images live only in the image fields; Markdown images are not allowed. The Parli
 
 **Guardrails:**
 
-- Reject files over 2 MB and cap the number of images per user.
+- Reject files over 2 MB, counting the file after the browser has shrunk it (the original photo can be any size), and cap the number of images: 10 per side of an item, and 2,000 different images per person across their items (an image used twice counts once).
 - Set a $1 budget alert. It sends an email but doesn't stop use.
 - Keep storage behind one small module, so switching between KV and R2 touches nothing else.
 
@@ -333,3 +340,4 @@ Small decisions left for implementation:
 - **Undo on the phone:** place the pop-up at the top, so it never covers Show answer on the next item.
 - **Remove stop:** the confirmation should not remove on a plain Enter.
 - **Math formulas (later):** remark-math + rehype-katex, loaded only for items that use them.
+- **Unused images in R2:** removing an image or deleting an item leaves its file in R2, since another item, or an upload not yet saved, may still use it. The files are small; a cleanup script can delete those no `item_images` row uses.

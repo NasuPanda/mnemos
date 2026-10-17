@@ -1,4 +1,4 @@
-import { Play } from "lucide-react";
+import { Play, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/app-shell";
@@ -6,10 +6,13 @@ import { LineCard } from "@/components/line-card";
 import { Link } from "@/components/link";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
-import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { Kbd } from "@/components/ui/kbd";
+import { KeyHintBar } from "@/components/key-hint-bar";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { dayMonth, longDate, shortDate, weekday } from "@/lib/format";
 import { navigate } from "@/lib/router";
+import { editItemPath, newItemPath } from "@/lib/routes";
+import { openItemSearch } from "@/lib/item-search-focus";
 import { useToday } from "@/lib/today";
 import { todayView, type TodayData, type TodayView } from "@/state/today-data";
 import { load, useTodayState } from "@/state/today-store";
@@ -64,6 +67,8 @@ function Dashboard({ data, view }: { data: TodayData; view: TodayView }) {
     Enter: () => selected !== null && navigate(`/review?item=${selected}`),
     f: () => navigate("/flash"),
     "Shift+F": () => selectedSection !== undefined && navigate(`/flash?section=${selectedSection}`),
+    "/": openItemSearch,
+    e: () => selected !== null && navigate(editItemPath(selected)),
   });
 
   const groups = data.sections
@@ -99,7 +104,16 @@ function Dashboard({ data, view }: { data: TodayData; view: TodayView }) {
         left={view.counts.left}
         className="fixed inset-x-4 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-20 h-14 shadow-cta sm:inset-x-auto sm:left-1/2 sm:w-[min(760px,calc(100%-3rem))] sm:-translate-x-1/2 lg:hidden"
       />
-      <KeyHintBar />
+      <KeyHintBar
+        hints={[
+          [["J", "K"], "move"],
+          [["Enter"], "open"],
+          [["Shift", "F"], "review line"],
+          [["F"], "start review"],
+          [["/"], "search"],
+          [["T"], "today"],
+        ]}
+      />
     </main>
   );
 }
@@ -144,31 +158,6 @@ function StartReview({ left, className }: { left: number; className?: string }) 
         <Kbd className="ml-1">F</Kbd>
       </Link>
     </Button>
-  );
-}
-
-/** The desktop footer of key hints. Touch screens have no keys, so it never shows there. */
-function KeyHintBar() {
-  const hints: [string[], string][] = [
-    [["J", "K"], "move"],
-    [["Enter"], "open"],
-    [["Shift", "F"], "review line"],
-    [["F"], "start review"],
-    [["T"], "today"],
-  ];
-  return (
-    <footer className="fixed right-0 bottom-0 left-[248px] z-10 hidden h-11 items-center gap-6 border-t border-border bg-background px-10 text-small text-muted-foreground lg:flex [@media(hover:none)_and_(pointer:coarse)]:hidden">
-      {hints.map(([keys, label]) => (
-        <span key={label} className="inline-flex items-center gap-2">
-          <KbdGroup>
-            {keys.map((key) => (
-              <Kbd key={key}>{key}</Kbd>
-            ))}
-          </KbdGroup>
-          {label}
-        </span>
-      ))}
-    </footer>
   );
 }
 
@@ -218,9 +207,16 @@ function NoItemsYet({ date }: { date: string }) {
         <EmptyHeader>
           <EmptyTitle>No items yet</EmptyTitle>
           <EmptyDescription>
-            Adding items arrives with the item editor, in the next phase.
+            Add your first one: a problem, its answer, and a photo if it helps. It’s due today.
           </EmptyDescription>
         </EmptyHeader>
+        <Button asChild variant="secondary" className="h-12 gap-2 px-5 text-item font-bold">
+          <Link to={newItemPath()}>
+            <Plus aria-hidden className="size-5" />
+            New item
+            <Kbd className="ml-1">N</Kbd>
+          </Link>
+        </Button>
       </Empty>
     </main>
   );

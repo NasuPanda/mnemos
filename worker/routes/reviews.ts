@@ -5,6 +5,7 @@ import { getDb } from "../db/client";
 import { deleteReview, loadForRating, loadReview, saveReview } from "../db/reviews";
 import { toReviewDto } from "../db/today";
 import type { AppEnv } from "../env";
+import { isUniqueViolation, parseId } from "./params";
 
 /** Ratings and Undo. The rules come from src/core; this only checks input and stores results. */
 export const reviewRoutes = new Hono<AppEnv>()
@@ -39,7 +40,7 @@ export const reviewRoutes = new Hono<AppEnv>()
     const saved = await saveReview(db, userId, input.itemId, result.value).catch(
       (error: unknown) => {
         // Two ratings racing for the same item: UNIQUE (item_id, reviewed_on) refuses the second.
-        if (String(error).includes("UNIQUE")) return null;
+        if (isUniqueViolation(error)) return null;
         throw error;
       },
     );
@@ -53,9 +54,9 @@ export const reviewRoutes = new Hono<AppEnv>()
   })
   /** DELETE /api/reviews/:id?date=YYYY-MM-DD: Undo, only for a review made today. */
   .delete("/:id", async (c) => {
-    const reviewId = Number(c.req.param("id"));
+    const reviewId = parseId(c.req.param("id"));
     const date = c.req.query("date");
-    if (!Number.isSafeInteger(reviewId) || reviewId < 1 || !isIsoDate(date)) {
+    if (!reviewId || !isIsoDate(date)) {
       return c.json({ error: "a review id and date are required" }, 400);
     }
 

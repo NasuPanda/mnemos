@@ -1,4 +1,11 @@
-import { futureDayCounts, lineCounts, todayCounts, todayList, type DayEntry } from "@/core";
+import {
+  compareDates,
+  futureDayCounts,
+  lineCounts,
+  todayCounts,
+  todayList,
+  type DayEntry,
+} from "@/core";
 import type { ItemDto, ReviewDto, TodayResponse } from "../../worker/contract";
 
 /**
@@ -37,6 +44,26 @@ export function revertRating(data: TodayData, item: ItemDto, reviewId: number): 
 /** Swaps the temporary id of an optimistic review for the one the Worker stored. */
 export function confirmReview(data: TodayData, tempId: number, review: ReviewDto): TodayData {
   return { ...data, reviewsToday: data.reviewsToday.map((r) => (r.id === tempId ? review : r)) };
+}
+
+/**
+ * A saved item: on today's list if it is due today or earlier and not reviewed today, with its
+ * new content; otherwise off it. A new item is due the day it's added, so it appears at once.
+ */
+export function withSavedItem(data: TodayData, item: ItemDto): TodayData {
+  const others = data.items.filter((i) => i.id !== item.id);
+  const reviewed = data.reviewsToday.some((review) => review.itemId === item.id);
+  const left = compareDates(item.dueOn, data.date) <= 0 && !reviewed;
+  return { ...data, items: left ? [...others, item].sort((a, b) => a.id - b.id) : others };
+}
+
+/** A deleted item: gone from today's list and from tomorrow's count. */
+export function withoutItem(data: TodayData, itemId: number): TodayData {
+  return {
+    ...data,
+    items: data.items.filter((i) => i.id !== itemId),
+    tomorrow: { ...data.tomorrow, itemIds: data.tomorrow.itemIds.filter((id) => id !== itemId) },
+  };
 }
 
 export type TodayView = {

@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { assignLine, FIRST_LINE, nextLine, suggestCode, validateCode, type Line } from "./sections";
+import {
+  assignLine,
+  FIRST_LINE,
+  nextLine,
+  suggestCode,
+  validateCode,
+  validateSectionName,
+  type Line,
+} from "./sections";
 
 describe("Section colours: a counter cycles M2 red → M3 blue → M4 green", () => {
   it("gives a new account's first section M2", () => {
@@ -136,5 +144,21 @@ describe("Section codes › the person's own code", () => {
   it("lets a section keep its own code when renamed (its code isn't in the others' list)", () => {
     const others = ["DS", "DP"];
     expect(validateCode("GR", others)).toEqual({ ok: true, value: "GR" });
+  });
+});
+
+describe("Section names", () => {
+  it("are required: an empty or blank name is refused", () => {
+    expect(validateSectionName("")).toEqual({ ok: false, error: "required" });
+    expect(validateSectionName("   ")).toEqual({ ok: false, error: "required" });
+  });
+
+  it("are stored without surrounding spaces", () => {
+    expect(validateSectionName("  Graphs ")).toEqual({ ok: true, value: "Graphs" });
+  });
+
+  it("are at most 60 characters", () => {
+    expect(validateSectionName("x".repeat(60)).ok).toBe(true);
+    expect(validateSectionName("x".repeat(61))).toEqual({ ok: false, error: "too-long" });
   });
 });

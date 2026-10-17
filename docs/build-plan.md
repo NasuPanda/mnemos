@@ -143,28 +143,50 @@ The order we build in. Each phase ends with something you can use on your phone,
 **Tasks:**
 
 - [ ] Wipe the phase 2 sample day from production first: `node scripts/seed.ts --wipe --remote --email=<you>` (it asks you to type "wipe production").
-- [ ] Item editor:
+- [x] Item editor:
   - every field, with Name and Section required;
   - Markdown fields with a Write / Preview toggle;
   - a Code button on phones that wraps the selection in backticks;
   - Save stays within reach, with Ctrl/⌘+Enter on desktop;
   - Delete asks first.
-- [ ] Section picker with "create on the spot": the suggested code and the next colour are shown, and the user can type their own code instead.
-- [ ] Images:
+- [x] Section picker with "create on the spot": the suggested code and the next colour are shown, and the user can type their own code instead.
+- [x] Images:
   - resize, hash and upload in the browser;
   - paste or drop on desktop; camera or photo library on the phone;
   - reorder with dnd-kit, and remove;
   - reject files over 2 MB.
-- [ ] Items list:
+- [x] Items list:
   - search names, descriptions and notes (`/` focuses the search box);
   - filter by section and sort by next due;
   - a table on desktop, rows on the phone.
-- [ ] **Decide and build:** managing sections (rename, change code, reorder, delete). The draft has no screen for this yet, so the AI should propose one before building it.
-- [ ] End-to-end test: create an item with two images on a phone-sized screen, then find it with search.
+- [x] **Decide and build:** managing sections (rename, change code, reorder, delete). The draft has no screen for this yet, so the AI should propose one before building it.
+- [x] End-to-end test: create an item with two images on a phone-sized screen, then find it with search.
 
 **Mockups:** 23–29, plus 18 (components).
 
 **Done when:** you add a real item from your phone, including a photo, and review it the same day.
+
+**Built (16 Oct 2026), waiting for the phone check:** typecheck, lint, 327 unit and API tests and 14 end-to-end runs pass. Still to do by hand: wipe the sample day from production, deploy, then add a real item with a photo from the phone and review it.
+
+**Changed while building (recorded in the plan):**
+
+- The 2 MB limit counts the file after the browser shrinks it (at most 1,600 px, WebP or JPEG); the original photo can be any size. Each person has at most 2,000 different images, and a side at most 10.
+- Lines are managed in a Lines card on Settings ("Menetrend"): reorder by dragging or ↑ ↓, rename, change the code, delete. Deleting a line deletes its items and their reviews, after a confirmation that names how many. The sidebar's "Lines" heading links there. The ladder and account join it in phase 4.
+- Items search covers the Name, Description, Problem description and Side note, ignoring case and accents. The sort menu offers next due and recently added.
+- A section made in the picker is created at once, with the suggested code (or one typed in its place) and the next colour.
+- Edit (E) works on the dashboard and in review (a header button on desktop, ··· on the phone); the run goes on at the same item after saving. History (H) stays in phase 4.
+- Confirmations are a shared component: a dialog with Cancel focused on desktop, a bottom sheet on the phone.
+- The editor asks "Discard your changes?" on Cancel, Esc, ✕ and Back, and Ctrl/⌘+Enter saves even while a picker is open.
+- Removing an image or deleting an item leaves the file in R2 for now (an open point in the plan).
+- Fixed on the way: the focus ring faded in from the text colour for 150 ms; it is yellow from the first frame now.
+
+**Differences from the mockups:**
+
+- The editor header and review have no History (H) yet (phase 4); key hints say Ctrl, not ⌘ (phase 5).
+- In Write mode, Markdown fields show the raw Markdown, so a code block appears as ``` fences instead of the mockup's mono box; Preview shows it rendered.
+- With a scrollbar at 1440 px, the twelfth line chip wraps to a second row.
+- The editor's two cards stack into one column below 1280 px, as the dashboard does.
+- The section picker has no "+ 6 more · scroll or keep typing" line; its list scrolls.
 
 ## Phase 4 — Slice 3: other days, history and the ladder
 

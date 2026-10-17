@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { ItemDto, ReviewDto } from "../../worker/contract";
-import { applyRating, confirmReview, revertRating, todayView, type TodayData } from "./today-data";
+import {
+  applyRating,
+  confirmReview,
+  revertRating,
+  todayView,
+  withoutItem,
+  withSavedItem,
+  type TodayData,
+} from "./today-data";
 
 const TODAY = "2026-09-24";
 const TOMORROW = "2026-09-25";
@@ -46,6 +54,7 @@ const data: TodayData = {
   items: [item(1, "2026-09-21"), item(2, TODAY), item(3, TODAY, 2)],
   reviewsToday: [review(90, 50, "2026-09-27")],
   tomorrow: { date: TOMORROW, itemIds: [60] },
+  nextLine: "m4",
 };
 
 describe("Today's data on the client", () => {
@@ -83,5 +92,29 @@ describe("Today's data on the client", () => {
     const rated = applyRating(data, item(2, TODAY), review(-1, 2, "2026-09-27"));
     const confirmed = confirmReview(rated, -1, review(91, 2, "2026-09-27"));
     expect(confirmed.reviewsToday.map((r) => r.id)).toEqual([90, 91]);
+  });
+});
+
+describe("Today's data › items saved or deleted in the editor", () => {
+  it("puts a new item due today on the list at once", () => {
+    const next = withSavedItem(data, item(70, TODAY));
+    expect(next.items.map((i) => i.id)).toEqual([1, 2, 3, 70]);
+  });
+
+  it("shows an edited item's new content in its place", () => {
+    const edited = { ...item(2, TODAY), name: "Renamed" };
+    const next = withSavedItem(data, edited);
+    expect(next.items.map((i) => [i.id, i.name])).toContainEqual([2, "Renamed"]);
+    expect(next.items).toHaveLength(3);
+  });
+
+  it("leaves off an item due later, or one already reviewed today", () => {
+    expect(withSavedItem(data, item(71, TOMORROW)).items.map((i) => i.id)).toEqual([1, 2, 3]);
+    expect(withSavedItem(data, item(50, TODAY)).items.map((i) => i.id)).toEqual([1, 2, 3]);
+  });
+
+  it("takes a deleted item off today's list and tomorrow's count", () => {
+    expect(withoutItem(data, 2).items.map((i) => i.id)).toEqual([1, 3]);
+    expect(withoutItem(data, 60).tomorrow.itemIds).toEqual([]);
   });
 });

@@ -2,15 +2,19 @@ import { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { navigate, useLocation } from "@/lib/router";
+import { matchRoute } from "@/lib/routes";
 import { FlashStartScreen } from "@/screens/flash-start";
-import { PlaceholderScreen } from "@/screens/placeholder";
+import { ItemEditorScreen } from "@/screens/item-editor";
+import { ItemsScreen } from "@/screens/items";
 import { ReviewScreen } from "@/screens/review";
+import { SettingsScreen } from "@/screens/settings";
 import { TodayScreen } from "@/screens/today";
 
 export default function App() {
   const { path } = useLocation();
+  const route = matchRoute(path);
   const desktop = useMediaQuery(DESKTOP);
-  const known = ["/", "/flash", "/review", "/items", "/settings"].includes(path);
+  const known = route.screen !== "unknown";
 
   useEffect(() => {
     if (!known) navigate("/", { replace: true });
@@ -18,21 +22,15 @@ export default function App() {
 
   return (
     <>
-      {path === "/" && <TodayScreen />}
-      {path === "/flash" && <FlashStartScreen />}
-      {path === "/review" && <ReviewScreen />}
-      {path === "/items" && (
-        <PlaceholderScreen
-          title="Items"
-          coming="Adding, editing and finding items come in phase 3."
-        />
+      {route.screen === "today" && <TodayScreen />}
+      {route.screen === "flash" && <FlashStartScreen />}
+      {route.screen === "review" && <ReviewScreen />}
+      {route.screen === "items" && <ItemsScreen />}
+      {route.screen === "new-item" && <ItemEditorScreen itemId={null} />}
+      {route.screen === "edit-item" && (
+        <ItemEditorScreen key={route.itemId} itemId={route.itemId} />
       )}
-      {path === "/settings" && (
-        <PlaceholderScreen
-          title="Settings"
-          coming="The ladder editor and your account come in phase 4."
-        />
-      )}
+      {route.screen === "settings" && <SettingsScreen />}
       {/* On phones the Undo pop-up sits at the top, so it never covers Show answer. */}
       {/* On desktop it sits above the rating buttons, never over them. */}
       <Toaster

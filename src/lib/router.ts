@@ -7,12 +7,66 @@ const notify = () => listeners.forEach((listener) => listener());
 
 if (typeof window !== "undefined") window.addEventListener("popstate", notify);
 
-/** Goes to `to` (a path with an optional ?query), adding a history entry unless `replace`. */
+/**
+ * Goes to `to` (a path with an optional ?query), adding a history entry unless `replace`. Each
+ * entry remembers the screen it was opened from, so `leave` can go back the same way.
+ */
 export function navigate(to: string, options: { replace?: boolean } = {}): void {
   if (to === currentUrl()) return;
-  if (options.replace) window.history.replaceState(null, "", to);
-  else window.history.pushState(null, "", to);
+  if (options.replace) window.history.replaceState(window.history.state, "", to);
+  else window.history.pushState({ from: currentUrl() }, "", to);
   notify();
+}
+
+/**
+ * Leaves the current screen the way the person came: Back, if they opened it from inside the
+ * app, so the screen behind is as they left it; otherwise (a reload, a shared link) `fallback`.
+ */
+export function leave(fallback: string): void {
+  // A Back guard's own entry sits on top; leaving takes it off in the same step.
+  const steps = guarded ? 2 : 1;
+  guarded = false;
+  if (typeof window.history.state?.from === "string") window.history.go(-steps);
+  else navigate(fallback, { replace: true });
+}
+
+/** Whether a Back guard's history entry is on top right now. */
+let guarded = false;
+
+/**
+ * While `active`, Back asks before leaving: an extra history entry on the same URL takes the
+ * Back, and `onBack` decides (a "Discard changes?" question). If the person stays, `rearm` puts
+ * a new entry in place of the one Back used. `leave` takes the entry off with the screen.
+ */
+export function useBackGuard(active: boolean, onBack: () => void): { rearm: () => void } {
+  const handleBack = useEffectEvent(onBack);
+
+  useEffect(() => {
+    if (!active) return;
+    armGuard();
+    const listener = () => {
+      if (!guarded || window.history.state?.guard) return;
+      // Back used the guard's entry: we're on the screen's own entry again.
+      guarded = false;
+      handleBack();
+    };
+    window.addEventListener("popstate", listener);
+    return () => {
+      window.removeEventListener("popstate", listener);
+      if (guarded && window.history.state?.guard) {
+        guarded = false;
+        window.history.back();
+      }
+    };
+  }, [active]);
+
+  return { rearm: () => active && armGuard() };
+}
+
+function armGuard() {
+  if (guarded) return;
+  window.history.pushState({ ...window.history.state, guard: true }, "");
+  guarded = true;
 }
 
 /** The current path and query, re-rendering when they change. */

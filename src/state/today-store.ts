@@ -1,9 +1,29 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { toast } from "sonner";
-import { rate, type Confidence, type IsoDate, type RateRefusal, type Result } from "@/core";
+import {
+  rate,
+  type Confidence,
+  type IsoDate,
+  type Line,
+  type RateRefusal,
+  type Result,
+} from "@/core";
 import { del, getJson, postJson } from "@/lib/api";
-import type { ItemDto, RateResponse, ReviewDto, TodayResponse } from "../../worker/contract";
-import { applyRating, confirmReview, revertRating, type TodayData } from "./today-data";
+import type {
+  ItemDto,
+  RateResponse,
+  ReviewDto,
+  SectionDto,
+  TodayResponse,
+} from "../../worker/contract";
+import {
+  applyRating,
+  confirmReview,
+  revertRating,
+  withoutItem,
+  withSavedItem,
+  type TodayData,
+} from "./today-data";
 
 export type TodayState =
   | { status: "loading"; date: IsoDate }
@@ -44,6 +64,54 @@ export async function load(date: IsoDate): Promise<void> {
   } catch {
     if (state.date === date) setState({ status: "failed", date });
   }
+}
+
+/**
+ * Fetches today again in the background after an item or section changed, once ratings still
+ * on their way have settled. The screen keeps showing the current data until the new arrives.
+ */
+export async function refreshToday(): Promise<void> {
+  if (state.status !== "ready") return;
+  await Promise.all(pending.values());
+  const date = state.date;
+  try {
+    const data = await getJson<TodayResponse>(`/api/today?date=${date}`);
+    if (state.date === date) setState({ status: "ready", date, data });
+  } catch {
+    // The next load brings it up to date; nothing on screen is wrong in the meantime.
+  }
+}
+
+/** A saved item, shown on today's list at once (see withSavedItem). */
+export function putTodayItem(item: ItemDto): void {
+  updateData((data) => withSavedItem(data, item));
+}
+
+/** A deleted item leaves today's list and tomorrow's count at once. */
+export function forgetTodayItem(itemId: number): void {
+  updateData((data) => withoutItem(data, itemId));
+}
+
+/** A new section order, shown at once: the dashboard and flash review follow it. */
+export function orderSections(ids: number[]): void {
+  updateData((data) => ({
+    ...data,
+    sections: ids.flatMap((id, index) => {
+      const section = data.sections.find((s) => s.id === id);
+      return section ? [{ ...section, position: index + 1 }] : [];
+    }),
+  }));
+}
+
+/** A section created or changed in the editor or on Settings, shown at once. */
+export function putSection(section: SectionDto, nextLine?: Line): void {
+  updateData((data) => ({
+    ...data,
+    nextLine: nextLine ?? data.nextLine,
+    sections: data.sections.some((s) => s.id === section.id)
+      ? data.sections.map((s) => (s.id === section.id ? section : s))
+      : [...data.sections, section],
+  }));
 }
 
 export type LocalRating = { reviewId: number; itemId: number; review: ReviewDto };
