@@ -167,7 +167,7 @@ Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", rou
     - Size: 3:2, 2400 × 1600, WebP or AVIF under about 400 kB, plus a 1200 × 800 copy for phones.
     - Faded into the page with a CSS mask.
     - Loaded in advance while you review the last item.
-  - **Zsolnay tile pattern:** stays tone-on-tone.
+  - **Zsolnay tile pattern:** stays tone-on-tone: River ground, Swell and Rule diamonds in 28 × 56 px tiles, drawn as an inline SVG pattern with its own three tokens (`zsolnay-ground`, `zsolnay-tile`, `zsolnay-tile-alt`). It is the 84 px band at the top of Settings, on both widths; text never sits on it.
 
   Both ship as static files, not in R2.
 

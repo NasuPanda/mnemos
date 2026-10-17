@@ -23,6 +23,7 @@ import { SectionBadge } from "@/components/section-badge";
 import { AccountCard } from "@/components/settings/account-card";
 import { LadderEditor } from "@/components/settings/ladder-editor";
 import { DeleteLine, LineDialog, type LineDialogMode } from "@/components/settings/line-dialog";
+import { ZsolnayBand } from "@/components/zsolnay";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { count } from "@/lib/format";
@@ -63,6 +64,8 @@ export function SettingsScreen() {
 
   return (
     <AppShell sections={data?.sections ?? []} lines={lines}>
+      {/* Settings is a rest moment: its header gets the Zsolnay tiles (pages 30, 31). */}
+      <ZsolnayBand />
       <main className="mx-auto max-w-[1200px] px-4 pt-8 pb-12 sm:px-6 lg:px-10 lg:pt-10">
         <header className="flex flex-col gap-1 lg:flex-row lg:items-start lg:gap-10">
           <div className="flex items-end justify-between gap-4">

@@ -88,6 +88,9 @@
   --rail: var(--mist-300);            /* ladder rails */
   --illustration: var(--lamplight-400); /* warm light in illustrations; never text, controls or state */
   --illustration-shade: var(--dusk-700); /* shapes and silhouettes in drawings */
+  --zsolnay-ground: var(--dusk-900);  /* Zsolnay tiles: ground and inner diamonds */
+  --zsolnay-tile: var(--dusk-800);    /* Zsolnay tiles: diamonds with a centre */
+  --zsolnay-tile-alt: var(--dusk-750); /* Zsolnay tiles: the rows between */
   --elevation-card: inset 0 1px 0 rgb(255 255 255 / 0.03),
     0 4px 14px rgb(4 9 20 / 0.35);
   --elevation-raised: 0 8px 24px rgb(4 9 20 / 0.45);
@@ -149,6 +152,9 @@
   --color-rail: var(--rail);
   --color-illustration: var(--illustration);
   --color-illustration-shade: var(--illustration-shade);
+  --color-zsolnay-ground: var(--zsolnay-ground);
+  --color-zsolnay-tile: var(--zsolnay-tile);
+  --color-zsolnay-tile-alt: var(--zsolnay-tile-alt);
   --shadow-card: var(--elevation-card);
   --shadow-raised: var(--elevation-raised);
   --shadow-overlay: var(--elevation-overlay);
