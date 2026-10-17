@@ -173,7 +173,7 @@ Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", rou
 
 ## Keyboard shortcuts
 
-The whole review loop works without the mouse, and `?` shows the list in the app. Key hints appear on desktop and are hidden on touch screens. Macs show ⌘ instead of Ctrl.
+The whole review loop works without the mouse, and `?` shows the list in the app: a dialog grouped by place (Dashboard, Review, Items, Item editor, Settings, Everywhere), closed by `?` again or Esc. While it, the command menu or an item's history is open, the screen behind ignores its keys. Key hints appear on desktop and are hidden on touch screens. Macs, iPhones and iPads show ⌘ instead of Ctrl; either key works. The footer of key hints ends with "? all keys"; between 1024 and 1279 px it leaves out Shift F and N, which the selected line's card and the sidebar already show.
 
 | Key | Where | Action |
 | --- | --- | --- |

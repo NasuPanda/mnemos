@@ -44,7 +44,8 @@ import {
 import { clearParkedRun, parkedRun, parkRun } from "@/review/parked";
 import { offerUndo, onUndone, undoLast } from "@/review/undo";
 import { useDayState } from "@/state/day-store";
-import { openHistory, useHistoryTarget } from "@/state/history-panel";
+import { openHistory } from "@/state/history-panel";
+import { usePanelOpen } from "@/state/overlay";
 import type { TodayData } from "@/state/today-data";
 import { rateItem, useTodayState } from "@/state/today-store";
 import type { ImageDto, ItemDto } from "../../worker/contract";
@@ -159,7 +160,7 @@ function ReviewRun({
 
   /** H: the item's history over the run; before the reveal it keeps the name hidden too. */
   const showHistory = () => item && openHistory(item.id, { hideName: !session.revealed });
-  const historyOpen = useHistoryTarget() !== null;
+  const panelOpen = usePanelOpen();
 
   const visibleImages = item
     ? item.images.filter((image) => session.revealed || image.side === "problem")
@@ -180,7 +181,7 @@ function ReviewRun({
       h: showHistory,
       Escape: () => navigate(home),
     },
-    zoom === null && !pickerOpen && !historyOpen,
+    zoom === null && !pickerOpen && !panelOpen,
   );
 
   if (!item || !section) return null;

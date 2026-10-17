@@ -8,7 +8,7 @@ import { useHotkeys } from "@/hooks/use-hotkeys";
 import { Link } from "@/components/link";
 import { navigate, useLocation } from "@/lib/router";
 import { newItemPath } from "@/lib/routes";
-import { useHistoryTarget } from "@/state/history-panel";
+import { usePanelOpen } from "@/state/overlay";
 import type { SectionDto } from "../../worker/contract";
 
 type Nav = { to: string; label: string; icon: LucideIcon; hint: string; phone: boolean };
@@ -46,7 +46,7 @@ export function AppShell({
       ",": () => navigate("/settings"),
       n: () => navigate(newItemPath()),
     },
-    useHistoryTarget() === null,
+    !usePanelOpen(),
   );
 
   return (

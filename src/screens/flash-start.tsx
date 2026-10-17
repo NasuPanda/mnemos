@@ -11,6 +11,7 @@ import { dayPath, reviewPath, runTargetFromQuery } from "@/lib/routes";
 import { useToday } from "@/lib/today";
 import { runFromTarget, runQueue } from "@/review/session";
 import { useDayState } from "@/state/day-store";
+import { usePanelOpen } from "@/state/overlay";
 import { useTodayState } from "@/state/today-store";
 
 /**
@@ -49,7 +50,11 @@ export function FlashStartScreen() {
   }, [empty, home]);
 
   const start = () => navigate(reviewPath({ day: target.day, sectionId }), { replace: true });
-  useHotkeys({ Enter: start, f: start, Escape: () => navigate(home) }, !!run && !empty);
+  const panelOpen = usePanelOpen();
+  useHotkeys(
+    { Enter: start, f: start, Escape: () => navigate(home) },
+    !!run && !empty && !panelOpen,
+  );
 
   if (!run || empty) return null;
   const single = sectionId ? run.lines[0]?.section : undefined;

@@ -10,7 +10,7 @@ import { Link } from "@/components/link";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Kbd } from "@/components/ui/kbd";
-import { KeyHintBar } from "@/components/key-hint-bar";
+import { KeyHintBar, type KeyHint } from "@/components/key-hint-bar";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { dayMonth, longDate, relativeDay, shortDate, weekday } from "@/lib/format";
 import { navigate, useLocation } from "@/lib/router";
@@ -33,7 +33,8 @@ import {
   type DayData,
 } from "@/state/day-data";
 import { retryDay, useAnyDayAnswered, useDayState, useWeek } from "@/state/day-store";
-import { openHistory, useHistoryTarget } from "@/state/history-panel";
+import { openHistory } from "@/state/history-panel";
+import { usePanelOpen } from "@/state/overlay";
 import { todayView, type TodayData, type TodayView } from "@/state/today-data";
 import { load, useTodayState } from "@/state/today-store";
 import wideArt from "@/assets/parliament-placeholder-wide.webp";
@@ -72,13 +73,13 @@ export function TodayScreen() {
     };
   }, [view, week, previousWeek, nextWeek, day, today]);
 
-  const historyOpen = useHistoryTarget() !== null;
+  const panelOpen = usePanelOpen();
   useHotkeys(
     {
       "[": () => navigate(dayPath(addDays(day, -1), today), { replace: true }),
       "]": () => navigate(dayPath(addDays(day, 1), today), { replace: true }),
     },
-    !historyOpen,
+    !panelOpen,
   );
 
   // The first screen waits for the week strip's counts too, so nothing moves when they arrive;
@@ -139,7 +140,7 @@ function Board({
 }: Frame & {
   summary: ReactNode;
   action?: { href: string; label: string };
-  hints: [keys: string[], label: string][];
+  hints: KeyHint[];
   children: ReactNode;
 }) {
   return (
@@ -267,7 +268,7 @@ function TodayBoard({ data, view, ...frame }: Frame & { data: TodayData; view: T
       e: () => selected !== null && navigate(editItemPath(selected)),
       h: () => selected !== null && openHistory(selected),
     },
-    useHistoryTarget() === null,
+    !usePanelOpen(),
   );
 
   return (
@@ -278,10 +279,13 @@ function TodayBoard({ data, view, ...frame }: Frame & { data: TodayData; view: T
       hints={[
         [["J", "K"], "move"],
         [["Enter"], "open"],
-        [["Shift", "F"], "review line"],
+        // The selected line's card shows Shift F, and the sidebar shows N.
+        [["Shift", "F"], "review line", { wide: true }],
         [["E"], "edit"],
         [["H"], "history"],
         [["[", "]"], "day"],
+        [["N"], "new item", { wide: true }],
+        [["?"], "all keys"],
       ]}
     >
       <div className="mt-6 grid items-start gap-5 desk:grid-cols-2">
@@ -369,7 +373,7 @@ function FutureBoard({
       e: () => selected !== null && navigate(editItemPath(selected)),
       h: () => selected !== null && openHistory(selected),
     },
-    useHistoryTarget() === null,
+    !usePanelOpen(),
   );
 
   return (
@@ -382,10 +386,12 @@ function FutureBoard({
       hints={[
         [["J", "K"], "move"],
         [["Enter"], "review early"],
-        [["Shift", "F"], "review line"],
+        [["Shift", "F"], "review line", { wide: true }],
         [["E"], "edit"],
         [["H"], "history"],
         [["[", "]"], "day"],
+        [["N"], "new item", { wide: true }],
+        [["?"], "all keys"],
       ]}
     >
       {view && view.list.length === 0 && (
@@ -464,10 +470,7 @@ function PastBoard({
   const { selected, move } = useSelection(reviews?.map((review) => review.id) ?? []);
   const selectedItem = reviews?.find((review) => review.id === selected)?.itemId;
   const history = () => selectedItem !== undefined && openHistory(selectedItem);
-  useHotkeys(
-    { j: () => move(1), k: () => move(-1), Enter: history, h: history },
-    useHistoryTarget() === null,
-  );
+  useHotkeys({ j: () => move(1), k: () => move(-1), Enter: history, h: history }, !usePanelOpen());
 
   return (
     <Board
@@ -483,6 +486,8 @@ function PastBoard({
         [["J", "K"], "move"],
         [["H"], "history"],
         [["[", "]"], "day"],
+        [["N"], "new item"],
+        [["?"], "all keys"],
       ]}
     >
       {reviews && reviews.length === 0 && (
@@ -526,7 +531,7 @@ function AllDone({ data, view, day, today, strip }: Frame & { data: TodayData; v
   const { tomorrow } = view;
   const early = tomorrow.due - tomorrow.reviewedToday;
   const reviewEarly = flashPath({ day: tomorrow.date });
-  useHotkeys({ f: () => early > 0 && navigate(reviewEarly) }, useHistoryTarget() === null);
+  useHotkeys({ f: () => early > 0 && navigate(reviewEarly) }, !usePanelOpen());
 
   if (data.sections.length === 0) return <NoItemsYet day={day} today={today} />;
   const weekStrip = (className: string) =>
@@ -591,9 +596,10 @@ function AllDone({ data, view, day, today, strip }: Frame & { data: TodayData; v
       )}
       <KeyHintBar
         hints={[
-          ...(early > 0 ? [[["F"], "review early"] as [string[], string]] : []),
+          ...(early > 0 ? [[["F"], "review early"] satisfies KeyHint] : []),
           [["[", "]"], "day"],
           [["N"], "new item"],
+          [["?"], "all keys"],
         ]}
       />
     </main>
