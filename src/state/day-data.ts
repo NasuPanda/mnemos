@@ -1,4 +1,5 @@
 import {
+  addDays,
   compareDates,
   futureDayCounts,
   futureDayList,
@@ -7,6 +8,7 @@ import {
   type DayEntry,
   type IsoDate,
   type StripCount,
+  weekOf,
 } from "@/core";
 import type { DayResponse, ItemDto, PastReviewDto, SectionDto } from "../../worker/contract";
 
@@ -56,7 +58,8 @@ export function withoutDayItem(data: DayData, itemId: number): DayData {
   };
 }
 
-export type StripDay = { date: IsoDate; count: StripCount };
+/** A day in the week strip; its count is null until its week has loaded. */
+export type StripDay = { date: IsoDate; count: StripCount | null };
 
 /**
  * The week strip: what each of the seven days shows. Past days count their reviews, future days
@@ -71,6 +74,28 @@ export function stripDays(week: DayData["week"], today: IsoDate, todayLeft: numb
         ? { kind: "today", left: todayLeft }
         : stripCount(date, today, { items, reviews: week.reviews }),
   }));
+}
+
+/**
+ * A week the strip can show before its counts arrive: the seven dates, with today's Left if
+ * today is among them. Swiping fast can outrun the fetch; the dates never wait.
+ */
+export function blankStrip(day: IsoDate, today: IsoDate, todayLeft: number): StripDay[] {
+  return weekOf(day).map((date) => ({
+    date,
+    count: date === today ? { kind: "today", left: todayLeft } : null,
+  }));
+}
+
+/**
+ * Where a swipe of the phone's week strip lands: its three weeks are pages 0, 1 and 2, and
+ * settling on the previous or next one moves the day a week, as the desktop arrows do. Null when
+ * it settles back on the middle week.
+ */
+export function swipedDay(selected: IsoDate, page: number): IsoDate | null {
+  if (page <= 0) return addDays(selected, -7);
+  if (page >= 2) return addDays(selected, 7);
+  return null;
 }
 
 export type LineCounts = { due: number; reviewedToday: number; early: number };

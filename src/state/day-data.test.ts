@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { ItemDto, PastReviewDto, SectionDto } from "../../worker/contract";
 import {
+  blankStrip,
   dayKind,
   futureDayView,
   pastDayView,
   stripDays,
+  swipedDay,
   withMovedItem,
   withoutDayItem,
   type DayData,
@@ -91,6 +93,27 @@ describe("Other days on the client", () => {
       { kind: "future", due: 0 },
       { kind: "future", due: 1 },
     ]);
+  });
+
+  it("shows a week's dates before its counts arrive, with today's Left when today is in it", () => {
+    expect(blankStrip(FRIDAY, TODAY, 38).map((day) => [day.date, day.count])).toEqual([
+      ["2026-09-21", null],
+      ["2026-09-22", null],
+      ["2026-09-23", null],
+      [TODAY, { kind: "today", left: 38 }],
+      [FRIDAY, null],
+      ["2026-09-26", null],
+      ["2026-09-27", null],
+    ]);
+    expect(blankStrip("2026-10-01", TODAY, 38).every((day) => day.count === null)).toBe(true);
+  });
+
+  it("moves a week when the phone's strip is swiped to the next or previous week", () => {
+    expect(swipedDay(FRIDAY, 2)).toBe("2026-10-02");
+    expect(swipedDay(FRIDAY, 0)).toBe("2026-09-18");
+    expect(swipedDay("2026-12-30", 2)).toBe("2027-01-06");
+    // Settling back on the middle week changes nothing.
+    expect(swipedDay(FRIDAY, 1)).toBeNull();
   });
 
   it("dims Friday's items reviewed today and counts Early without them (page 10)", () => {

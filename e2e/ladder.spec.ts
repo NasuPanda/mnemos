@@ -60,7 +60,7 @@ test("removes a stop with taps", async ({ page }, testInfo) => {
   await sheet.getByRole("button", { name: "Remove stop 3" }).tap();
   await expect(page.getByText("6 of 7 stops", { exact: true })).toBeVisible();
 
-  await page.getByRole("link", { name: "Review" }).tap();
+  await page.getByRole("link", { name: "Review", exact: true }).tap();
   await expectStops(page, {
     [ITEMS.pageReplacement]: "Stop 2 of 6",
     [ITEMS.dijkstra]: "Stop 3 of 6",

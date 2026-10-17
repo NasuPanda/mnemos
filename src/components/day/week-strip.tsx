@@ -1,35 +1,46 @@
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { addDays, type IsoDate } from "@/core";
 import { Link } from "@/components/link";
 import { Button } from "@/components/ui/button";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { longDate, stripDate } from "@/lib/format";
+import { navigate } from "@/lib/router";
 import { dayPath } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import type { StripDay } from "@/state/day-data";
+import { swipedDay, type StripDay } from "@/state/day-data";
+
+/** The week on show and the weeks either side of it, for the arrows and the swipe. */
+export type StripWeeks = { days: StripDay[]; previous: StripDay[]; next: StripDay[] };
 
 /**
  * Seven days, Monday to Sunday. Past days show the reviews done (Fog, a check mark), today the
  * items left (outlined), future days the items due. The day the board shows has a Slate fill and
- * a yellow bar. On desktop, the arrows move a week; [ and ] move a day.
+ * a yellow bar. On desktop, the arrows move a week and [ and ] a day; below 1024 px the strip
+ * swipes sideways to the previous or next week (issue #13).
  */
 export function WeekStrip({
-  days,
+  weeks,
   selected,
   today,
   className,
 }: {
-  days: StripDay[];
+  weeks: StripWeeks;
   selected: IsoDate;
   today: IsoDate;
   className?: string;
 }) {
+  const desktop = useMediaQuery(DESKTOP);
+  if (!desktop) {
+    return <SwipeStrip weeks={weeks} selected={selected} today={today} className={className} />;
+  }
   return (
-    <nav aria-label="Week" className={cn("flex items-center gap-2 lg:gap-3", className)}>
+    <nav aria-label="Week" className={cn("flex items-center gap-3", className)}>
       <WeekArrow to={dayPath(addDays(selected, -7), today)} label="Previous week" />
-      <ol className="grid min-w-0 flex-1 grid-cols-7 gap-1 lg:flex lg:gap-1.5">
-        {days.map((day) => (
-          <li key={day.date} className="lg:min-w-0 lg:flex-1">
+      <ol className="flex min-w-0 flex-1 gap-1.5">
+        {weeks.days.map((day) => (
+          <li key={day.date} className="min-w-0 flex-1">
             <DayCell day={day} selected={day.date === selected} today={today} />
           </li>
         ))}
@@ -46,12 +57,92 @@ export function WeekStrip({
   );
 }
 
+/** How long the strip has to be still before a swipe counts as settled. */
+const SETTLE_MS = 120;
+
+/**
+ * The phone's strip: three weeks side by side that snap to whole weeks, starting on the middle
+ * one. Settling on the previous or next week moves the day a week, and the strip re-centres on
+ * it before the next paint, so the week just swiped to stays where it is.
+ */
+function SwipeStrip({
+  weeks,
+  selected,
+  today,
+  className,
+}: {
+  weeks: StripWeeks;
+  selected: IsoDate;
+  today: IsoDate;
+  className?: string;
+}) {
+  const scroller = useRef<HTMLDivElement>(null);
+  const settle = useRef<number | undefined>(undefined);
+  const week = weeks.days[0]?.date;
+
+  const centre = () => {
+    const el = scroller.current;
+    if (el) el.scrollLeft = el.clientWidth;
+  };
+  useLayoutEffect(centre, [week]);
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    // A phone turned sideways changes the width of a week.
+    const observer = new ResizeObserver(centre);
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(settle.current);
+    };
+  }, []);
+
+  const onScroll = () => {
+    window.clearTimeout(settle.current);
+    settle.current = window.setTimeout(() => {
+      const el = scroller.current;
+      if (!el || el.clientWidth === 0) return;
+      const day = swipedDay(selected, Math.round(el.scrollLeft / el.clientWidth));
+      if (day) navigate(dayPath(day, today), { replace: true });
+    }, SETTLE_MS);
+  };
+
+  return (
+    <nav aria-label="Week" className={className}>
+      <div
+        ref={scroller}
+        data-week-strip
+        onScroll={onScroll}
+        className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {[weeks.previous, weeks.days, weeks.next].map((days, page) => (
+          // The side weeks are there to swipe to; until then they are out of reach of the
+          // keyboard and screen readers, which use the calendar button instead.
+          <ol
+            key={days[0]?.date ?? page}
+            aria-hidden={page === 1 ? undefined : true}
+            inert={page !== 1}
+            className="grid w-full shrink-0 snap-center grid-cols-7 gap-1 px-1"
+          >
+            {days.map((day) => (
+              <li key={day.date}>
+                <DayCell day={day} selected={day.date === selected} today={today} />
+              </li>
+            ))}
+          </ol>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 function DayCell({ day, selected, today }: { day: StripDay; selected: boolean; today: IsoDate }) {
   const { weekday, day: number } = stripDate(day.date);
   const { count } = day;
-  const past = count.kind === "past";
-  const isToday = count.kind === "today";
-  const label = `${longDate(day.date)}${isToday ? ", today" : ""}: ${spoken(day)}`;
+  const past = count?.kind === "past";
+  const isToday = count?.kind === "today";
+  const said = spoken(day);
+  const label = `${longDate(day.date)}${isToday ? ", today" : ""}${said ? `: ${said}` : ""}`;
 
   return (
     <Link
@@ -119,6 +210,8 @@ function DayCell({ day, selected, today }: { day: StripDay; selected: boolean; t
  */
 function CountText({ day }: { day: StripDay }) {
   const { count } = day;
+  // Not loaded yet: keep the line's height so nothing moves when the count arrives.
+  if (!count) return <>&nbsp;</>;
   switch (count.kind) {
     case "past":
       if (count.done === 0) return <>–</>;
@@ -147,6 +240,7 @@ function CountText({ day }: { day: StripDay }) {
 }
 
 function spoken({ count }: StripDay): string {
+  if (!count) return "";
   switch (count.kind) {
     case "past":
       return count.done === 0 ? "nothing reviewed" : `${count.done} reviewed`;
@@ -160,12 +254,7 @@ function spoken({ count }: StripDay): string {
 function WeekArrow({ to, label, next = false }: { to: string; label: string; next?: boolean }) {
   const Icon = next ? ChevronRight : ChevronLeft;
   return (
-    <Button
-      asChild
-      variant="secondary"
-      size="icon"
-      className="hidden size-10 shrink-0 rounded-full lg:inline-flex"
-    >
+    <Button asChild variant="secondary" size="icon" className="size-10 shrink-0 rounded-full">
       <Link to={to} replace aria-label={label}>
         <Icon aria-hidden className="size-5" />
       </Link>

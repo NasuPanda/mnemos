@@ -70,6 +70,50 @@ test("reviews tomorrow's item early with taps", async ({ page }, testInfo) => {
   await expect(page.getByText(/1 done/)).toBeVisible();
 });
 
+test("swipes the week strip to the next week and back", async ({ page }, testInfo) => {
+  phoneOnly(testInfo.project.name);
+  await page.goto("/");
+  const week = page.getByRole("navigation", { name: "Week" });
+  await expect(week.getByRole("link", { name: /, today: 4 left$/ })).toHaveAttribute(
+    "aria-current",
+    "date",
+  );
+  await expect(page.getByRole("link", { name: "Review", exact: true })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+
+  // Playwright can't drag a finger, so the strip is scrolled to where a swipe leaves it.
+  const strip = page.locator("[data-week-strip]");
+  await strip.evaluate((el) => el.scrollTo({ left: el.clientWidth * 2 }));
+
+  // The same weekday a week later is now on show, and the strip shows its week.
+  const { iso, label } = await page.evaluate(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    const utc = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    return {
+      iso: utc.toISOString().slice(0, 10),
+      label: new Intl.DateTimeFormat("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC",
+      }).format(utc),
+    };
+  });
+  await expect(page).toHaveURL(`/?day=${iso}`);
+  await expect(week.getByRole("link", { name: new RegExp(`^${label}`) })).toHaveAttribute(
+    "aria-current",
+    "date",
+  );
+
+  // Swiping back returns to today.
+  await strip.evaluate((el) => el.scrollTo({ left: 0 }));
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByText(/4 left/).first()).toBeVisible();
+});
+
 function tomorrowInBrowser(): string {
   const d = new Date();
   d.setDate(d.getDate() + 1);

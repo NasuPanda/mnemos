@@ -4,7 +4,7 @@ import { addDays, type IsoDate } from "@/core";
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/app-shell";
 import { DayCalendar } from "@/components/day/day-calendar";
-import { WeekStrip } from "@/components/day/week-strip";
+import { WeekStrip, type StripWeeks } from "@/components/day/week-strip";
 import { ItemRow, LineCard, ReviewRow, Station } from "@/components/line-card";
 import { Link } from "@/components/link";
 import { Button } from "@/components/ui/button";
@@ -28,11 +28,11 @@ import {
   dayKind,
   futureDayView,
   pastDayView,
+  blankStrip,
   stripDays,
   type DayData,
-  type StripDay,
 } from "@/state/day-data";
-import { retryDay, useDayState, useWeek } from "@/state/day-store";
+import { retryDay, useAnyDayAnswered, useDayState, useWeek } from "@/state/day-store";
 import { openHistory, useHistoryTarget } from "@/state/history-panel";
 import { todayView, type TodayData, type TodayView } from "@/state/today-data";
 import { load, useTodayState } from "@/state/today-store";
@@ -55,12 +55,22 @@ export function TodayScreen() {
   const state = useTodayState(today);
   const dayState = useDayState(day, today);
   const week = useWeek(day, today);
+  const previousWeek = useWeek(addDays(day, -7), today);
+  const nextWeek = useWeek(addDays(day, 7), today);
   const data = state.status === "ready" ? state.data : null;
   const view = useMemo(() => (data ? todayView(data) : null), [data]);
-  const strip = useMemo(
-    () => (week && view ? stripDays(week, today, view.counts.left) : null),
-    [week, today, view],
-  );
+  const strip = useMemo((): StripWeeks | null => {
+    if (!view) return null;
+    const left = view.counts.left;
+    // A week not fetched yet shows its dates; its counts fill in when they arrive.
+    const of = (rows: typeof week, date: IsoDate) =>
+      rows ? stripDays(rows, today, left) : blankStrip(date, today, left);
+    return {
+      days: of(week, day),
+      previous: of(previousWeek, addDays(day, -7)),
+      next: of(nextWeek, addDays(day, 7)),
+    };
+  }, [view, week, previousWeek, nextWeek, day, today]);
 
   const historyOpen = useHistoryTarget() !== null;
   useHotkeys(
@@ -71,8 +81,9 @@ export function TodayScreen() {
     !historyOpen,
   );
 
-  // The first screen waits for the week strip too, so nothing moves when it arrives.
-  const stripSettled = strip !== null || dayState.status === "failed";
+  // The first screen waits for the week strip's counts too, so nothing moves when they arrive;
+  // after that, another week shows its dates at once.
+  const stripSettled = useAnyDayAnswered(today);
   const dayData = dayState.status === "ready" ? dayState.data : null;
   const failed =
     state.status === "failed" || (kind !== "today" && dayState.status === "failed" && !week);
@@ -110,7 +121,7 @@ export function TodayScreen() {
   );
 }
 
-type Frame = { day: IsoDate; today: IsoDate; strip: StripDay[] | null };
+type Frame = { day: IsoDate; today: IsoDate; strip: StripWeeks | null };
 
 /**
  * The frame every day shares. Desktop: the date, the summary, then the week strip, with the
@@ -159,7 +170,7 @@ function Board({
         </div>
         {strip && (
           <WeekStrip
-            days={strip}
+            weeks={strip}
             selected={day}
             today={today}
             className="col-span-2 row-start-2 mt-4 -mx-1 lg:row-start-3 lg:mx-0 lg:mt-6"
@@ -519,7 +530,7 @@ function AllDone({ data, view, day, today, strip }: Frame & { data: TodayData; v
 
   if (data.sections.length === 0) return <NoItemsYet day={day} today={today} />;
   const weekStrip = (className: string) =>
-    strip && <WeekStrip days={strip} selected={day} today={today} className={className} />;
+    strip && <WeekStrip weeks={strip} selected={day} today={today} className={className} />;
 
   return (
     <main className="mx-auto max-w-[1200px] px-4 pt-4 pb-36 sm:px-6 lg:px-10 lg:pt-10 lg:pb-24">

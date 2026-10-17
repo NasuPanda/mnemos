@@ -20,8 +20,9 @@ function set(key: string, next: DayState) {
 }
 
 /**
- * Another day (or today's week strip), fetched once and kept. The next and previous days are
- * fetched ahead, so [ and ] change the day at once. A stale day stays on screen while it is
+ * Another day (or today's week strip), fetched once and kept. The next and previous days, and
+ * the same day a week either side, are fetched ahead, so [ and ], the arrows and a swipe change
+ * the day at once. A stale day stays on screen while it is
  * fetched again. No spinner: until the first answer the screen waits quietly.
  */
 export function useDayState(date: IsoDate, today: IsoDate): DayState {
@@ -39,6 +40,9 @@ export function useDayState(date: IsoDate, today: IsoDate): DayState {
     if (!ready) return;
     void ensure(addDays(date, 1), today);
     void ensure(addDays(date, -1), today);
+    // The neighbouring weeks, for the desktop arrows and the phone's swipe.
+    void ensure(addDays(date, 7), today);
+    void ensure(addDays(date, -7), today);
   }, [date, today, ready]);
 
   return snapshot;
@@ -55,6 +59,19 @@ export function useWeek(date: IsoDate, today: IsoDate): DayData["week"] | null {
       if (state?.status === "ready") return state.data.week;
     }
     return null;
+  });
+}
+
+/**
+ * Whether any day has answered for this today, loaded or failed. The dashboard's first screen
+ * waits for it; after that, a week not fetched yet shows its dates and fills in.
+ */
+export function useAnyDayAnswered(today: IsoDate): boolean {
+  return useSyncExternalStore(subscribe, () => {
+    for (const [key, state] of cache) {
+      if (key.startsWith(`${today}|`) && state.status !== "loading") return true;
+    }
+    return false;
   });
 }
 
