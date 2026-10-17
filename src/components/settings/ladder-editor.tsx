@@ -193,6 +193,10 @@ type LadderProps = {
   fields: RefObject<Map<number, HTMLInputElement>>;
 };
 
+/** Items on a stop, 0 for none; undefined until the Items list has loaded. */
+const itemsOn = (counts: Map<number, number> | undefined, stop: number) =>
+  counts ? (counts.get(stop) ?? 0) : undefined;
+
 /** "↑ Confident up one stop · = Neutral stays on its stop · ↺ Not at all back to stop 1". */
 function Rules({ compact }: { compact: boolean }) {
   const rules = [
@@ -253,14 +257,19 @@ function AcrossLadder(props: LadderProps) {
                     stop={stop}
                     last={last}
                     selected={stop === selected}
-                    items={counts?.get(stop)}
+                    items={itemsOn(counts, stop)}
                     gap={ladder[index] as number}
                     onKey={props.onSquareKey(stop)}
                     onFocus={() => props.onSelect(stop)}
                     squares={squares}
                   />
                 </span>
-                <StopLabel stop={stop} last={last} items={counts?.get(stop)} className="px-1.5" />
+                <StopLabel
+                  stop={stop}
+                  last={last}
+                  items={itemsOn(counts, stop)}
+                  className="px-1.5"
+                />
                 {ladder.length > 1 && <TrashButton stop={stop} onRemove={onRemove} />}
               </li>
             );
@@ -286,7 +295,7 @@ function DownLadder(props: LadderProps) {
               stop={stop}
               last={last}
               selected={stop === selected}
-              items={counts?.get(stop)}
+              items={itemsOn(counts, stop)}
               gap={ladder[index] as number}
               onKey={props.onSquareKey(stop)}
               onFocus={() => props.onSelect(stop)}
@@ -295,7 +304,7 @@ function DownLadder(props: LadderProps) {
             <StopLabel
               stop={stop}
               last={last}
-              items={counts?.get(stop)}
+              items={itemsOn(counts, stop)}
               className="min-w-0 flex-1"
             />
             <GapField {...props} stop={stop} />

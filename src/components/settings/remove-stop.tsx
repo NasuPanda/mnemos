@@ -74,7 +74,7 @@ function Explanation({
       : `${one ? "moves" : "move"} down to stop ${movesTo} (${gap})`;
   return (
     <>
-      <span className="flex items-center gap-4 rounded-lg bg-muted p-4 text-body text-foreground">
+      <span className="flex items-center gap-4 rounded-lg bg-secondary p-4 text-body text-foreground">
         <span aria-hidden className="flex shrink-0 items-center gap-3">
           <Square n={stop} />
           <ArrowRight className="size-4 text-muted-foreground" />
