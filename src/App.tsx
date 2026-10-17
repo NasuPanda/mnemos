@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { CommandMenu } from "@/components/command-menu";
 import { HistoryPanel } from "@/components/history/history-panel";
 import { ShortcutsDialog } from "@/components/shortcuts-dialog";
 import { Toaster } from "@/components/ui/sonner";
@@ -35,6 +36,7 @@ export default function App() {
       {route.screen === "settings" && <SettingsScreen />}
       <HistoryPanel />
       <ShortcutsDialog />
+      <CommandMenu />
       {/* On phones the Undo pop-up sits at the top, so it never covers Show answer. */}
       {/* On desktop it sits above the rating buttons, never over them. */}
       <Toaster

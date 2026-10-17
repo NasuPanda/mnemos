@@ -32,7 +32,7 @@ import { ApiError } from "@/lib/api";
 import { count, shortDate } from "@/lib/format";
 import { modKey } from "@/lib/keys";
 import { openLayer } from "@/lib/layers";
-import { leave, useBackGuard, useLocation } from "@/lib/router";
+import { leave, useBackGuard, useLeaveCheck, useLocation } from "@/lib/router";
 import { useToday } from "@/lib/today";
 import {
   checkForm,
@@ -206,6 +206,12 @@ function Editor({
 
   // Stays on while saving, so leaving after the save takes the guard off in the same step.
   const { rearm } = useBackGuard(dirty, () => setAsking("discard"));
+  /** Where a link, a key or the command menu was taking the person, until they answer. */
+  const pendingLeave = useRef<(() => void) | null>(null);
+  useLeaveCheck(dirty && !saving, (proceed) => {
+    pendingLeave.current = proceed;
+    setAsking("discard");
+  });
 
   const cancel = () => {
     if (dirty) setAsking("discard");
@@ -600,6 +606,7 @@ function Editor({
         onOpenChange={(open) => {
           if (open) return;
           setAsking(null);
+          pendingLeave.current = null;
           rearm();
         }}
         title="Discard your changes?"
@@ -608,7 +615,10 @@ function Editor({
         confirmLabel="Discard"
         onConfirm={() => {
           setAsking(null);
-          leave("/items");
+          const proceed = pendingLeave.current;
+          pendingLeave.current = null;
+          if (proceed) proceed();
+          else leave("/items");
         }}
       />
 

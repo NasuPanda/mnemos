@@ -6,7 +6,7 @@ import { Kbd } from "@/components/ui/kbd";
 import { SectionBadge } from "@/components/section-badge";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { Link } from "@/components/link";
-import { navigate, useLocation } from "@/lib/router";
+import { navigateAsking, useLocation } from "@/lib/router";
 import { newItemPath } from "@/lib/routes";
 import { usePanelOpen } from "@/state/overlay";
 import type { SectionDto } from "../../worker/contract";
@@ -41,10 +41,10 @@ export function AppShell({
   const { path } = useLocation();
   useHotkeys(
     {
-      t: () => navigate("/"),
-      i: () => navigate("/items"),
-      ",": () => navigate("/settings"),
-      n: () => navigate(newItemPath()),
+      t: () => navigateAsking("/"),
+      i: () => navigateAsking("/items"),
+      ",": () => navigateAsking("/settings"),
+      n: () => navigateAsking(newItemPath()),
     },
     !usePanelOpen(),
   );
