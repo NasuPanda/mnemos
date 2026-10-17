@@ -7,6 +7,7 @@ import type {
   SectionResponse,
   SectionsResponse,
 } from "../../worker/contract";
+import { refreshDays } from "./day-store";
 import { dropItems, refreshItems } from "./items-store";
 import { orderSections, putSection, refreshToday } from "./today-store";
 
@@ -94,6 +95,7 @@ export async function deleteSection(id: number): Promise<Result<number, string>>
     dropItems((item) => item.sectionId !== id);
     void refreshToday();
     void refreshItems();
+    refreshDays();
     return ok(deletedItems);
   } catch (error) {
     return refuse(failure(error));

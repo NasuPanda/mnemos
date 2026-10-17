@@ -6,6 +6,7 @@ import type {
   ItemFieldsRequest,
   ItemResponse,
 } from "../../worker/contract";
+import { forgetDayItem, refreshDays } from "./day-store";
 import { dropItems, putItem } from "./items-store";
 import { forgetTodayItem, putTodayItem, refreshToday } from "./today-store";
 
@@ -13,7 +14,8 @@ export const loadItem = (itemId: number) => getJson<ItemResponse>(`/api/items/${
 
 /**
  * Saves an item, new or edited, and shows it everywhere at once: in the Items list and on
- * today's dashboard, which is then fetched again to be sure. Refusals throw an ApiError.
+ * today's dashboard, which is then fetched again to be sure, as are other days when next shown.
+ * Refusals throw an ApiError.
  */
 export async function saveItem(
   itemId: number | null,
@@ -36,6 +38,7 @@ export async function saveItem(
   });
   putTodayItem(item);
   void refreshToday();
+  refreshDays();
   return item;
 }
 
@@ -43,6 +46,7 @@ export async function deleteItem(itemId: number): Promise<void> {
   await del<DeleteItemResponse>(`/api/items/${itemId}`);
   dropItems((item) => item.id !== itemId);
   forgetTodayItem(itemId);
+  forgetDayItem(itemId);
   void refreshToday();
 }
 
