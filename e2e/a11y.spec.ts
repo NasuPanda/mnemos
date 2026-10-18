@@ -13,10 +13,19 @@ function dayFrom(days: number): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+/**
+ * Waits until nothing on the page moves. A fixed wait wasn't enough on a slow CI machine: axe read
+ * the zoom's text while it was still fading in, and the section picker while it was sliding up.
+ */
+async function stillScreen(page: Page) {
+  await page.waitForFunction(() =>
+    document.getAnimations().every((motion) => motion.playState !== "running" && !motion.pending),
+  );
+}
+
 /** Runs axe on what is on screen now; a failure lists each rule and the elements it found. */
 async function expectAccessible(page: Page, testInfo: TestInfo, screen: string) {
-  // Let the 150 ms opening motions settle, so axe reads the final colours.
-  await page.waitForTimeout(250);
+  await stillScreen(page);
   const { violations } = await new AxeBuilder({ page }).withTags(TAGS).analyze();
   const found = violations.map(
     (v) =>
