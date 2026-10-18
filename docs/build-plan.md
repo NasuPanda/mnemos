@@ -277,7 +277,7 @@ Typecheck, lint, 421 unit and API tests and 19 end-to-end runs pass. Screenshots
 
 **Built (18 Oct 2026), waiting for:** the illustration, the Access login page settings, installing on the phone, and a VoiceOver spot check on the iPhone; then deploy and the phone run.
 
-Typecheck, lint, 481 unit and API tests and 36 end-to-end runs pass. Screenshots at 390 and 1440 px were compared with pages 01, 04–08, 10, 25, 29, 30 and 31.
+Typecheck, lint, 481 unit and API tests and 37 end-to-end runs pass. Screenshots at 390 and 1440 px were compared with pages 01, 04–08, 10, 25, 29, 30 and 31.
 
 **Checks:**
 
@@ -295,6 +295,7 @@ Typecheck, lint, 481 unit and API tests and 36 end-to-end runs pass. Screenshots
 - Below 1280 px the footer of key hints leaves out Shift F and N, so "? all keys" fits.
 - After the day's last rating, the Undo pop-up sits at the top right on desktop, clear of All done.
 - Review starts with a heading for screen readers; the name is the heading under it.
+- The phone's bottom sheets took vaul's 0.5 s to slide; they now take 150 ms like everything else (found while fixing a CI timing failure in the axe test).
 - New dependencies, both named in the plans: `rehype-highlight` 7.0.2 and, for tests, `@axe-core/playwright` 4.13.0.
 
 **Differences from the mockups:**
