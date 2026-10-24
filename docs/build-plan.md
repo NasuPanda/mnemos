@@ -257,9 +257,9 @@ Typecheck, lint, 421 unit and API tests and 19 end-to-end runs pass. Screenshots
 
 **Tasks:**
 
-- [ ] Parliament illustration: generate it using page 21's prompt plus your own photo as a reference. Export WebP/AVIF (2400 × 1600 and 1200 × 800). Add the CSS mask, and load it in advance on the last item.
-  - [x] The 3:2 layout, the masks and the preload on the last item left today, with a 3:2 placeholder of the navy silhouette.
-  - [ ] The illustration itself (yours), then the export and the swap. Later, as you chose: it replaces the two placeholder files, with no code change.
+- [x] Parliament illustration: generate it using page 21's prompt plus your own photo as a reference. Export WebP/AVIF (2400 × 1600 and 1200 × 800). Add the CSS mask, and load it in advance on the last item.
+  - [x] The 3:2 layout, the masks and the preload on the last item left today.
+  - [x] The art: the navy outline, chosen over a generated painting (24 Oct 2026), so nothing was swapped.
 - [x] Zsolnay pattern (the Settings band); the app icon and favicon (the yellow M); the flash review doors screen.
 - [x] Access login page: set its name, logo and colours to match the app (Access's own settings). **By hand:** the checklist is step 15 in `docs/setup.md`.
 - [x] Command menu (Ctrl/⌘+K), the `?` shortcut overlay, and ⌘ instead of Ctrl on Macs.
@@ -275,7 +275,7 @@ Typecheck, lint, 421 unit and API tests and 19 end-to-end runs pass. Screenshots
 
 **Done when:** the app looks like the mockups on both widths, and a keyboard-only run and a phone run have no rough edges.
 
-**Done (24 Oct 2026):** the Access login page was set, and the app deployed and checked on the phone: All done, the sheets, the Settings band, the doors, installing it on the home screen, and VoiceOver. The check asked for no changes. The Parliament painting comes later; until then All done shows the navy placeholder.
+**Done (24 Oct 2026):** the Access login page was set, and the app deployed and checked on the phone: All done, the sheets, the Settings band, the doors, installing it on the home screen, and VoiceOver. The check asked for no changes.
 
 Typecheck, lint, 481 unit and API tests and 37 end-to-end runs pass. Screenshots at 390 and 1440 px were compared with pages 01, 04–08, 10, 25, 29, 30 and 31.
 
@@ -295,12 +295,13 @@ Typecheck, lint, 481 unit and API tests and 37 end-to-end runs pass. Screenshots
 - Below 1280 px the footer of key hints leaves out Shift F and N, so "? all keys" fits.
 - After the day's last rating, the Undo pop-up sits at the top right on desktop, clear of All done.
 - Review starts with a heading for screen readers; the name is the heading under it.
+- All done keeps the navy outline of the Parliament as its final art, not page 21's lamplit painting: you preferred it.
 - The phone's bottom sheets took vaul's 0.5 s to slide; they now take 150 ms like everything else (found while fixing a CI timing failure in the axe test).
 - New dependencies, both named in the plans: `rehype-highlight` 7.0.2 and, for tests, `@axe-core/playwright` 4.13.0.
 
 **Differences from the mockups:**
 
-- All done shows the navy placeholder until the illustration is made.
+- All done shows the navy outline, not the gold painting of pages 05, 06 and 21 (your choice).
 - The phone's All done sits about 20 px higher than page 05, as the dashboard does (since phase 2).
 - The dashboard's key hints still leave out T today (phase 4).
 - The command menu and the shortcut list have no mockup: they follow the section picker (page 26) and page 19's key list.
