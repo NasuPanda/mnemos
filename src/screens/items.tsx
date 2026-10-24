@@ -43,7 +43,8 @@ import {
   type ItemsView,
 } from "@/state/items-view";
 import { todayView } from "@/state/today-data";
-import { openHistory, useHistoryTarget } from "@/state/history-panel";
+import { openHistory } from "@/state/history-panel";
+import { usePanelOpen } from "@/state/overlay";
 import { useTodayState } from "@/state/today-store";
 import type { ItemSummaryDto, SectionDto } from "../../worker/contract";
 
@@ -143,7 +144,7 @@ function ItemsList({
       h: () => selected !== null && openHistory(selected),
       n: () => navigate(newItem),
     },
-    useHistoryTarget() === null,
+    !usePanelOpen(),
   );
 
   /** In the search box: Enter goes to the first result, Esc clears, then leaves the box. */
@@ -269,6 +270,7 @@ function ItemsList({
           [["Enter"], "edit"],
           [["H"], "history"],
           [["N"], "new item"],
+          [["?"], "all keys"],
         ]}
       />
     </main>

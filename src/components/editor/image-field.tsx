@@ -14,6 +14,7 @@ import { useRef, useState, type DragEvent, type KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { modKey } from "@/lib/keys";
 import { cn } from "@/lib/utils";
 import type { EditorImage, ImageSide } from "@/editor/form";
 
@@ -219,7 +220,7 @@ function Thumbnail({
   );
 }
 
-/** Desktop: "Paste Ctrl V or drop here"; a click picks files instead. */
+/** Desktop: "Paste Ctrl V or drop here" (⌘ V on a Mac); a click picks files instead. */
 function PasteTile({ dropping, onAdd }: { dropping: boolean; onAdd: (files: File[]) => void }) {
   const input = useRef<HTMLInputElement>(null);
   return (
@@ -236,7 +237,7 @@ function PasteTile({ dropping, onAdd }: { dropping: boolean; onAdd: (files: File
         <span className="inline-flex items-center gap-1.5">
           Paste
           <KbdGroup>
-            <Kbd>Ctrl</Kbd>
+            <Kbd>{modKey()}</Kbd>
             <Kbd>V</Kbd>
           </KbdGroup>
         </span>

@@ -258,11 +258,15 @@ Typecheck, lint, 421 unit and API tests and 19 end-to-end runs pass. Screenshots
 **Tasks:**
 
 - [ ] Parliament illustration: generate it using page 21's prompt plus your own photo as a reference. Export WebP/AVIF (2400 × 1600 and 1200 × 800). Add the CSS mask, and load it in advance on the last item.
-- [ ] Zsolnay pattern (the Settings band); the app icon and favicon (the yellow M); the flash review doors screen.
-- [ ] Access login page: set its name, logo and colours to match the app (Access's own settings).
-- [ ] Command menu (Ctrl/⌘+K), the `?` shortcut overlay, and ⌘ instead of Ctrl on Macs.
-- [ ] PWA (optional): manifest with `crossorigin="use-credentials"`; install it on your phone.
-- [ ] Checks:
+  - [x] The 3:2 layout, the masks and the preload on the last item left today, with a 3:2 placeholder of the navy silhouette.
+  - [ ] The illustration itself (yours), then the export and the swap. Later, as you chose: it replaces the two placeholder files, with no code change.
+- [x] Zsolnay pattern (the Settings band); the app icon and favicon (the yellow M); the flash review doors screen.
+- [x] Access login page: set its name, logo and colours to match the app (Access's own settings). **By hand:** the checklist is step 15 in `docs/setup.md`.
+- [x] Command menu (Ctrl/⌘+K), the `?` shortcut overlay, and ⌘ instead of Ctrl on Macs.
+- [x] PWA (optional): manifest with `crossorigin="use-credentials"`; install it on your phone.
+  - [x] The manifest, the icons and the iPhone meta tags.
+  - [x] Installing it on your phone (`docs/setup.md`, "Installing on your phone").
+- [x] Checks:
   - accessibility: axe, one full keyboard-only run, and a screen-reader spot check;
   - contrast against page 22;
   - bundle size: code highlighting is loaded only when needed.
@@ -270,6 +274,36 @@ Typecheck, lint, 421 unit and API tests and 19 end-to-end runs pass. Screenshots
 **Mockups:** 05, 06, 21 and 22.
 
 **Done when:** the app looks like the mockups on both widths, and a keyboard-only run and a phone run have no rough edges.
+
+**Done (24 Oct 2026):** the Access login page was set, and the app deployed and checked on the phone: All done, the sheets, the Settings band, the doors, installing it on the home screen, and VoiceOver. The check asked for no changes. The Parliament painting comes later; until then All done shows the navy placeholder.
+
+Typecheck, lint, 481 unit and API tests and 37 end-to-end runs pass. Screenshots at 390 and 1440 px were compared with pages 01, 04–08, 10, 25, 29, 30 and 31.
+
+**Checks:**
+
+- **axe** (`e2e/a11y.spec.ts`, WCAG 2.2 A and AA, both widths) covers every screen and overlay. It found one problem: on the phone the section picker's New section button sat inside its list of options; it now sits above it, looking the same.
+- **Keyboard** (`e2e/keyboard.spec.ts`): a whole day with keys only, and a Tab-through of six screens checking every stop shows the yellow ring. It found that a dialog fading out kept the focus and Esc for its 100 ms; see below.
+- **Screen reader:** the accessibility tree of each screen was read. Review had no heading until the reveal, and the phone's All done no top-level heading; both have one now. The Name is not in the page before the reveal. VoiceOver on the iPhone was checked in the phone run.
+- **Contrast** (`src/styles/contrast.test.ts`): every pair on page 22, read from `tokens.css`, at its listed ratio.
+- **Bundle:** the main file is 937 kB (278 kB gzipped), 925 kB before this phase; the highlighter is its own 167 kB (54 kB gzipped) file, fetched only for a code block that names its language.
+
+**Changed while building (recorded in the plan):**
+
+- The plan's open questions took the recommended answers: tone-on-tone highlighting, the Access page with name and colour only (Instant Auth stays), a manifest with no service worker, doors that slide shut once in 150 ms, and the command menu's contents (Go to, Items, Review a line, Other).
+- With unsaved changes, every way out of the editor asks "Discard your changes?": sidebar links, T, I, `,` and N, and the command menu joined Cancel, Esc, ✕ and Back.
+- The command menu and the shortcut list close at once; while any other dialog fades out, keys belong to the screen.
+- Below 1280 px the footer of key hints leaves out Shift F and N, so "? all keys" fits.
+- After the day's last rating, the Undo pop-up sits at the top right on desktop, clear of All done.
+- Review starts with a heading for screen readers; the name is the heading under it.
+- The phone's bottom sheets took vaul's 0.5 s to slide; they now take 150 ms like everything else (found while fixing a CI timing failure in the axe test).
+- New dependencies, both named in the plans: `rehype-highlight` 7.0.2 and, for tests, `@axe-core/playwright` 4.13.0.
+
+**Differences from the mockups:**
+
+- All done shows the navy placeholder until the illustration is made.
+- The phone's All done sits about 20 px higher than page 05, as the dashboard does (since phase 2).
+- The dashboard's key hints still leave out T today (phase 4).
+- The command menu and the shortcut list have no mockup: they follow the section picker (page 26) and page 19's key list.
 
 ## Phase 6 — Friends beta
 

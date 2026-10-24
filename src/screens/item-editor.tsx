@@ -30,7 +30,9 @@ import { useHotkeys } from "@/hooks/use-hotkeys";
 import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { ApiError } from "@/lib/api";
 import { count, shortDate } from "@/lib/format";
-import { leave, useBackGuard, useLocation } from "@/lib/router";
+import { modKey } from "@/lib/keys";
+import { openLayer } from "@/lib/layers";
+import { leave, useBackGuard, useLeaveCheck, useLocation } from "@/lib/router";
 import { useToday } from "@/lib/today";
 import {
   checkForm,
@@ -52,7 +54,8 @@ import { useImageUploads } from "@/editor/use-image-uploads";
 import { deleteItem, lastSection, loadItem, rememberSection, saveItem } from "@/state/item-actions";
 import { useItemsState } from "@/state/items-store";
 import { todayView, type TodayData } from "@/state/today-data";
-import { openHistory, useHistoryTarget } from "@/state/history-panel";
+import { openHistory } from "@/state/history-panel";
+import { usePanelOpen } from "@/state/overlay";
 import { useTodayState } from "@/state/today-store";
 import type { ItemDto, ItemErrorResponse } from "../../worker/contract";
 
@@ -203,6 +206,12 @@ function Editor({
 
   // Stays on while saving, so leaving after the save takes the guard off in the same step.
   const { rearm } = useBackGuard(dirty, () => setAsking("discard"));
+  /** Where a link, a key or the command menu was taking the person, until they answer. */
+  const pendingLeave = useRef<(() => void) | null>(null);
+  useLeaveCheck(dirty && !saving, (proceed) => {
+    pendingLeave.current = proceed;
+    setAsking("discard");
+  });
 
   const cancel = () => {
     if (dirty) setAsking("discard");
@@ -297,7 +306,7 @@ function Editor({
     event.stopPropagation();
     save();
   });
-  /** Esc cancels, once any popover, menu or sheet has closed on its own Esc. */
+  /** Esc cancels, once any popover, menu, sheet or dialog has closed on its own Esc. */
   const onEscape = useEffectEvent((event: KeyboardEvent) => {
     if (event.isComposing || event.defaultPrevented || event.key !== "Escape") return;
     if (asking !== null || openLayer()) return;
@@ -317,8 +326,8 @@ function Editor({
 
   /** H: the item's history, over the editor; the changes stay as they are. */
   const showHistory = () => item && openHistory(item.id);
-  const historyOpen = useHistoryTarget() !== null;
-  useHotkeys({ h: showHistory }, !!item && asking === null && !historyOpen);
+  const panelOpen = usePanelOpen();
+  useHotkeys({ h: showHistory }, !!item && asking === null && !panelOpen);
 
   const late = item ? daysLate(item.dueOn, date) : 0;
   const title = item ? "Edit item" : "New item";
@@ -417,7 +426,7 @@ function Editor({
               <Check aria-hidden className="size-5" />
               {saving ? "Saving…" : "Save"}
               <KbdGroup className="ml-1">
-                <Kbd>Ctrl</Kbd>
+                <Kbd>{modKey()}</Kbd>
                 <Kbd>Enter</Kbd>
               </KbdGroup>
             </Button>
@@ -597,6 +606,7 @@ function Editor({
         onOpenChange={(open) => {
           if (open) return;
           setAsking(null);
+          pendingLeave.current = null;
           rearm();
         }}
         title="Discard your changes?"
@@ -605,7 +615,10 @@ function Editor({
         confirmLabel="Discard"
         onConfirm={() => {
           setAsking(null);
-          leave("/items");
+          const proceed = pendingLeave.current;
+          pendingLeave.current = null;
+          if (proceed) proceed();
+          else leave("/items");
         }}
       />
 
@@ -710,12 +723,5 @@ function NotHere({ missing }: { missing: boolean }) {
         </Button>
       </Empty>
     </main>
-  );
-}
-
-/** Whether a popover, menu or sheet is open: Esc closes that first, not the editor. */
-function openLayer(): boolean {
-  return !!document.querySelector(
-    '[data-slot="popover-content"], [data-slot="dropdown-menu-content"], [data-slot="drawer-content"], [data-slot="alert-dialog-content"], [data-slot="dialog-content"]',
   );
 }

@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { hasTaggedCodeBlock, loadHighlighting } from "@/lib/highlight";
 import { InlineMarkdown, Markdown } from "./markdown";
 
 const block = (md: string) => renderToStaticMarkup(<Markdown>{md}</Markdown>);
@@ -56,6 +57,41 @@ describe("Markdown fields: problem description, answer text and side note", () =
 
   it("refuses javascript: links", () => {
     expect(block("[x](javascript:alert(1))")).not.toContain("javascript:");
+  });
+});
+
+describe("Code highlighting", () => {
+  it("is needed only for a code block that names its language", () => {
+    expect(hasTaggedCodeBlock("```ts\nconst a = 1;\n```")).toBe(true);
+    expect(hasTaggedCodeBlock("Text first\n\n~~~ python\nx = 1\n~~~")).toBe(true);
+    expect(hasTaggedCodeBlock("```\npop S\n```")).toBe(false);
+    expect(hasTaggedCodeBlock("Inline `code` only")).toBe(false);
+    expect(hasTaggedCodeBlock(null)).toBe(false);
+  });
+
+  it("isn't in the page until a field needs it", () => {
+    // Rendered before anything loaded it: the code shows, plain.
+    expect(block("```ts\nconst a = 1;\n```")).not.toContain("hljs");
+  });
+
+  it("marks keywords, strings and comments once loaded", async () => {
+    await loadHighlighting();
+    const html = block('```ts\n// note\nconst a = "x";\n```');
+    expect(html).toContain('<span class="hljs-keyword">const</span>');
+    expect(html).toContain('<span class="hljs-string">&quot;x&quot;</span>');
+    expect(html).toContain('<span class="hljs-comment">// note</span>');
+  });
+
+  it("leaves a block without a language plain, like pseudo-code", async () => {
+    await loadHighlighting();
+    expect(block("```\npop S   A = 2\n```")).toContain("<pre><code>pop S   A = 2\n</code></pre>");
+  });
+
+  it("leaves a language it doesn't know plain, without failing", async () => {
+    await loadHighlighting();
+    const html = block("```klingon\nqapla\n```");
+    expect(html).toContain("qapla");
+    expect(html).not.toContain("hljs-");
   });
 });
 
