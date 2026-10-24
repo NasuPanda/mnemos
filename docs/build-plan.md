@@ -312,6 +312,17 @@ Typecheck, lint, 481 unit and API tests and 37 end-to-end runs pass. Screenshots
 - [ ] Set up the $1 budget alert and a regular D1 backup (`wrangler d1 export`).
 - [ ] Collect feedback; update `docs/design-plan.md` and plan the next phase.
 
+## Phase 7 — Improvements
+
+**Goal:** two improvements found while using the app.
+
+**Tasks:**
+
+- [ ] Reviewed items on other days are clickable and open the review page: the item with its Show answer button and everything, just without the review section. (Today a tap on one opens its history.)
+- [ ] A first-time tour: a new user is walked through the app's flow. Mnemos has no tutorial yet.
+
+**Details:** to be settled before the phase starts, and written into `docs/design-plan.md` first, as a bigger change.
+
 ## Later
 
 - Math formulas: remark-math + rehype-katex, loaded only for items that use them.
