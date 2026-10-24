@@ -259,13 +259,13 @@ Typecheck, lint, 421 unit and API tests and 19 end-to-end runs pass. Screenshots
 
 - [ ] Parliament illustration: generate it using page 21's prompt plus your own photo as a reference. Export WebP/AVIF (2400 × 1600 and 1200 × 800). Add the CSS mask, and load it in advance on the last item.
   - [x] The 3:2 layout, the masks and the preload on the last item left today, with a 3:2 placeholder of the navy silhouette.
-  - [ ] The illustration itself (yours), then the export and the swap.
+  - [ ] The illustration itself (yours), then the export and the swap. Later, as you chose: it replaces the two placeholder files, with no code change.
 - [x] Zsolnay pattern (the Settings band); the app icon and favicon (the yellow M); the flash review doors screen.
-- [ ] Access login page: set its name, logo and colours to match the app (Access's own settings). **By hand:** the checklist is step 15 in `docs/setup.md`.
+- [x] Access login page: set its name, logo and colours to match the app (Access's own settings). **By hand:** the checklist is step 15 in `docs/setup.md`.
 - [x] Command menu (Ctrl/⌘+K), the `?` shortcut overlay, and ⌘ instead of Ctrl on Macs.
-- [ ] PWA (optional): manifest with `crossorigin="use-credentials"`; install it on your phone.
+- [x] PWA (optional): manifest with `crossorigin="use-credentials"`; install it on your phone.
   - [x] The manifest, the icons and the iPhone meta tags.
-  - [ ] Installing it on your phone (`docs/setup.md`, "Installing on your phone").
+  - [x] Installing it on your phone (`docs/setup.md`, "Installing on your phone").
 - [x] Checks:
   - accessibility: axe, one full keyboard-only run, and a screen-reader spot check;
   - contrast against page 22;
@@ -275,7 +275,7 @@ Typecheck, lint, 421 unit and API tests and 19 end-to-end runs pass. Screenshots
 
 **Done when:** the app looks like the mockups on both widths, and a keyboard-only run and a phone run have no rough edges.
 
-**Built (18 Oct 2026), waiting for:** the illustration, the Access login page settings, installing on the phone, and a VoiceOver spot check on the iPhone; then deploy and the phone run.
+**Done (24 Oct 2026):** the Access login page was set, and the app deployed and checked on the phone: All done, the sheets, the Settings band, the doors, installing it on the home screen, and VoiceOver. The check asked for no changes. The Parliament painting comes later; until then All done shows the navy placeholder.
 
 Typecheck, lint, 481 unit and API tests and 37 end-to-end runs pass. Screenshots at 390 and 1440 px were compared with pages 01, 04–08, 10, 25, 29, 30 and 31.
 
@@ -283,7 +283,7 @@ Typecheck, lint, 481 unit and API tests and 37 end-to-end runs pass. Screenshots
 
 - **axe** (`e2e/a11y.spec.ts`, WCAG 2.2 A and AA, both widths) covers every screen and overlay. It found one problem: on the phone the section picker's New section button sat inside its list of options; it now sits above it, looking the same.
 - **Keyboard** (`e2e/keyboard.spec.ts`): a whole day with keys only, and a Tab-through of six screens checking every stop shows the yellow ring. It found that a dialog fading out kept the focus and Esc for its 100 ms; see below.
-- **Screen reader:** the accessibility tree of each screen was read. Review had no heading until the reveal, and the phone's All done no top-level heading; both have one now. The Name is not in the page before the reveal. VoiceOver on the iPhone is still to do.
+- **Screen reader:** the accessibility tree of each screen was read. Review had no heading until the reveal, and the phone's All done no top-level heading; both have one now. The Name is not in the page before the reveal. VoiceOver on the iPhone was checked in the phone run.
 - **Contrast** (`src/styles/contrast.test.ts`): every pair on page 22, read from `tokens.css`, at its listed ratio.
 - **Bundle:** the main file is 937 kB (278 kB gzipped), 925 kB before this phase; the highlighter is its own 167 kB (54 kB gzipped) file, fetched only for a code block that names its language.
 
