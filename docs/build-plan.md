@@ -1,19 +1,23 @@
 # Mnemos — Build Plan
 
-The order we build in. Each phase ends with something you can use on your phone, and each one is small enough to change course after. The product rules live in `docs/design-plan.md`; the look lives in `docs/design/` and `src/styles/tokens.css`.
+The order we build in, and the record of what was built. Phases 0–5 were planned here task by task. From phase 6, each phase is a GitHub milestone and its tasks are issues; this file keeps each one's record when it closes. Each phase still ends with something you can use on your phone, and each one is small enough to change course after. The product rules live in `docs/design-plan.md`; the look lives in `docs/design/` and `src/styles/tokens.css`.
 
 ## How we work
 
-**One phase at a time:**
+GitHub issues hold the work: each is one change, with what it's for, when it's done, and its discussion. Issues are grouped into milestones, one per phase from phase 6 on. Open work isn't listed as checkboxes in this file.
 
-1. **Start:** I say "Start phase N."
-2. **Plan:** the AI reads this file, the plan sections and mockups listed for the phase, and proposes a plan: files, tests, and questions.
-3. **Approve:** I approve or adjust the plan.
-4. **Build:** the AI builds in small commits.
-5. **Check:** it runs typecheck, lint and tests, and compares screenshots at 390 px and 1440 px with the mockups.
-6. **Finish:** it ticks the boxes below and tells me what to try on my phone.
+**One issue at a time:**
 
-**Sessions and branches:** start a fresh AI session for each phase; this file and `docs/design-plan.md` carry the context between sessions. Use one git branch per phase, named after the change it makes rather than the phase number (phase 0 was `scaffold-worker-and-access-login`). Merge when "Done when" is true, and deploy after every phase.
+1. **Write:** I open an issue from a template (bug, change, feature or chore) and put it in a milestone. A small fix goes in the open milestone.
+2. **Start:** in a fresh AI session, I say "Work on issue #N."
+3. **Plan:** the AI reads the issue and what it names, and proposes a plan: files, tests and questions. Its steps are in `AGENTS.md`, "How to work".
+4. **Approve:** I approve or adjust the plan. For a feature, I review the change to `docs/design-plan.md` before any code is written.
+5. **Build and check:** small commits on the issue's branch; typecheck, lint and tests; screenshots at 390 px and 1440 px compared with the mockups.
+6. **Finish:** a PR that closes the issue and says which plan sections changed, any new differences from the mockups, and what to try on my phone. I merge, ask for a deploy, and try it.
+
+**Closing a milestone:** when its issues are merged and deployed, I check the milestone on my phone. Bugs the check finds become issues in the same milestone. When those are merged too, I say "Close milestone <name>." The AI writes the milestone's entry below from its merged PRs and my phone check, in the same shape as phases 2–5: Done (the date and what the check found), Changed while building, and Differences from the mockups.
+
+**Sessions and branches:** start a fresh AI session for each issue; the issue, this file and `docs/design-plan.md` carry the context between sessions. Use one git branch per issue, named after the change it makes rather than the issue number (phase 0 was `scaffold-worker-and-access-login`). Merge when the issue's "Done when" is true. Deploy only when I ask.
 
 **Tests are written with the code, not at the end:**
 
@@ -23,13 +27,17 @@ The order we build in. Each phase ends with something you can use on your phone,
 
 ## Changing direction
 
-- **Small change** (wording, a rule, a colour): ask for it directly. The AI updates `docs/design-plan.md` and the tests first, then the code, in one commit.
-- **Bigger change** (a new feature, a different flow): write it in `docs/design-plan.md` first, or ask the AI to draft the change there for you to review. Then add tasks to the right phase below, or a new phase.
+Each issue has one type, set by its template's label:
+
+- **Bug** (the app doesn't do what `docs/design-plan.md` says): the plan stays as it is, and the fix comes with a test that would have caught it, where a test can. If the plan turns out to be unclear, the same PR makes it clear.
+- **Change** (wording, a rule, a colour): the AI updates `docs/design-plan.md` and the tests first, then the code, in one PR.
+- **Feature** (a new feature, a different flow): the change is written in `docs/design-plan.md` first. I write it, or the AI drafts it as the branch's first commit and waits for my review before writing code.
+- **Chore** (setup, operations, docs): no change to how the app behaves. Steps done by hand become a checklist, as in `docs/setup.md`.
 - **Why changes stay cheap:**
   - Rules live only in `src/core`, with tests.
   - Colours, type and spacing live only in the tokens.
-  - Each phase is a separate branch that can be reverted.
-- **Record decisions:** write every decision that changes the plan in the plan's own text, not only in chat.
+  - Each issue is a separate branch that can be reverted.
+- **Record decisions:** write every decision that changes the plan in the plan's own text, not only in chat or in an issue thread. When it came from an issue, name the issue there, as the plan does for #12 and #13.
 
 ---
 

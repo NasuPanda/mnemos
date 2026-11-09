@@ -131,7 +131,7 @@ Next due date = review date + the gap of the stop the item lands on, unless you 
 
 ## Visual design
 
-Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", round 3) set the look, and this section summarizes it. Where this plan records a later change, the plan wins over the mockups; `docs/build-plan.md` lists each phase's differences from them. The tokens live in `src/styles/tokens.css`: the draft's (`docs/design/mnemos-tokens.css`) plus the ones added since:
+Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", round 3) set the look, and this section summarizes it. Where this plan records a later change, the plan wins over the mockups; `docs/build-plan.md` lists each phase's differences from them, once its milestone closes; until then they're in the PR descriptions. The tokens live in `src/styles/tokens.css`: the draft's (`docs/design/mnemos-tokens.css`) plus the ones added since:
 
 - `kbd-primary` and its foreground, for the key hint inside the yellow button;
 - `zsolnay-ground`, `zsolnay-tile` and `zsolnay-tile-alt`, for the Settings band;
