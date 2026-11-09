@@ -65,6 +65,7 @@ Setup, the Cloudflare and Google checklist, and deploying are in `docs/setup.md`
 ## Rules that are easy to get wrong
 
 - **Dates:** due and review dates are plain `YYYY-MM-DD` strings. The browser sends its local date with each request; the server never works out "today" itself.
+- **Data:** every call to the Worker goes through `api()` in `src/lib/api.ts`, never `fetch` or an `/api/` or `/img/` address of its own (ESLint checks). The first-run tutorial swaps in a practice copy with `switchApi` (`src/state/source.ts`).
 - **Colour:**
   - Yellow (`primary`, `ring`) only means selected, focused or primary action.
   - Section colours come from the section's stored `line`, never from its position in a list.
