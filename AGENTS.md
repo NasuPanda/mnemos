@@ -5,8 +5,8 @@ Mnemos is a fast study scheduler with a Budapest theme. Items are grouped into s
 ## Sources of truth
 
 - `docs/design-plan.md`: product rules, scheduling rules, counts, data model, architecture, login and images. Read the relevant sections before any change.
-- `docs/design/`: the visual design, one PNG per page of the design draft (list in `docs/build-plan.md`). Match the mockups; pages 17–22 are the style sheet.
-- `src/styles/tokens.css`: the design tokens from the draft. Components use these tokens only.
+- `docs/design/`: the visual design, one PNG per page of the design draft (list in `docs/build-plan.md`). Match the mockups, except where `docs/design-plan.md` records a later change; pages 17–22 are the style sheet.
+- `src/styles/tokens.css`: the design tokens: the draft's, plus the ones added since (listed in the plan's Visual design). Components use these tokens only.
 - `docs/build-plan.md`: the build order and progress. Work on one phase at a time.
 
 If the code, the docs and the mockups disagree, stop and ask. When a decision changes, update `docs/design-plan.md` in the same commit as the code.
@@ -22,7 +22,7 @@ If the code, the docs and the mockups disagree, stop and ask. When a decision ch
 - **Frontend:**
   - React + TypeScript;
   - Tailwind CSS v4, CSS-first: `@theme` in CSS, no `tailwind.config.js`;
-  - shadcn/ui on Radix primitives (`components.json` points at `src/styles/tokens.css`), Motion, and dnd-kit for reordering images.
+  - shadcn/ui on Radix primitives (`components.json` points at `src/styles/tokens.css`), tw-animate-css and plain CSS for transitions, and dnd-kit for reordering images and lines.
 - **Markdown:** react-markdown + remark-gfm + remark-breaks (a new line is a line break). No raw HTML, no Markdown images, no math.
 - **Fonts:** `@fontsource-variable/atkinson-hyperlegible-next` and `-mono`.
 - **Tests:**
@@ -81,5 +81,4 @@ Setup, the Cloudflare and Google checklist, and deploying are in `docs/setup.md`
 2. **Small steps.** One commit per step, each with its tests. Run typecheck, lint and tests before calling anything done.
 3. **Check the UI by looking at it.** Run the app, take screenshots at 390 px and 1440 px, compare them with the named mockups, and list any differences you couldn't fix.
 4. **Close the phase.** Tick the boxes in `docs/build-plan.md`, note any decision that changed, and tell me what to try on my phone.
-5. **Ask, don't guess.** If a rule seems wrong or conflicts with the design, ask./plugin marketplace add cloudflare/skills
-/plugin install cloudflare@cloudflare
+5. **Ask, don't guess.** If a rule seems wrong or conflicts with the design, ask.
