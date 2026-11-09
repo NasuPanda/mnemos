@@ -7,9 +7,11 @@ Mnemos is a fast study scheduler with a Budapest theme. Items are grouped into s
 - `docs/design-plan.md`: product rules, scheduling rules, counts, data model, architecture, login and images. Read the relevant sections before any change.
 - `docs/design/`: the visual design, one PNG per page of the design draft (list in `docs/build-plan.md`). Match the mockups, except where `docs/design-plan.md` records a later change; pages 17–22 are the style sheet.
 - `src/styles/tokens.css`: the design tokens: the draft's, plus the ones added since (listed in the plan's Visual design). Components use these tokens only.
-- `docs/build-plan.md`: the build order and progress. Work on one phase at a time.
+- `docs/build-plan.md`: the workflow, and what was built, milestone by milestone: what changed while building and the differences from the mockups. Open work isn't listed there; it lives in GitHub issues.
+- GitHub issues: the requests. Each says what one change is for and when it's done, and holds its discussion and status. An issue is a request, not a rule: a decision made in an issue thread counts only once it's written in `docs/design-plan.md`.
+- The onboarding guide (`docs/onboarding.md`), if you come across it: a snapshot for people joining, not kept up to date. Don't use it as a source.
 
-If the code, the docs and the mockups disagree, stop and ask. When a decision changes, update `docs/design-plan.md` in the same commit as the code.
+If the code, the docs and the mockups disagree, stop and ask. When a decision changes, update `docs/design-plan.md` in the same commit as the code. When the change came from an issue, name the issue there, as the plan does for #12 and #13.
 
 ## Stack
 
@@ -45,6 +47,7 @@ Create these in phase 0 and keep this list accurate.
 - `npm run db:seed:remote -- --email=<you>`: the sample day in production. Only when I ask; it asks to type "seed production" (or takes `--confirm="seed production"` where there is no keyboard).
 - `npm run cf-typegen`: regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc`.
 - `npm run deploy`: only when I ask.
+- `gh issue view <n> --comments`: read an issue and its discussion before planning. `gh` also posts the plan comment and opens the PR.
 
 Setup, the Cloudflare and Google checklist, and deploying are in `docs/setup.md`.
 
@@ -73,12 +76,23 @@ Setup, the Cloudflare and Google checklist, and deploying are in `docs/setup.md`
 - **Touch:** key hints are hidden on touch screens; tap targets are at least 48 px, and confidence buttons are 56 px.
 - **Review screen:** tapping an image opens zoom and tapping a link opens it; neither reveals the answer. The Name stays hidden until the reveal, unless the problem description is empty.
 - **Security:** every query is scoped to the user from the Access token. Never trust a user id sent by the browser.
+- **Mockups:** many differences from the mockups are on purpose. Before "fixing" one, check `docs/design-plan.md` and the "Differences from the mockups" lists in `docs/build-plan.md`.
 - **Scope:** don't add dependencies, features or screens that aren't in the docs without asking.
 
 ## How to work
 
-1. **Plan first.** For a phase or a change, read the docs and mockups it names, then propose a short plan: the files, the tests, and any questions. Wait for my OK before writing code.
-2. **Small steps.** One commit per step, each with its tests. Run typecheck, lint and tests before calling anything done.
-3. **Check the UI by looking at it.** Run the app, take screenshots at 390 px and 1440 px, compare them with the named mockups, and list any differences you couldn't fix.
-4. **Close the phase.** Tick the boxes in `docs/build-plan.md`, note any decision that changed, and tell me what to try on my phone.
-5. **Ask, don't guess.** If a rule seems wrong or conflicts with the design, ask.
+Work comes as GitHub issues. `docs/build-plan.md`, "How we work", describes the loop from my side; these are your steps.
+
+1. **Start from the issue.** I say "Work on issue #N." Read it with its comments (`gh issue view N --comments`), then what it names: the sections of `docs/design-plan.md`, the mockup pages, `src/styles/tokens.css` for anything visual, and the entry in `docs/build-plan.md` for the phase that built that screen.
+2. **Follow its type** (its label):
+   - **bug:** the app doesn't do what the plan says. Don't change the plan; fix the code with a test that would have caught the bug, where a test can. If the plan turns out to be unclear, make it clear in the same PR.
+   - **change:** update `docs/design-plan.md` and the tests first, then the code, in one PR.
+   - **feature:** the first commit edits only `docs/design-plan.md`. Stop there and wait for my OK before writing code.
+   - **chore:** setup, operations or docs. Write steps done by hand as a checklist for me, as in `docs/setup.md`.
+
+   If the label looks wrong, say so before planning.
+3. **Plan first.** Propose a short plan: the files, the tests, and any questions. Post it on the issue as a comment too, so a later session can find it. Wait for my OK before writing code.
+4. **Small steps.** One branch per issue, named after the change (`fix-zoom-close-ios`), not the issue number. One commit per step, each with its tests. Run typecheck, lint and tests before calling anything done.
+5. **Check the UI by looking at it.** Run the app, take screenshots at 390 px and 1440 px, and compare them with the mockups the issue names. A difference that `docs/design-plan.md` records, or that a "Differences from the mockups" list in `docs/build-plan.md` names, is on purpose. List any new differences you couldn't fix.
+6. **Finish with a PR.** Fill in the template: `Closes #N`, the plan sections changed, new differences from the mockups, and what to try on my phone. Don't edit `docs/build-plan.md` for a single issue; it's written when a milestone closes. Update this file if a command, a step or a rule that's easy to get wrong changed. Deploy only when I ask.
+7. **Ask, don't guess.** If a rule seems wrong or conflicts with the design, ask.
