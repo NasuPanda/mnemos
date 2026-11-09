@@ -9,7 +9,8 @@
 // keyboard, such as Claude Code's "!" commands, pass it instead: --confirm="seed production".
 //
 // It replaces the person's sections, items, images and reviews (past ones included); users and
-// settings stay.
+// settings stay. Local seeds also mark the first-run tutorial done, so `npm run dev` and the
+// end-to-end tests open on the board; production keeps the person's own flag.
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -77,6 +78,11 @@ function seedSql({ sections, items, nextLine }: Profile): string[] {
     `(SELECT id FROM items WHERE user_id = ${user} AND name = ${text(name)})`;
 
   const statements = [`UPDATE settings SET next_line = '${nextLine}' WHERE user_id = ${user};`];
+  if (!remote) {
+    statements.push(
+      `UPDATE settings SET tutorial_completed_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE user_id = ${user} AND tutorial_completed_at IS NULL;`,
+    );
+  }
   for (const s of sections) {
     statements.push(
       `INSERT INTO sections (user_id, name, code, line, position) VALUES (${user}, ${text(s.name)}, ${text(s.code)}, '${s.line}', ${s.position});`,
