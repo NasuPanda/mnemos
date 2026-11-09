@@ -67,7 +67,7 @@ An item's review history comes from its reviews; the item itself doesn't keep a 
 
 ## App flow and screens
 
-The app opens on today's dashboard. Reviewing is a short loop: read the problem, reveal the answer, rate, move on.
+The app opens on today's dashboard; a new account first goes through a practice day (First-run tutorial, below). Reviewing is a short loop: read the problem, reveal the answer, rate, move on.
 
 ```mermaid
 flowchart LR
@@ -94,7 +94,77 @@ Opening one item from the dashboard returns there after rating. On phones, confi
 | Items | Find and manage items | **Search:** Name, Description, Problem description and Side note, ignoring case and accents. **Filter** by section. **Sort:** by next due (earliest first, equal dates oldest first) or recently added (newest first). **Status:** each row shows "+3 days", Due today or Reviewed today; above the list, "23 items · 3 late · 5 more due today · 1 reviewed today". A table on desktop, two-line rows on the phone |
 | Item editor | Add or edit an item | **Fields:** every item field. **Images:** paste or drop on desktop, camera or photo library on the phone; reorder and remove. **Section picker:** find a section by name or code, or type a new name to create it on the spot: the section is made at once, with the suggested code (or one the person types) and the next colour. **Markdown fields:** a Write / Preview toggle; on touch screens, a Code button wraps the selection in backticks (a fenced block when it spans lines), on the Name and Description too. **Save:** stays within reach: a bar at the top on desktop (Ctrl/⌘+Enter), a button at the bottom on the phone. **Leaving:** Save, Cancel (Esc) and ✕ go back to where the editor was opened from; with unsaved changes, every way out asks "Discard your changes?" first: Cancel, Esc, ✕, Back, a sidebar link, T, I, `,` and N, and the command menu. **New items** start in the line the Items list is filtered to, or else the line of the last item saved in this browser. **Delete** (the ··· menu on the phone) asks first and says how many reviews go with the item |
 | Item history | See how an item has gone | A line map (reviews left to right, stops bottom to top, dot size = confidence, marks for picked dates and early reviews), plus the same data as a table. On the phone, the line map shows the latest 10 reviews, on desktop up to 20; scroll back for older ones. The table always lists them all. **One panel everywhere:** a dialog on desktop, a tall sheet on the phone, over the screen it was opened from: H on the dashboard (any day) and Items, History (H) in the editor and in review (··· on the phone). Esc, Back and ✕ close it, and the screen behind stays as it was. In review before the reveal it keeps the Name hidden. Reviews keep the stop numbers they had; removing a stop doesn't rewrite them, and the map grows taller if an older review sits above today's last stop |
-| Settings ("Menetrend") | Tune the ladder; manage the lines and the account | The ladder drawn as a metro line (across on desktop, down on the phone): each stop's gap and item count, add / edit / remove stops, and a preview of where each rating leads from the selected stop. A gap saves on Enter or when the field is left, if it fits between its neighbours; Esc puts the saved gap back. Removing a stop asks first, saying how many items move to which stop and what renumbers, with Cancel focused. Below the ladder: the preview and Account side by side on desktop, then Lines. **Lines:** every line in order with its item count; drag a handle (or focus it and use ↑ ↓) to reorder, which sets the order of the dashboard and flash review; Edit opens the name and code (the colour shows but never changes) and Delete line…; New line makes one with the suggested code and the next colour. The sidebar's "Lines" heading links here. Account and sign out |
+| Settings ("Menetrend") | Tune the ladder; manage the lines and the account | The ladder drawn as a metro line (across on desktop, down on the phone): each stop's gap and item count, add / edit / remove stops, and a preview of where each rating leads from the selected stop. A gap saves on Enter or when the field is left, if it fits between its neighbours; Esc puts the saved gap back. Removing a stop asks first, saying how many items move to which stop and what renumbers, with Cancel focused. Below the ladder: the preview and Account side by side on desktop, then Lines. **Lines:** every line in order with its item count; drag a handle (or focus it and use ↑ ↓) to reorder, which sets the order of the dashboard and flash review; Edit opens the name and code (the colour shows but never changes) and Delete line…; New line makes one with the suggested code and the next colour. The sidebar's "Lines" heading links here. **Account:** who is signed in, Replay tutorial, and Sign out |
+
+## First-run tutorial
+
+A new account starts in a practice day: a copy of Mnemos that runs entirely in the browser, with two sample lines, one prefilled new item and one short review run, then the person's own empty dashboard. Nothing in the practice day is saved; the only write to the server is the "tutorial completed" flag (issue #23).
+
+- **Gate:** the app asks `GET /api/me` alongside the first screen's own data. If the flag is null and the address isn't under `/tutorial`, it replaces the address with `/tutorial`. The first screen shows meanwhile, so a new account may see its empty board for an instant.
+- **Addresses:** the practice day mirrors the app's paths under `/tutorial` (`/tutorial`, `/tutorial/items/new`, `/tutorial/flash` …), so Back and reloads behave as they do in the app.
+- **The practice copy:** the real screens run against an in-memory copy of the API that follows the same rules as the Worker, so Items and Settings work too, with the sample data. Images added in the practice editor stay in the browser. Leaving the practice day drops all of it, so sample lines never show on the real board.
+- **Its today and ladder:** today is the browser's date when the tutorial starts, kept even if it runs past midnight. The ladder is always the default (1, 2, 3, 5, 7, 14 and 28 days), whatever the person's own is.
+
+**Sample data:** two lines and three items, plus the one the person creates: a run of 4 items, 1 of them late.
+
+| Line | Name | Problem description | Answer | Stop | Due | What it shows |
+| --- | --- | --- | --- | --- | --- | --- |
+| HU · Hungarian words (M2) | Köszönöm | How do you say "thank you" in Hungarian? | Köszönöm. "Köszi" is the casual form. | 4 | 2 days ago | The "+2 days" mark; first in the run, so its rating buttons show three clearly different dates |
+| HU · Hungarian words (M2) | What does "Végállomás" mean? | (empty) | End of the line: the last stop. | 1 | Today | An empty problem description, so the Name is the question |
+| AL · Algorithms (M3) | Binary search | What is the running time of finding a value in a sorted array of n items? Plus one image | O(log n), with a short `python` code block | 2 | Today | An image (zoom) and a highlighted code block |
+| AL · Algorithms (M3) | Hash map lookup (prefilled in the editor) | What is the average running time of looking up a key in a hash map? | O(1) on average; O(n) in the worst case. Side note: collisions cause the worst case. | 1 once saved | Today | A new item joining today's run |
+
+- **Köszönöm's history:** three Confident reviews, 12, 10 and 7 days ago (stops 1→2, 2→3, 3→4), which leaves it due 2 days ago. Its buttons read Confident → stop 5 in 7 days, Neutral → stop 4 in 5 days, Not at all → stop 1 tomorrow.
+- **Line colours and codes** are the practice day's own; the real colour counter and codes are never touched.
+- **The image** is a static file, `public/tutorial/sorted-array.webp`, drawn in the Dusk style (to come, issue #31).
+
+**Tour:** about two minutes, 13 steps on desktop and 15 on the phone. There are two kinds of step:
+
+- **Explain:** a card with Next, over a dimmed backdrop, with the focus in the card.
+- **Act:** the step ends when the person does the real thing. There's no backdrop, and the app keeps the focus, so taps and keys reach it.
+
+Every card has Skip. Below 1024 px the steps point at the tab bar, from 1024 px at the sidebar. Key hints in the copy follow the app's rule: shown with a mouse or trackpad, hidden on touch, ⌘ on Apple devices. The copy below is a draft.
+
+| # | Screen | Kind | Target: phone / desktop | Copy | Ends when |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Dashboard | Explain | None, a centred card | Welcome to Mnemos. This is a practice day with sample lines. Nothing here is saved, and it takes about two minutes. | Next |
+| 2 | Dashboard | Explain | The HU line card | Each line groups things to remember. Every item is a station; the squares show its stop on the ladder. | Next |
+| 3 | Dashboard | Act | The Items tab / New item in the sidebar | Phone: Add something to remember. Start in Items. Desktop: Add something to remember (N). | Phone: Items opens. Desktop: the editor opens |
+| 4 | Items (phone only) | Act | New item | Add something to remember. | The editor opens |
+| 5 | Editor | Explain | Name | The Name stays hidden in review, since it often gives the answer away. Leave the problem description empty and the Name becomes the question. | Next |
+| 6 | Editor | Explain | Section picker | Pick a line, or type a new name to create one. | Next |
+| 7 | Editor | Explain | Problem and answer cards | The problem goes on top, the answer below. Both take Markdown; Preview shows the result. Phone: add images from the camera or photo library. Desktop: paste or drop images into a card. | Next |
+| 8 | Editor | Act | Save at the bottom / the save bar at the top | Phone: Save it. Desktop: Save it (Ctrl+Enter). | Saved: back on Items (phone) or the dashboard (desktop) |
+| 9 | Items (phone only) | Act | The Review tab | Now review today's items. | The dashboard opens |
+| 10 | Dashboard | Act | The floating Start review / the yellow Start review | Review everything due today in one run (F). | The flash review start opens |
+| 11 | Flash review start | Act | Start | 4 items on 2 lines, 1 of them late. Start when you're ready (Enter). | The run starts |
+| 12 | Review: problem side | Act | None, a card placed clear of the content | Think of the answer, then tap anywhere to see it (Space). Images and links don't reveal it. | The answer shows |
+| 13 | Review: answer side | Explain | The rating buttons | How sure were you? Your answer sets the next review. Confident moves the item up the ladder, so it comes back later. Neutral keeps it on its stop. Not at all sends it back to stop 1, so it comes back tomorrow. The default gaps are 1, 2, 3, 5, 7, 14 and 28 days, and each button shows the date it leads to. | Next |
+| 14 | Review: answer side | Explain | Pick a date | Want a date of your own? Pick one, then rate as usual. After rating, Undo stays for 4 seconds (U). | Got it; then the person rates |
+| 15 | All done | Explain | None, a centred card under the Végállomás | Well done: that's the whole loop. Change the ladder in Settings (Menetrend, "Timetable"). Replay this tutorial from Settings, `?` or the command menu. | Go to my dashboard |
+
+On the phone the editor is opened from Items, so Save goes back there (steps 4 and 9). The other three items in the run get no cards. The tour pauses while a dialog or sheet is open (Pick a date, zoom, the section picker) and while the person is off the step's screen, and picks up again when they're back.
+
+**Leaving and coming back:**
+
+- **Practice banner:** a slim bar at the top of every practice screen, "Practice day · nothing is saved", with Skip tutorial. It keeps a way out while no card shows, such as during the last three review items.
+- **Skip:** on every card and in the banner, with no confirmation, since the tutorial can be replayed. It goes to `/` without asking "Discard your changes?", since nothing in the practice day is real.
+- **Finish:** Go to my dashboard, on the last card, goes to `/`.
+- **Esc** keeps its meaning on each screen (close the zoom, the picker, the run); it never ends the tutorial.
+- **Replay:** Replay tutorial in the command menu (Other), at the end of the `?` dialog and in Settings' Account card. It starts a fresh practice day at step 1.
+- **Resume:** a reload, or switching apps on the phone, comes back to the same step with the same data. A new tab or a later visit starts again at step 1, as does a practice day saved by an older version of the app.
+
+**Completion:** `settings.tutorial_completed_at` (Data model) holds when the person finished or skipped it; null means not yet. `GET /api/me` returns it as `tutorialCompletedAt`. `PUT /api/tutorial` with `{ "completed": true }` sets it to now if it's still null; repeating it changes nothing. Finishing and Skip call it only while the flag is null; Replay never does. If the call fails, the person still goes to their board, and the tutorial comes back on their next visit. Accounts made before the tutorial start null too, so everyone sees it once.
+
+**Look and access:**
+
+- **Card:** built from the shadcn pieces and the tokens, like the rest of the app. Yellow only for the primary button and the focus; keys in the mono face; nothing under 12 px.
+- **Phone (below 1024 px):** the card spans the width minus the page margin and sits above or below its target, clear of the bottom controls. Buttons are at least 48 px tall.
+- **Desktop:** a popover anchored to the target, about 360 px wide.
+- **Motion:** no beacon and no smooth scrolling. The card fades in within 150 ms, and doesn't fade with reduced motion.
+- **Keyboard:** on Explain steps the focus moves to Next, and the screen's keys wait while the focus is in the card; on Act steps the focus stays in the app. The whole tutorial works with keys only.
+- **Screen readers:** Explain cards are dialogs named by their title; the text of an Act step is read out politely.
+- **Mockups:** none yet. The tour card (Explain and Act), the practice banner and the closing card are being mocked at 390 px and 1440 px (issue #30).
 
 ## Scheduling rules
 
@@ -180,7 +250,7 @@ Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", rou
 
 ## Keyboard shortcuts
 
-The whole review loop works without the mouse, and `?` shows the list in the app: a dialog grouped by place (Dashboard, Review, Items, Item editor, Settings, Everywhere), closed by `?` again or Esc. While it, the command menu or an item's history is open, the screen behind ignores its keys. Key hints appear on desktop and are hidden on touch screens. Macs, iPhones and iPads show ⌘ instead of Ctrl; either key works. **Command menu** (Ctrl/⌘+K, even in a text field): a search box over the screen with Go to (Review, Flash review while anything is left, Items, Settings, New item), Items (names with every word of the search, ignoring case and accents, at most 8; Enter edits one), Review a line (the lines with items left today) and Other (Keyboard shortcuts, Sign out). It finds places by other names too ("menetrend" finds Settings). The footer of key hints ends with "? all keys"; between 1024 and 1279 px it leaves out Shift F and N, which the selected line's card and the sidebar already show.
+The whole review loop works without the mouse, and `?` shows the list in the app: a dialog grouped by place (Dashboard, Review, Items, Item editor, Settings, Everywhere), with a Replay tutorial link at the end, closed by `?` again or Esc. While it, the command menu or an item's history is open, the screen behind ignores its keys. Key hints appear on desktop and are hidden on touch screens. Macs, iPhones and iPads show ⌘ instead of Ctrl; either key works. **Command menu** (Ctrl/⌘+K, even in a text field): a search box over the screen with Go to (Review, Flash review while anything is left, Items, Settings, New item), Items (names with every word of the search, ignoring case and accents, at most 8; Enter edits one), Review a line (the lines with items left today) and Other (Keyboard shortcuts, Replay tutorial, Sign out). It finds places by other names too ("menetrend" finds Settings; "tutorial", "tour" and "help" find Replay tutorial). The footer of key hints ends with "? all keys"; between 1024 and 1279 px it leaves out Shift F and N, which the selected line's card and the sidebar already show.
 
 | Key | Where | Action |
 | --- | --- | --- |
@@ -219,7 +289,7 @@ Everything runs on one free Cloudflare account as a single Worker, so there are 
 | Database | Cloudflare D1 (SQLite) + Drizzle ORM | Relational data fits naturally; never pauses |
 | Images | Cloudflare R2 | Built for files, with no bandwidth fees; stays behind the login |
 | Login | Cloudflare Access + Google login, 1-month session | No login code to write; strangers can't load the app |
-| Frontend | Vite + React + TypeScript, Tailwind CSS v4, shadcn/ui (Radix primitives, Nova preset, restyled by the tokens; Calendar, Drawer and Sonner bring react-day-picker, vaul and sonner), a small in-house router on the History API, tw-animate-css, dnd-kit | Polished look, smooth transitions, keyboard-friendly; dnd-kit reorders images and lines |
+| Frontend | Vite + React + TypeScript, Tailwind CSS v4, shadcn/ui (Radix primitives, Nova preset, restyled by the tokens; Calendar, Drawer and Sonner bring react-day-picker, vaul and sonner), a small in-house router on the History API, tw-animate-css, dnd-kit; react-joyride v3 for the first-run tutorial's tour, loaded only when the tutorial starts | Polished look, smooth transitions, keyboard-friendly; dnd-kit reorders images and lines |
 | Text | react-markdown + remark-gfm + remark-breaks; rehype-highlight (its own 54 kB gzipped file) fetched only when a field has a code block that names its language, and at the start of a review run that has one | Safe by default (no raw HTML) and light |
 | Fonts | @fontsource-variable/atkinson-hyperlegible-next and -mono, self-hosted | No third-party requests; the latin-ext subset loads only when a page needs it |
 | Mobile | Responsive layout, designed for the phone as much as the desktop; installable from a web manifest alone, with no service worker (so no vite-plugin-pwa): every launch passes Access and loads the current app | Reviews on the go; installs to a phone's home screen |
@@ -245,6 +315,7 @@ The browser loads the app from the Worker, then talks to its API for data and im
 - **Identity:** a middleware checks the `Cf-Access-Jwt-Assertion` header with the `jose` library, using the team domain and the app's AUD tag. It maps the email to a user, and every query is scoped to that user.
 - **Browser does the heavy work:** image resizing, Markdown rendering and date handling happen in the browser, not the Worker.
 - **Worker does small work:** loading a day, saving a review, and editing an item each take a few milliseconds of CPU.
+- **Practice day:** every data call goes through one switchable API in the browser. The first-run tutorial swaps in an in-memory copy built on `src/core`, so during it only `GET /api/me` and `PUT /api/tutorial` reach the Worker.
 
 Source: [Validate Access JWTs](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/)
 
@@ -255,7 +326,7 @@ Six D1 tables, and each screen is one indexed query by date.
 | Table | Key columns | Notes |
 | --- | --- | --- |
 | users | id, email, created_at | Created on first login from the Access email |
-| settings | user_id, ladder_days, next_line | ladder_days is a JSON list of gaps, default [1, 2, 3, 5, 7, 14, 28]. next_line is the colour counter (M2 → M3 → M4) for the next new section; it only moves forward. A new account's next_line is m2 |
+| settings | user_id, ladder_days, next_line, tutorial_completed_at | ladder_days is a JSON list of gaps, default [1, 2, 3, 5, 7, 14, 28]. next_line is the colour counter (M2 → M3 → M4) for the next new section; it only moves forward. A new account's next_line is m2. tutorial_completed_at is null until the person finishes or skips the first-run tutorial; accounts made before the tutorial start null too |
 | sections | id, user_id, name, code, line, position | line is m2, m3 or m4, set once at creation; code is unique per user; order is set by position |
 | items | id, user_id, section_id, name, description, problem_url, problem_text, answer_url, answer_text, side_note, stop, due_on, created_at, updated_at | stop is the item's place on the ladder, starting at 1. due_on is a plain date. Index on (user_id, due_on). id grows with creation (AUTOINCREMENT), and the scheduling order uses it as creation order |
 | item_images | id, item_id, side, image_key, position | side is problem or answer; image_key points to the stored image; position keeps the order |
@@ -283,7 +354,7 @@ Images are resized in the browser, stored in R2 under a name made from their con
 4. **Save:** the item stores only the image name and its position in `item_images`. Images can be reordered (drag, or ← → on a focused handle) and removed in the editor. Save waits for uploads still on their way; an upload that failed can be tried again or removed.
 5. **Show:** `GET /img/<hash>.webp` streams the file back with `Cache-Control: private, max-age=31536000, immutable`, so the browser downloads each image only once.
 
-Images live only in the image fields; Markdown images are not allowed. The Parliament illustration and the Zsolnay pattern are part of the app's static files, not user images.
+Images live only in the image fields; Markdown images are not allowed. The Parliament illustration, the Zsolnay pattern and the tutorial's sample image are part of the app's static files, not user images.
 
 **No captions:** images have no caption field. Zoom shows its position ("1 / 4", the answer's images included after the reveal) and, where the draft had a caption, the image's side and position ("Problem image 1"), which is also its alt text. The draft's "Fig. 1 · graph" caption is left out.
 
