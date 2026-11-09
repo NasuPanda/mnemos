@@ -316,20 +316,26 @@ Typecheck, lint, 481 unit and API tests and 37 end-to-end runs pass. Screenshots
 
 ## Phase 6 — Friends beta
 
-- [ ] Add a few friends' emails to the Access application.
-- [ ] Set up the $1 budget alert and a regular D1 backup (`wrangler d1 export`).
-- [ ] Collect feedback; update `docs/design-plan.md` and plan the next phase.
+**Milestone:** [Phase 6 — Friends beta](https://github.com/NasuPanda/mnemos/milestone/1). Friends' feedback arrives as issues in this milestone; when it closes, `docs/design-plan.md` is updated and the next milestone planned.
+
+**Issues:**
+
+- [#19](https://github.com/NasuPanda/mnemos/issues/19): Add a few friends' emails to the Access application.
+- [#20](https://github.com/NasuPanda/mnemos/issues/20): Set up the $1 budget alert.
+- [#21](https://github.com/NasuPanda/mnemos/issues/21): Set up a regular D1 backup.
 
 ## Phase 7 — Improvements
 
 **Goal:** two improvements found while using the app.
 
-**Tasks:**
+**Milestone:** [Phase 7 — Improvements](https://github.com/NasuPanda/mnemos/milestone/2).
 
-- [ ] Reviewed items on other days are clickable and open the review page: the item with its Show answer button and everything, just without the review section. (Today a tap on one opens its history.)
-- [ ] A first-time tour: a new user is walked through the app's flow. Mnemos has no tutorial yet.
+**Issues:**
 
-**Details:** to be settled before the phase starts, and written into `docs/design-plan.md` first, as a bigger change.
+- [#22](https://github.com/NasuPanda/mnemos/issues/22): Open reviewed items on other days in the review page.
+- [#23](https://github.com/NasuPanda/mnemos/issues/23): First-time tour for new users.
+
+**Details:** to be settled before the work starts, and written into `docs/design-plan.md` first, as features.
 
 ## Later
 
