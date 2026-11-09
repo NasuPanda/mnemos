@@ -11,6 +11,9 @@ import type {
 
 export type ApiError = { error: string };
 
+/** GET /api/me: who is signed in. */
+export type MeResponse = { email: string };
+
 export type SectionDto = {
   id: number;
   name: string;

@@ -1,7 +1,7 @@
 import { LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { getJson } from "@/lib/api";
+import { api } from "@/lib/api";
 
 /**
  * Who is signed in, and Sign out. Access owns the session: its logout address ends it, and the
@@ -11,7 +11,8 @@ export function AccountCard() {
   const [email, setEmail] = useState<string | null>(null);
   useEffect(() => {
     let current = true;
-    getJson<{ email: string }>("/api/me")
+    api()
+      .me()
       .then((me) => current && setEmail(me.email))
       .catch(() => {});
     return () => {

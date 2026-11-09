@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { addDays, weekOf, type IsoDate } from "@/core";
-import { getJson } from "@/lib/api";
-import type { DayResponse, ItemDto } from "../../worker/contract";
+import { api } from "@/lib/api";
+import type { ItemDto } from "../../worker/contract";
 import { withMovedItem, withoutDayItem, type DayData } from "./day-data";
 
 export type DayState =
@@ -13,6 +13,8 @@ const LOADING: DayState = { status: "loading" };
 const cache = new Map<string, DayState>();
 const listeners = new Set<() => void>();
 const keyOf = (date: IsoDate, today: IsoDate) => `${today}|${date}`;
+/** Goes up when the API is switched, so answers from the one before are dropped. */
+let generation = 0;
 
 function set(key: string, next: DayState) {
   cache.set(key, next);
@@ -30,11 +32,13 @@ export function useDayState(date: IsoDate, today: IsoDate): DayState {
   const snapshot = useSyncExternalStore(subscribe, () => cache.get(key) ?? LOADING);
   const stale = snapshot.status === "ready" && snapshot.stale;
   const ready = snapshot.status === "ready";
+  // After a reset, a screen that stays open fetches its day anew.
+  const resets = useSyncExternalStore(subscribe, () => generation);
 
   useEffect(() => {
     forgetOtherTodays(today);
     void ensure(date, today);
-  }, [date, today, stale]);
+  }, [date, today, stale, resets]);
 
   useEffect(() => {
     if (!ready) return;
@@ -84,12 +88,20 @@ async function ensure(date: IsoDate, today: IsoDate): Promise<void> {
   }
   if (!current || current.status === "failed") set(key, LOADING);
   else set(key, { ...current, stale: false });
+  const asked = generation;
   try {
-    const data = await getJson<DayResponse>(`/api/days/${date}?today=${today}`);
-    set(key, { status: "ready", data, stale: false });
+    const data = await api().day(date, today);
+    if (asked === generation) set(key, { status: "ready", data, stale: false });
   } catch {
-    if (cache.get(key)?.status !== "ready") set(key, { status: "failed" });
+    if (asked === generation && cache.get(key)?.status !== "ready") set(key, { status: "failed" });
   }
+}
+
+/** Forgets every day fetched, after the API was switched (see switchApi). */
+export function resetDayStore(): void {
+  generation++;
+  cache.clear();
+  listeners.forEach((listener) => listener());
 }
 
 /** Try a day again after it failed to load. */

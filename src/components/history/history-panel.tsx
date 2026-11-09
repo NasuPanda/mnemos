@@ -7,7 +7,7 @@ import { StopIndicator } from "@/components/stop-indicator";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
-import { getJson } from "@/lib/api";
+import { api } from "@/lib/api";
 import { shortDate } from "@/lib/format";
 import { LINE_CLASSES } from "@/lib/line-classes";
 import { useBackCloses, useLocation } from "@/lib/router";
@@ -68,7 +68,8 @@ function HistoryBody({ target, compact }: { target: HistoryTarget; compact: bool
 
   useEffect(() => {
     let current = true;
-    getJson<ItemHistoryResponse>(`/api/items/${target.itemId}/history`)
+    api()
+      .itemHistory(target.itemId)
       .then((data) => current && setHistory(data))
       .catch(() => current && setFailed(true));
     return () => {

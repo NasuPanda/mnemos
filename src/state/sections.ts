@@ -1,12 +1,6 @@
 import { ok, refuse, type Result } from "@/core";
-import { ApiError, del, patchJson, postJson, putJson } from "@/lib/api";
-import type {
-  DeleteSectionResponse,
-  SectionDto,
-  SectionProblem,
-  SectionResponse,
-  SectionsResponse,
-} from "../../worker/contract";
+import { api, ApiError } from "@/lib/api";
+import type { SectionDto, SectionProblem } from "../../worker/contract";
 import { refreshDays } from "./day-store";
 import { dropItems, refreshItems } from "./items-store";
 import { orderSections, putSection, refreshToday } from "./today-store";
@@ -53,7 +47,7 @@ export async function createSection(
   code: string,
 ): Promise<Result<SectionDto, string>> {
   try {
-    const { section, nextLine } = await postJson<SectionResponse>("/api/sections", { name, code });
+    const { section, nextLine } = await api().createSection({ name, code });
     putSection(section, nextLine);
     return ok(section);
   } catch (error) {
@@ -67,7 +61,7 @@ export async function updateSection(
   change: { name?: string; code?: string },
 ): Promise<Result<SectionDto, string>> {
   try {
-    const { section } = await patchJson<SectionResponse>(`/api/sections/${id}`, change);
+    const { section } = await api().updateSection(id, change);
     putSection(section);
     return ok(section);
   } catch (error) {
@@ -79,7 +73,7 @@ export async function updateSection(
 export async function reorderSections(ids: number[]): Promise<Result<SectionDto[], string>> {
   orderSections(ids);
   try {
-    const { sections } = await putJson<SectionsResponse>("/api/sections/order", { ids });
+    const { sections } = await api().reorderSections({ ids });
     void refreshToday();
     return ok(sections);
   } catch (error) {
@@ -91,7 +85,7 @@ export async function reorderSections(ids: number[]): Promise<Result<SectionDto[
 /** Deletes a section with all its items and their reviews. */
 export async function deleteSection(id: number): Promise<Result<number, string>> {
   try {
-    const { deletedItems } = await del<DeleteSectionResponse>(`/api/sections/${id}`);
+    const { deletedItems } = await api().deleteSection(id);
     dropItems((item) => item.sectionId !== id);
     void refreshToday();
     void refreshItems();

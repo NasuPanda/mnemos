@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import type { IsoDate } from "@/core";
-import { getJson } from "@/lib/api";
-import type { ItemSummaryDto, ItemsResponse } from "../../worker/contract";
+import { api } from "@/lib/api";
+import type { ItemSummaryDto } from "../../worker/contract";
 
 export type ItemsState =
   | { status: "loading"; date: IsoDate }
@@ -10,6 +10,8 @@ export type ItemsState =
 
 let state: ItemsState = { status: "loading", date: "" };
 const listeners = new Set<() => void>();
+/** Goes up when the API is switched, so answers from the one before are dropped. */
+let generation = 0;
 
 function setState(next: ItemsState) {
   state = next;
@@ -19,9 +21,10 @@ function setState(next: ItemsState) {
 /** Every item, for the Items list and the line counts, loading when the date changes. */
 export function useItemsState(date: IsoDate): ItemsState {
   const snapshot = useSyncExternalStore(subscribe, () => state);
+  // After a reset the date is empty again, so a screen that stays open loads anew.
   useEffect(() => {
     if (state.date !== date) void loadItems(date);
-  }, [date]);
+  }, [date, snapshot.date]);
   return snapshot;
 }
 
@@ -39,12 +42,21 @@ export async function refreshItems(): Promise<void> {
 }
 
 async function fetchItems(date: IsoDate) {
+  const asked = generation;
   try {
-    const { items } = await getJson<ItemsResponse>(`/api/items?date=${date}`);
-    if (state.date === date) setState({ status: "ready", date, items });
+    const { items } = await api().items(date);
+    if (asked === generation && state.date === date) setState({ status: "ready", date, items });
   } catch {
-    if (state.date === date && state.status !== "ready") setState({ status: "failed", date });
+    if (asked === generation && state.date === date && state.status !== "ready") {
+      setState({ status: "failed", date });
+    }
   }
+}
+
+/** Forgets the list after the API was switched (see switchApi). */
+export function resetItemsStore(): void {
+  generation++;
+  setState({ status: "loading", date: "" });
 }
 
 /**

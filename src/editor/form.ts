@@ -1,4 +1,5 @@
 import { checkItemText, ITEM_LIMITS, type ItemFieldProblem, type ItemTextField } from "@/core";
+import { imageUrl } from "@/lib/images";
 import type { ImageDto, ItemDto, ItemFieldsRequest } from "../../worker/contract";
 
 export type ImageSide = ImageDto["side"];
@@ -62,7 +63,7 @@ export function formFromItem(item: ItemDto): ItemForm {
       id: `${image.side}:${image.key}`,
       side: image.side,
       key: image.key,
-      src: `/img/${image.key}`,
+      src: imageUrl(image),
       status: "stored",
     })),
   };

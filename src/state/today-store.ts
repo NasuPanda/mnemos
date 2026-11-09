@@ -8,14 +8,8 @@ import {
   type RateRefusal,
   type Result,
 } from "@/core";
-import { del, getJson, postJson } from "@/lib/api";
-import type {
-  ItemDto,
-  RateResponse,
-  ReviewDto,
-  SectionDto,
-  TodayResponse,
-} from "../../worker/contract";
+import { api } from "@/lib/api";
+import type { ItemDto, ReviewDto, SectionDto } from "../../worker/contract";
 import { moveDayItem } from "./day-store";
 import {
   applyRating,
@@ -38,6 +32,8 @@ const ratedItems = new Map<number, ItemDto>();
 /** Optimistic reviews still waiting for the Worker: temporary id → the stored review's id. */
 const pending = new Map<number, Promise<number | null>>();
 let nextTempId = -1;
+/** Goes up when the API is switched, so answers from the one before are dropped. */
+let generation = 0;
 
 function setState(next: TodayState) {
   state = next;
@@ -51,20 +47,33 @@ function updateData(change: (data: TodayData) => TodayData) {
 /** Today's data for `date`, loading it when the date changes. No spinner: screens wait quietly. */
 export function useTodayState(date: IsoDate): TodayState {
   const snapshot = useSyncExternalStore(subscribe, () => state);
+  // After a reset the date is empty again, so a screen that stays open loads anew.
   useEffect(() => {
     if (state.date !== date) void load(date);
-  }, [date]);
+  }, [date, snapshot.date]);
   return snapshot;
 }
 
 export async function load(date: IsoDate): Promise<void> {
+  const asked = generation;
   setState({ status: "loading", date });
   try {
-    const data = await getJson<TodayResponse>(`/api/today?date=${date}`);
-    if (state.date === date) setState({ status: "ready", date, data });
+    const data = await api().today(date);
+    if (asked === generation && state.date === date) setState({ status: "ready", date, data });
   } catch {
-    if (state.date === date) setState({ status: "failed", date });
+    if (asked === generation && state.date === date) setState({ status: "failed", date });
   }
+}
+
+/**
+ * Forgets today, its ratings and the ones still on their way, after the API was switched (see
+ * switchApi). Answers from before are dropped when they arrive.
+ */
+export function resetTodayStore(): void {
+  generation++;
+  ratedItems.clear();
+  pending.clear();
+  setState({ status: "loading", date: "" });
 }
 
 /**
@@ -73,11 +82,13 @@ export async function load(date: IsoDate): Promise<void> {
  */
 export async function refreshToday(): Promise<void> {
   if (state.status !== "ready") return;
+  const asked = generation;
   await Promise.all(pending.values());
+  if (asked !== generation) return;
   const date = state.date;
   try {
-    const data = await getJson<TodayResponse>(`/api/today?date=${date}`);
-    if (state.date === date) setState({ status: "ready", date, data });
+    const data = await api().today(date);
+    if (asked === generation && state.date === date) setState({ status: "ready", date, data });
   } catch {
     // The next load brings it up to date; nothing on screen is wrong in the meantime.
   }
@@ -160,12 +171,15 @@ export function rateItem(
   updateData((d) => applyRating(d, item, review));
   moveDayItem(ratedCopy(item, review));
 
-  const saved = postJson<RateResponse>("/api/reviews", { itemId, date, confidence, pickedDate })
+  const asked = generation;
+  const saved = api()
+    .rate({ itemId, date, confidence, pickedDate })
     .then((response) => {
-      updateData((d) => confirmReview(d, tempId, response.review));
+      if (asked === generation) updateData((d) => confirmReview(d, tempId, response.review));
       return response.review.id;
     })
     .catch(() => {
+      if (asked !== generation) return null;
       updateData((d) => revertRating(d, item, tempId));
       moveDayItem(item);
       toast("That rating didn’t save. The item is back where it was.");
@@ -188,10 +202,12 @@ export async function undoRating(rating: LocalRating): Promise<boolean> {
   if (!review) return false;
   updateData((d) => revertRating(d, item, reviewId));
   moveDayItem(item);
+  const asked = generation;
   try {
-    await del(`/api/reviews/${reviewId}?date=${date}`);
+    await api().undo(reviewId, date);
     return true;
   } catch {
+    if (asked !== generation) return false;
     updateData((d) => applyRating(d, item, review));
     moveDayItem(ratedCopy(item, review));
     toast("Undo didn’t go through. The rating stands.");

@@ -1,16 +1,11 @@
 import type { IsoDate } from "@/core";
-import { del, getJson, postJson, putJson } from "@/lib/api";
-import type {
-  DeleteItemResponse,
-  ItemDto,
-  ItemFieldsRequest,
-  ItemResponse,
-} from "../../worker/contract";
+import { api } from "@/lib/api";
+import type { ItemDto, ItemFieldsRequest } from "../../worker/contract";
 import { forgetDayItem, refreshDays } from "./day-store";
 import { dropItems, putItem } from "./items-store";
 import { forgetTodayItem, putTodayItem, refreshToday } from "./today-store";
 
-export const loadItem = (itemId: number) => getJson<ItemResponse>(`/api/items/${itemId}`);
+export const loadItem = (itemId: number) => api().item(itemId);
 
 /**
  * Saves an item, new or edited, and shows it everywhere at once: in the Items list and on
@@ -24,8 +19,8 @@ export async function saveItem(
 ): Promise<ItemDto> {
   const { item } =
     itemId === null
-      ? await postJson<ItemResponse>("/api/items", { ...fields, date })
-      : await putJson<ItemResponse>(`/api/items/${itemId}`, fields);
+      ? await api().createItem({ ...fields, date })
+      : await api().updateItem(itemId, fields);
   putItem({
     id: item.id,
     sectionId: item.sectionId,
@@ -43,7 +38,7 @@ export async function saveItem(
 }
 
 export async function deleteItem(itemId: number): Promise<void> {
-  await del<DeleteItemResponse>(`/api/items/${itemId}`);
+  await api().deleteItem(itemId);
   dropItems((item) => item.id !== itemId);
   forgetTodayItem(itemId);
   forgetDayItem(itemId);
