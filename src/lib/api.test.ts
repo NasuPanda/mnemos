@@ -40,6 +40,11 @@ const blob = new Blob(["x"], { type: "image/webp" });
 const routes: [string, (a: MnemosApi) => Promise<unknown>, Sent][] = [
   ["me", (a) => a.me(), { method: "GET", path: "/api/me", body: undefined }],
   [
+    "completeTutorial",
+    (a) => a.completeTutorial(),
+    { method: "PUT", path: "/api/tutorial", body: { completed: true } },
+  ],
+  [
     "today",
     (a) => a.today("2026-11-09"),
     { method: "GET", path: "/api/today?date=2026-11-09", body: undefined },
@@ -135,6 +140,11 @@ describe("httpApi", () => {
   it.each(routes)("%s asks the Worker's route", async (_name, call, expected) => {
     await call(httpApi);
     expect(sent).toEqual([expected]);
+  });
+
+  it("takes a 204 with no body as done", async () => {
+    vi.stubGlobal("fetch", () => Promise.resolve(new Response(null, { status: 204 })));
+    await expect(httpApi.completeTutorial()).resolves.toBeUndefined();
   });
 
   it("shows images from /img/<key>", () => {

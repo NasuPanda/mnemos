@@ -31,6 +31,8 @@ import type {
  */
 export type MnemosApi = {
   me(): Promise<MeResponse>;
+  /** The person finished or skipped the first-run tutorial; only the first call counts. */
+  completeTutorial(): Promise<void>;
   today(date: IsoDate): Promise<TodayResponse>;
   day(date: IsoDate, today: IsoDate): Promise<DayResponse>;
   rate(request: RateRequest): Promise<RateResponse>;
@@ -132,12 +134,15 @@ async function send<T>(
     const error = (await res.json().catch(() => null)) as { error?: string } | null;
     throw new ApiError(res.status, error?.error, error);
   }
+  // 204: done, with nothing to say (PUT /api/tutorial).
+  if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
 
 /** The Worker's API over HTTP: the one the app uses outside the tutorial. */
 export const httpApi: MnemosApi = {
   me: () => getJson("/api/me"),
+  completeTutorial: () => putJson("/api/tutorial", { completed: true }),
   today: (date) => getJson(`/api/today?date=${date}`),
   day: (date, today) => getJson(`/api/days/${date}?today=${today}`),
   rate: (request) => postJson("/api/reviews", request),
