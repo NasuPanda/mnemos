@@ -105,66 +105,92 @@ A new account starts in a practice day: a copy of Mnemos that runs entirely in t
 - **The practice copy:** the real screens run against an in-memory copy of the API that follows the same rules as the Worker, so Items and Settings work too, with the sample data. Images added in the practice editor stay in the browser. Leaving the practice day drops all of it, so sample lines never show on the real board.
 - **Its today and ladder:** today is the browser's date when the tutorial starts, kept even if it runs past midnight. The ladder is always the default (1, 2, 3, 5, 7, 14 and 28 days), whatever the person's own is.
 
-**Sample data:** two lines and three items, plus the one the person creates: a run of 4 items, 1 of them late.
+**Sample data:** two lines and three items, plus the one the person saves: a run of 4 items, 1 of them late. The practice lines take the first two colours in order, HU red (M2) and AL blue (M3); nothing is saved, so the person's own first line still starts at M2.
 
-| Line | Name | Problem description | Answer | Stop | Due | What it shows |
-| --- | --- | --- | --- | --- | --- | --- |
-| HU · Hungarian words (M2) | Köszönöm | How do you say "thank you" in Hungarian? | Köszönöm. "Köszi" is the casual form. | 4 | 2 days ago | The "+2 days" mark; first in the run, so its rating buttons show three clearly different dates |
-| HU · Hungarian words (M2) | What does "Végállomás" mean? | (empty) | End of the line: the last stop. | 1 | Today | An empty problem description, so the Name is the question |
-| AL · Algorithms (M3) | Binary search | What is the running time of finding a value in a sorted array of n items? Plus one image | O(log n), with a short `python` code block | 2 | Today | An image (zoom) and a highlighted code block |
-| AL · Algorithms (M3) | Hash map lookup (prefilled in the editor) | What is the average running time of looking up a key in a hash map? | O(1) on average; O(n) in the worst case. Side note: collisions cause the worst case. | 1 once saved | Today | A new item joining today's run |
-
-- **Köszönöm's history:** three Confident reviews, 12, 10 and 7 days ago (stops 1→2, 2→3, 3→4), which leaves it due 2 days ago. Its buttons read Confident → stop 5 in 7 days, Neutral → stop 4 in 5 days, Not at all → stop 1 tomorrow.
-- **Line colours and codes** are the practice day's own; the real colour counter and codes are never touched.
-- **The image** is a static file, `public/tutorial/sorted-array.webp`, drawn in the Dusk style (to come, issue #31).
-
-**Tour:** about two minutes, 13 steps on desktop and 15 on the phone. There are two kinds of step:
-
-- **Explain:** a card with Next, over a dimmed backdrop, with the focus in the card.
-- **Act:** the step ends when the person does the real thing. There's no backdrop, and the app keeps the focus, so taps and keys reach it.
-
-Every card has Skip. Below 1024 px the steps point at the tab bar, from 1024 px at the sidebar. Key hints in the copy follow the app's rule: shown with a mouse or trackpad, hidden on touch, ⌘ on Apple devices. The copy below is a draft.
-
-| # | Screen | Kind | Target: phone / desktop | Copy | Ends when |
+| Line | Name | Description and problem | Answer and side note | Stop | Due |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Dashboard | Explain | None, a centred card | Welcome to Mnemos. This is a practice day with sample lines. Nothing here is saved, and it takes about two minutes. | Next |
-| 2 | Dashboard | Explain | The HU line card | Each line groups things to remember. Every item is a station; the squares show its stop on the ladder. | Next |
-| 3 | Dashboard | Act | The Items tab / New item in the sidebar | Phone: Add something to remember. Start in Items. Desktop: Add something to remember (N). | Phone: Items opens. Desktop: the editor opens |
-| 4 | Items (phone only) | Act | New item | Add something to remember. | The editor opens |
-| 5 | Editor | Explain | Name | The Name stays hidden in review, since it often gives the answer away. Leave the problem description empty and the Name becomes the question. | Next |
-| 6 | Editor | Explain | Section picker | Pick a line, or type a new name to create one. | Next |
-| 7 | Editor | Explain | Problem and answer cards | The problem goes on top, the answer below. Both take Markdown; Preview shows the result. Phone: add images from the camera or photo library. Desktop: paste or drop images into a card. | Next |
-| 8 | Editor | Act | Save at the bottom / the save bar at the top | Phone: Save it. Desktop: Save it (Ctrl+Enter). | Saved: back on Items (phone) or the dashboard (desktop) |
-| 9 | Items (phone only) | Act | The Review tab | Now review today's items. | The dashboard opens |
-| 10 | Dashboard | Act | The floating Start review / the yellow Start review | Review everything due today in one run (F). | The flash review start opens |
-| 11 | Flash review start | Act | Start | 4 items on 2 lines, 1 of them late. Start when you're ready (Enter). | The run starts |
-| 12 | Review: problem side | Act | None, a card placed clear of the content | Think of the answer, then tap anywhere to see it (Space). Images and links don't reveal it. | The answer shows |
-| 13 | Review: answer side | Explain | The rating buttons | How sure were you? Your answer sets the next review. Confident moves the item up the ladder, so it comes back later. Neutral keeps it on its stop. Not at all sends it back to stop 1, so it comes back tomorrow. The default gaps are 1, 2, 3, 5, 7, 14 and 28 days, and each button shows the date it leads to. | Next |
-| 14 | Review: answer side | Explain | Pick a date | Want a date of your own? Pick one, then rate as usual. After rating, Undo stays for 4 seconds (U). | Got it; then the person rates |
-| 15 | All done | Explain | None, a centred card under the Végállomás | Well done: that's the whole loop. Change the ladder in Settings (Menetrend, "Timetable"). Replay this tutorial from Settings, `?` or the command menu. | Go to my dashboard |
+| HU · Hungarian words | villamos | Getting around Budapest. What is the Hungarian word for tram? | Plural: villamosok. Budapest's trams are bright yellow. Side note: villám means lightning: villamos first meant "electric". | 4 | 2 days ago |
+| HU · Hungarian words | köszönöm | How do you say "thank you" in Hungarian? | köszönöm. "Köszi" is the casual form. | 2 | Today |
+| AL · Algorithms | Binary search on 1,000 items | At most how many steps does binary search take to find a value among 1,000 sorted items? Plus one image | 10, since 2¹⁰ = 1,024: each step halves what's left, so O(log n). A short `python` code block | 3 | Today |
+| HU · Hungarian words | Egészségedre! (prefilled in the editor) | What do you say when someone sneezes, or when you raise a glass? | Egészségedre! (to your health). To a group: Egészségetekre! | 1 once saved | Today |
 
-On the phone the editor is opened from Items, so Save goes back there (steps 4 and 9). The other three items in the run get no cards. The tour pauses while a dialog or sheet is open (Pick a date, zoom, the section picker) and while the person is off the step's screen, and picks up again when they're back.
+- **Histories:** villamos has three Confident reviews, 12, 10 and 7 days ago (stops 1→2, 2→3, 3→4), which leaves it due 2 days ago, "+2 days". köszönöm has one, 2 days ago (1→2); Binary search two, 5 and 3 days ago (1→2, 2→3).
+- **villamos is first in the run,** so its buttons show three clearly different dates: Confident → stop 5 in 7 days, Neutral → stop 4 in 5 days, Not at all → stop 1 tomorrow.
+- **The image** is a static file, `public/tutorial/sorted-array.webp`, drawn in the Dusk style (to come, issue #31).
+- **The texts of köszönöm and Binary search** are drafts; the mockups show only their names.
+
+**Tour:** about two minutes, 12 steps on desktop and 14 on the phone. Every step dims the app (Dusk at 72 %). There are two kinds of step:
+
+- **Explain:** the target is cut out of the dimmed app (8 px around it, a 2 px Mist edge), and a card with Next holds the focus. Back goes to the previous Explain step on the same screen.
+- **Act:** the real control does it. The target is cut out (10 px around it) and ringed in tram yellow, and stays live: taps reach it and the app keeps the focus, so its keys work. A click on the dimmed area does nothing. The card has no buttons but Skip; its subtext is "Your turn!".
+
+Below 1024 px the steps point at the tab bar, from 1024 px at the sidebar. Key hints show as key chips, by the input rule: shown with a mouse or trackpad, hidden on touch, ⌘ on Apple devices. The phone gets two more steps than desktop, because its dashboard has no New item: it goes through Items, and Save returns there.
+
+| # desktop / phone | Screen | Kind | Target: phone / desktop | Copy: title, then subtext | Ends when |
+| --- | --- | --- | --- | --- | --- |
+| 1 / 1 | Dashboard | Explain | None | Welcome to Mnemos | Next |
+| 2 / 2 | Dashboard | Explain | The HU line card | Lines and stations. Each line groups things to remember. Every item is a station; the squares show its progress! | Next |
+| 3 / 3 | Dashboard | Act | The Items tab / New item in the sidebar | Add something to remember (N). Your turn! | Phone: Items opens. Desktop: the editor opens |
+| – / 4 | Items | Act | New item | Add something to remember. Your turn! | The editor opens |
+| 4 / 5 | Editor | Explain | Name | Name the review item! | Next |
+| 5 / 6 | Editor | Explain | Section picker | Pick a line, or type a new name to create one! | Next |
+| 6 / 7 | Editor | Explain | The problem and answer cards (the editor scrolls to them) | Input the problem and its answer! You can use images here. | Next |
+| 7 / 8 | Editor | Act | Save at the bottom / Save in the top bar | Save it (Ctrl Enter). Your turn! | Saved: back on Items (phone) or the dashboard (desktop) |
+| – / 9 | Items | Act | The Review tab | Now review today's items. Your turn! | The dashboard opens |
+| 8 / 10 | Dashboard | Act | The floating Start review / the yellow Start review at the top | Review everything due today in one run (F). Your turn! | The flash review start opens |
+| 9 / 11 | Flash review start | Act | Start | 4 items on 2 lines, 1 of them late. Start when you're ready (Enter). Your turn! | The run starts |
+| 10 / 12 | Review: problem side | Act | None: the problem stays lit | Phone: Think of the answer, then tap anywhere to see it. Desktop: Think of the answer, then click anywhere or press Space to see it. Your turn! | The answer shows |
+| 11 / 13 | Review: answer side | Act | The rating buttons, ringed | Pick how confident you feel! Your confidence rating moves this item on the ladder and sets its next review date! | A rating is pressed |
+| 12 / 14 | All done | Explain, closing | None: the picture and the Végállomás stay lit | Well done. That's the whole loop. Change the ladder in Settings (Menetrend, "Timetable"). Desktop: Replay this tutorial from `?` or the command menu (Ctrl K). Phone: …; you can replay this tutorial there too. | Go to my dashboard, or Enter |
+
+- **Editor:** it opens with Egészségedre! filled in, in HU, as in the table; the person can change any field. Next moves on.
+- **Step 10 (phone 12)** is the one exception to the backdrop: a tap anywhere, the card included (Skip aside), shows the answer.
+- **Step 11 (phone 13)** ends on a rating; picking a date first, then rating, counts too. The other three items in the run get no cards.
+- **Off the path:** the tour pauses while a dialog or sheet is open (Pick a date, zoom, the section picker) and while the person is off the step's screen, and picks up again when they're back. A target off screen is scrolled into view first; a card never covers its target.
+
+**The card:**
+
+- **Look:** `popover` fill with a 1 px Rule edge, `rounded-xl` (18 px), `shadow-overlay`. The head has the step count ("2 of 12") in mono at 12.5 px Mist, a 56 px progress bar (Swell track, Foam fill) and Skip as a ghost button on the right. Title 18/24 bold Foam; subtext 15.5/23 Mist. Steps 1, 4 and 5 are a title only. The welcome card has the outlined M mark in its head, the only card with a mark.
+- **Footer:** Explain cards have Back (ghost; only from the second Explain step on a screen) and Next (the primary pill, with Enter on desktop): Next is the screen's one yellow button. Act cards have no footer.
+- **Closing card:** "12 of 12" with a full bar, no Skip, and a neutral Go to my dashboard: nothing yellow sits next to the All done picture. Its backdrop is lighter (50 %), and the picture and the Végállomás stay lit.
+- **Act ring:** 2 px tram yellow, 4 px out, says "press this"; a fainter halo 8 px out pulses at rest.
+- **Arrow:** a 16 px square turned 45°, in the card's fill, with the Rule edge on its two outer sides.
+- **Phone (below 1024 px):** the card is the screen width minus 24 px. Explain cards dock at the bottom, below the target, in thumb reach; with a tall target (the problem and answer cards) the card sits under it. Act cards sit next to their target, with the arrow. Step 1 docks at the bottom; on step 10 the problem stays lit above the card.
+- **Desktop:** 360 px wide (400–420 px under wide targets), anchored to the target with a 14 px gap and the arrow: to the right of cards, below fields and header buttons, centred under a wide target such as the problem and answer cards, above the rating buttons. The closing card sits under the Végállomás heading.
+- **Motion:** the card fades and rises 4 px in 120 ms; the cut-out moves to the next target in 150 ms. The Act halo's pulse is the app's one looping animation. Nothing moves with reduced motion, the pulse included.
+- **Keyboard:** on Explain steps the focus moves into the card and stays there; Enter is Next, and Esc is Skip. On Act steps Esc keeps its meaning in the app (close review, cancel the editor), and the focus stays in the app so its keys work. The whole tutorial works with keys only.
+- **Screen readers:** Explain cards are modal dialogs, named by their title and described by their subtext. The text of an Act card is a polite status.
 
 **Leaving and coming back:**
 
-- **Practice banner:** a slim bar at the top of every practice screen, "Practice day · nothing is saved", with Skip tutorial. It keeps a way out while no card shows, such as during the last three review items.
-- **Skip:** on every card and in the banner, with no confirmation, since the tutorial can be replayed. It goes to `/` without asking "Discard your changes?", since nothing in the practice day is real.
-- **Finish:** Go to my dashboard, on the last card, goes to `/`.
-- **Esc** keeps its meaning on each screen (close the zoom, the picker, the run); it never ends the tutorial.
-- **Replay:** Replay tutorial in the command menu (Other), at the end of the `?` dialog and in Settings' Account card. It starts a fresh practice day at step 1.
+- **Practice banner:** on every practice screen, above the screen's own header: a River bar with a hairline below it and a flask icon, never yellow, since it is information, not an action. Phone: "Practice day · nothing here is saved" and Skip. Desktop: "Practice day · sample lines and items. Nothing here is saved, and you can leave any time." and Skip tutorial. It dims with the app on every step.
+- **Skip:** on every card but the closing one, in the banner, and Esc on an Explain card. No confirmation, since the tutorial can be replayed, and no "Discard your changes?", since nothing in the practice day is real. It opens the person's own empty dashboard, with a 4 s toast: "Tutorial skipped. Replay it from `?` or the command menu." (on the phone: "… from Settings.").
+- **Finish:** Go to my dashboard, or Enter, on the closing card opens the person's own dashboard.
+- **Replay:** Replay tutorial in the command menu (Other), at the end of the `?` dialog and in Settings' Account card. The phone has no `?` key or command menu, so on the phone it is Settings. It starts a fresh practice day at step 1 without touching the flag.
 - **Resume:** a reload, or switching apps on the phone, comes back to the same step with the same data. A new tab or a later visit starts again at step 1, as does a practice day saved by an older version of the app.
 
 **Completion:** `settings.tutorial_completed_at` (Data model) holds when the person finished or skipped it; null means not yet. `GET /api/me` returns it as `tutorialCompletedAt`. `PUT /api/tutorial` with `{ "completed": true }` sets it to now if it's still null; repeating it changes nothing. Finishing and Skip call it only while the flag is null; Replay never does. If the call fails, the person still goes to their board, and the tutorial comes back on their next visit. Accounts made before the tutorial start null too, so everyone sees it once.
 
-**Look and access:**
+**Mockups:** `docs/design/TutorialCardsDraft.pdf` (tutorial, round 2; issue #30). Like the main draft, it stays out of git.
 
-- **Card:** built from the shadcn pieces and the tokens, like the rest of the app. Yellow only for the primary button and the focus; keys in the mono face; nothing under 12 px.
-- **Phone (below 1024 px):** the card spans the width minus the page margin and sits above or below its target, clear of the bottom controls. Buttons are at least 48 px tall.
-- **Desktop:** a popover anchored to the target, about 360 px wide.
-- **Motion:** no beacon and no smooth scrolling. The card fades in within 150 ms, and doesn't fade with reduced motion.
-- **Keyboard:** on Explain steps the focus moves to Next, and the screen's keys wait while the focus is in the card; on Act steps the focus stays in the app. The whole tutorial works with keys only.
-- **Screen readers:** Explain cards are dialogs named by their title; the text of an Act step is read out politely.
-- **Mockups:** none yet. The tour card (Explain and Act), the practice banner and the closing card are being mocked at 390 px and 1440 px (issue #30).
+| Page | Shows | Page | Shows |
+| --- | --- | --- | --- |
+| 1 | Step 1, phone | 10 | Step 6, phone |
+| 2 | Step 2, desktop | 11 | Step 7, phone |
+| 3 | Step 8, desktop | 12 | Step 5, desktop |
+| 4 | Step 2, phone | 13 | Step 12, desktop |
+| 5 | Step 3, phone | 14 | Step 10, phone |
+| 6 | Step 4, phone | 15 | Step 11, phone |
+| 7 | Step 4, desktop | 16 | Step 12, phone |
+| 8 | Step 11, desktop | 17 | Step 6, desktop |
+| 9 | Step 5, phone | 18 | The card, placement, banner, steps and behaviour |
+
+Step numbers are the mockups' (desktop). Differences from them, on purpose:
+
+- **Page 5:** the round + beside Start review isn't built; the phone's step 3 points at the Items tab, and the phone has the two extra steps above, so it counts to 14.
+- **The sidebar and tab bar** say Review, not Today (issue #12).
+- **All done** shows the navy outline, not the gold placeholder.
+- **Step 9 (Start on the flash review start)** has no page; it follows steps 3, 7 and 8.
 
 ## Scheduling rules
 
@@ -224,7 +250,7 @@ Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", rou
   - **The yellow M** (app icon and favicon) is the one use of yellow outside these rules, as on the metro signs: a tram yellow square with a Dusk M (Atkinson Hyperlegible Next at weight 800, drawn as a path). Inside the app, the sidebar's M stays neutral.
 - **Shapes:** circles are items and reviews on a section's line; squares are ladder stops.
 - **Type:** Atkinson Hyperlegible Next for text; Atkinson Hyperlegible Mono for code, dates, counts and keys. Nothing under 12 px.
-- **Motion:** 150 ms at most, no spinners or skeletons, and no motion at all with reduced motion. The command menu and the shortcut list close at once, without the fade, so keys pressed right after belong to the screen; while any other dialog fades out, its fields and buttons no longer take keys. The phone's bottom sheets slide up, slide away and settle back after a drag in 150 ms too, not vaul's own 0.5 s.
+- **Motion:** 150 ms at most, no spinners or skeletons, and no motion at all with reduced motion. The one looping animation is the halo of the tutorial's Act steps (First-run tutorial). The command menu and the shortcut list close at once, without the fade, so keys pressed right after belong to the screen; while any other dialog fades out, its fields and buttons no longer take keys. The phone's bottom sheets slide up, slide away and settle back after a drag in 150 ms too, not vaul's own 0.5 s.
 - **Phone:** thumb-first. Buttons are at least 48 px tall (confidence buttons 56 px) and sit at the bottom. Key hints are hidden on touch screens.
 - **Layout by width:**
 
