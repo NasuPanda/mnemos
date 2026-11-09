@@ -17,7 +17,8 @@ export const users = sqliteTable("users", {
 
 /**
  * One row per person. ladder_days is the JSON list of gaps; next_line is the colour counter for
- * the next new section, which only moves forward.
+ * the next new section, which only moves forward. tutorial_completed_at is set once, when the
+ * person finishes or skips the first-run tutorial.
  */
 export const settings = sqliteTable(
   "settings",
@@ -30,6 +31,8 @@ export const settings = sqliteTable(
       .notNull()
       .default(sql`'[1,2,3,5,7,14,28]'`),
     nextLine: text("next_line", { enum: LINES }).notNull().default("m2"),
+    /** When the person finished or skipped the first-run tutorial; null until then. */
+    tutorialCompletedAt: text("tutorial_completed_at"),
   },
   (t) => [check("settings_next_line", sql`${t.nextLine} IN ('m2', 'm3', 'm4')`)],
 );
