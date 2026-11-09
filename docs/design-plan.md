@@ -131,7 +131,12 @@ Next due date = review date + the gap of the stop the item lands on, unless you 
 
 ## Visual design
 
-Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", round 3) and its `tokens.css` are the source of truth. This section summarizes them.
+Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", round 3) set the look, and this section summarizes it. Where this plan records a later change, the plan wins over the mockups; `docs/build-plan.md` lists each phase's differences from them. The tokens live in `src/styles/tokens.css`: the draft's (`docs/design/mnemos-tokens.css`) plus the ones added since:
+
+- `kbd-primary` and its foreground, for the key hint inside the yellow button;
+- `zsolnay-ground`, `zsolnay-tile` and `zsolnay-tile-alt`, for the Settings band;
+- the door animations of the flash review start, 150 ms;
+- the focus ring's colour at rest, so it never fades in from the text colour.
 
 - **Dark mode only for now:** the tokens use shadcn/ui's semantic names, so a light theme later is one more block of values.
 - **Budapest, strong where you rest, quiet where you work:**
@@ -182,14 +187,14 @@ The whole review loop works without the mouse, and `?` shows the list in the app
 | F | Dashboard | Start review (Review early on a future day or on All done) |
 | Shift+F | Dashboard | Review the selected section |
 | J / K | Dashboard, Items | Move between items |
-| Enter | Dashboard | Open the selected item in review mode |
+| Enter | Dashboard | Open the selected item: in review on today, in Review early on a future day, its history on a past day |
 | [ / ] | Dashboard | Previous or next day |
 | / | Dashboard, Items | Search |
 | Space | Review | Show or hide the answer |
 | 1 / 2 / 3 | Review | Confident / Neutral / Not at all |
 | D | Review | Pick the next date yourself |
 | Z | Review | Zoom the first image |
-| E | Dashboard, review | Edit the item |
+| E | Dashboard (today and future days), review | Edit the item |
 | H | Dashboard, review, Items, item editor | Item history |
 | U | Review | Undo the last rating |
 | Enter | Items | Edit the selected item |
@@ -280,7 +285,7 @@ Images are resized in the browser, stored in R2 under a name made from their con
 
 Images live only in the image fields; Markdown images are not allowed. The Parliament illustration and the Zsolnay pattern are part of the app's static files, not user images.
 
-**No captions:** images have no caption field. Zoom shows only its position ("1 / 2"), and each image's alt text names its side and position ("Problem image 1"). The draft's "Fig. 1 · graph" caption in zoom is left out.
+**No captions:** images have no caption field. Zoom shows its position ("1 / 4", the answer's images included after the reveal) and, where the draft had a caption, the image's side and position ("Problem image 1"), which is also its alt text. The draft's "Fig. 1 · graph" caption is left out.
 
 **Leaving zoom:** Close, Esc, Back (the phone's back gesture) and a swipe down at 100 % close it, and closing returns to the item exactly as it was. Opening zoom adds a history entry for Back to take off; closing any other way removes it, so the next Back still leaves the screen.
 
@@ -344,6 +349,5 @@ Sources: [Workers limits](https://developers.cloudflare.com/workers/platform/lim
 
 Small decisions left for implementation:
 
-- **Undo on the phone:** place the pop-up at the top, so it never covers Show answer on the next item.
 - **Math formulas (later):** remark-math + rehype-katex, loaded only for items that use them.
 - **Unused images in R2:** removing an image or deleting an item leaves its file in R2, since another item, or an upload not yet saved, may still use it. The files are small; a cleanup script can delete those no `item_images` row uses.
