@@ -10,6 +10,7 @@ import { me } from "./routes/me";
 import { reviewRoutes } from "./routes/reviews";
 import { sectionRoutes } from "./routes/sections";
 import { today } from "./routes/today";
+import { tutorialRoutes } from "./routes/tutorial";
 
 /** The Worker's routes. Only /api/* and /img/* reach it (see run_worker_first in wrangler.jsonc). */
 export function createApp(keysFor: KeysFor) {
@@ -17,6 +18,7 @@ export function createApp(keysFor: KeysFor) {
 
   app.use("*", identity(keysFor));
   app.route("/api/me", me);
+  app.route("/api/tutorial", tutorialRoutes);
   app.route("/api/today", today);
   app.route("/api/days", days);
   app.route("/api/items", itemRoutes);

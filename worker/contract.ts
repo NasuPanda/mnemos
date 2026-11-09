@@ -11,8 +11,11 @@ import type {
 
 export type ApiError = { error: string };
 
-/** GET /api/me: who is signed in. */
-export type MeResponse = { email: string };
+/** GET /api/me: who is signed in, and when they finished or skipped the tutorial (or null). */
+export type MeResponse = { email: string; tutorialCompletedAt: string | null };
+
+/** PUT /api/tutorial: answers 204, and sets the time only the first time. */
+export type CompleteTutorialRequest = { completed: true };
 
 export type SectionDto = {
   id: number;
