@@ -217,9 +217,9 @@ Everything runs on one free Cloudflare account as a single Worker, so there are 
 | --- | --- | --- |
 | Hosting + API | Cloudflare Workers, with the frontend and a Hono API in one Worker | Starts in milliseconds; frontend files are served free and unlimited |
 | Database | Cloudflare D1 (SQLite) + Drizzle ORM | Relational data fits naturally; never pauses |
-| Images | Cloudflare R2, or Workers KV to avoid adding a card | Built for files, with no bandwidth fees; stays behind the login |
+| Images | Cloudflare R2 | Built for files, with no bandwidth fees; stays behind the login |
 | Login | Cloudflare Access + Google login, 1-month session | No login code to write; strangers can't load the app |
-| Frontend | Vite + React + TypeScript, Tailwind CSS v4, shadcn/ui (Radix primitives, Nova preset, restyled by the tokens; Calendar, Drawer and Sonner bring react-day-picker, vaul and sonner), a small in-house router on the History API, Motion, dnd-kit | Polished look, smooth transitions, keyboard-friendly; dnd-kit reorders images |
+| Frontend | Vite + React + TypeScript, Tailwind CSS v4, shadcn/ui (Radix primitives, Nova preset, restyled by the tokens; Calendar, Drawer and Sonner bring react-day-picker, vaul and sonner), a small in-house router on the History API, tw-animate-css, dnd-kit | Polished look, smooth transitions, keyboard-friendly; dnd-kit reorders images and lines |
 | Text | react-markdown + remark-gfm + remark-breaks; rehype-highlight (its own 54 kB gzipped file) fetched only when a field has a code block that names its language, and at the start of a review run that has one | Safe by default (no raw HTML) and light |
 | Fonts | @fontsource-variable/atkinson-hyperlegible-next and -mono, self-hosted | No third-party requests; the latin-ext subset loads only when a page needs it |
 | Mobile | Responsive layout, designed for the phone as much as the desktop; installable from a web manifest alone, with no service worker (so no vite-plugin-pwa): every launch passes Access and loads the current app | Reviews on the go; installs to a phone's home screen |
@@ -293,9 +293,9 @@ Images live only in the image fields; Markdown images are not allowed. The Parli
 
 - Reject files over 2 MB, counting the file after the browser has shrunk it (the original photo can be any size), and cap the number of images: 10 per side of an item, and 2,000 different images per person across their items (an image used twice counts once).
 - Set a $1 budget alert. It sends an email but doesn't stop use.
-- Keep storage behind one small module, so switching between KV and R2 touches nothing else.
+- Keep R2 behind one small module: `worker/routes/images.ts` is the only code that touches the bucket.
 
-Sources: [R2 Workers API](https://developers.cloudflare.com/r2/api/workers/workers-api-reference/), [KV limits](https://developers.cloudflare.com/kv/platform/limits/), [Budget alerts](https://developers.cloudflare.com/billing/manage/budget-alerts/)
+Sources: [R2 Workers API](https://developers.cloudflare.com/r2/api/workers/workers-api-reference/), [Budget alerts](https://developers.cloudflare.com/billing/manage/budget-alerts/)
 
 ## Login
 

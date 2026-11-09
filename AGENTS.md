@@ -22,7 +22,7 @@ If the code, the docs and the mockups disagree, stop and ask. When a decision ch
 - **Frontend:**
   - React + TypeScript;
   - Tailwind CSS v4, CSS-first: `@theme` in CSS, no `tailwind.config.js`;
-  - shadcn/ui on Radix primitives (`components.json` points at `src/styles/tokens.css`), Motion, and dnd-kit for reordering images.
+  - shadcn/ui on Radix primitives (`components.json` points at `src/styles/tokens.css`), tw-animate-css and plain CSS for transitions, and dnd-kit for reordering images and lines.
 - **Markdown:** react-markdown + remark-gfm + remark-breaks (a new line is a line break). No raw HTML, no Markdown images, no math.
 - **Fonts:** `@fontsource-variable/atkinson-hyperlegible-next` and `-mono`.
 - **Tests:**
