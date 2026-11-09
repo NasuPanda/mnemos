@@ -61,6 +61,7 @@ Setup, the Cloudflare and Google checklist, and deploying are in `docs/setup.md`
   Every rule has unit tests.
 - `worker/`: the Hono app. Routes stay thin: they call `src/core` and Drizzle, and nothing else decides scheduling.
 - `src/`: the React app. Screens live in `src/screens/`, shared pieces in `src/components/`, and shadcn components in `src/components/ui/`.
+- `src/tutorial/`: the first-run tutorial's practice day: `createSandboxApi`, an in-memory copy of every API route on `src/core`, and its sample data (`makeSandbox`). `src/lib/api-contract.ts` is one test suite run on both it and the Worker; a route change goes into both.
 
 ## Rules that are easy to get wrong
 
