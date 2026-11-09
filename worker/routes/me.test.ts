@@ -29,7 +29,7 @@ describe("GET /api/me behind Access", () => {
     );
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ email: "bea@example.com" });
+    expect(await res.json()).toEqual({ email: "bea@example.com", tutorialCompletedAt: null });
     expect(await userRows("bea@example.com")).toHaveLength(1);
   });
 
@@ -87,7 +87,7 @@ describe("GET /api/me in local development", () => {
     const res = await getMe(LOCAL_URL, local);
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ email: "dev@mnemos.local" });
+    expect(await res.json()).toEqual({ email: "dev@mnemos.local", tutorialCompletedAt: null });
   });
 
   it("ignores DEV_USER_EMAIL on any other host", async () => {

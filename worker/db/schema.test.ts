@@ -45,6 +45,14 @@ describe("Settings", () => {
     expect(results).toHaveLength(1);
   });
 
+  it("start with the first-run tutorial not done", async () => {
+    const userId = await signIn("lea@example.com");
+    const row = await env.DB.prepare("SELECT tutorial_completed_at FROM settings WHERE user_id = ?")
+      .bind(userId)
+      .first<{ tutorial_completed_at: string | null }>();
+    expect(row).toEqual({ tutorial_completed_at: null });
+  });
+
   it("only accept M2, M3 or M4 as the next colour", async () => {
     const userId = await signIn("kai@example.com");
     await expect(
