@@ -194,7 +194,7 @@ The whole review loop works without the mouse, and `?` shows the list in the app
 | 1 / 2 / 3 | Review | Confident / Neutral / Not at all |
 | D | Review | Pick the next date yourself |
 | Z | Review | Zoom the first image |
-| E | Dashboard (today and future days), review | Edit the item |
+| E | Dashboard, review | Edit the item (not on a past day, whose rows are reviews) |
 | H | Dashboard, review, Items, item editor | Item history |
 | U | Review | Undo the last rating |
 | Enter | Items | Edit the selected item |
