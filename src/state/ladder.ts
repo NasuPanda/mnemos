@@ -1,5 +1,5 @@
 import { gapIssue, ok, refuse, type GapIssue, type Ladder, type Result } from "@/core";
-import { ApiError, del, patchJson, postJson } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { count } from "@/lib/format";
 import type { LadderErrorResponse, LadderResponse } from "../../worker/contract";
 import { refreshDays } from "./day-store";
@@ -48,14 +48,12 @@ export async function saveGap(
   stop: number,
   gap: number,
 ): Promise<Result<number[], string>> {
-  return change(() =>
-    patchJson<LadderResponse>(`/api/ladder/stops/${stop}`, { ladder: [...ladder], gap }),
-  );
+  return change(() => api().setGap(stop, { ladder: [...ladder], gap }));
 }
 
 /** A new last stop at double the last gap (at most 365). */
 export async function addLadderStop(ladder: Ladder): Promise<Result<number[], string>> {
-  return change(() => postJson<LadderResponse>("/api/ladder/stops", { ladder: [...ladder] }));
+  return change(() => api().addStop({ ladder: [...ladder] }));
 }
 
 /**
@@ -66,9 +64,7 @@ export async function removeLadderStop(
   ladder: Ladder,
   stop: number,
 ): Promise<Result<number[], string>> {
-  const result = await change(() =>
-    del<LadderResponse>(`/api/ladder/stops/${stop}?ladder=${ladder.join(",")}`),
-  );
+  const result = await change(() => api().removeStop(stop, ladder));
   if (result.ok) {
     void refreshToday();
     void refreshItems();

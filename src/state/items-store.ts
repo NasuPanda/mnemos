@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import type { IsoDate } from "@/core";
-import { getJson } from "@/lib/api";
-import type { ItemSummaryDto, ItemsResponse } from "../../worker/contract";
+import { api } from "@/lib/api";
+import type { ItemSummaryDto } from "../../worker/contract";
 
 export type ItemsState =
   | { status: "loading"; date: IsoDate }
@@ -40,7 +40,7 @@ export async function refreshItems(): Promise<void> {
 
 async function fetchItems(date: IsoDate) {
   try {
-    const { items } = await getJson<ItemsResponse>(`/api/items?date=${date}`);
+    const { items } = await api().items(date);
     if (state.date === date) setState({ status: "ready", date, items });
   } catch {
     if (state.date === date && state.status !== "ready") setState({ status: "failed", date });

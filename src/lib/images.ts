@@ -1,7 +1,8 @@
 import type { ImageDto } from "../../worker/contract";
+import { api } from "./api";
 
-/** Images are served from R2 through the Worker, behind the login. */
-export const imageUrl = (image: ImageDto) => `/img/${image.key}`;
+/** Images are served from R2 through the Worker, behind the login (or by the practice copy). */
+export const imageUrl = (image: Pick<ImageDto, "key">) => api().imageUrl(image.key);
 
 /** Alt text and zoom label: "Problem image 1", "Answer image 2". There are no captions. */
 export const imageLabel = (image: ImageDto) =>

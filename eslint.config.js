@@ -28,6 +28,23 @@ const APP_SYNTAX = [
   },
 ];
 
+// AGENTS.md: every call to the Worker goes through api() in src/lib/api.ts, which the first-run
+// tutorial swaps for its practice copy.
+const API_PATH = "/^\\/(api|img)\\//";
+const VIA_API = [
+  {
+    selector: `Literal[value=${API_PATH}]`,
+    message: "Call the Worker through api() in src/lib/api.ts, not by its address.",
+  },
+  {
+    selector: `TemplateElement[value.raw=${API_PATH}]`,
+    message: "Call the Worker through api() in src/lib/api.ts, not by its address.",
+  },
+  {
+    selector: "CallExpression[callee.name='fetch']",
+    message: "Call the Worker through api() in src/lib/api.ts, not with fetch.",
+  },
+];
 // AGENTS.md: src/core has no clock; "today" is always passed in as a YYYY-MM-DD string.
 const NO_CLOCK = [
   {
@@ -79,13 +96,18 @@ export default defineConfig([
   {
     files: ["src/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-syntax": ["error", ...APP_SYNTAX],
+      "no-restricted-syntax": ["error", ...APP_SYNTAX, ...VIA_API],
       // shadcn components arrive importing "cn"; use ours, which knows the token class names.
       "no-restricted-imports": [
         "error",
         { paths: [{ name: "cn", message: 'Import { cn } from "@/lib/utils" instead.' }] },
       ],
     },
+  },
+  {
+    // The API itself, and tests that check the addresses it uses.
+    files: ["src/lib/api.ts", "src/**/*.test.{ts,tsx}"],
+    rules: { "no-restricted-syntax": ["error", ...APP_SYNTAX] },
   },
   {
     files: ["src/lib/utils.ts"],

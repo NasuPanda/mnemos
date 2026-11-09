@@ -73,22 +73,22 @@ const RELOAD_KEY = "mnemos:session-reload";
 const RELOAD_GUARD_MS = 10_000;
 
 /** GETs JSON from the Worker. */
-export const getJson = <T>(path: string) => request<T>("GET", path);
+const getJson = <T>(path: string) => request<T>("GET", path);
 
 /** POSTs JSON to the Worker and returns its JSON answer. */
-export const postJson = <T>(path: string, body: unknown) => request<T>("POST", path, body);
+const postJson = <T>(path: string, body: unknown) => request<T>("POST", path, body);
 
 /** PUTs JSON to the Worker and returns its JSON answer. */
-export const putJson = <T>(path: string, body: unknown) => request<T>("PUT", path, body);
+const putJson = <T>(path: string, body: unknown) => request<T>("PUT", path, body);
 
 /** PATCHes JSON on the Worker and returns its JSON answer. */
-export const patchJson = <T>(path: string, body: unknown) => request<T>("PATCH", path, body);
+const patchJson = <T>(path: string, body: unknown) => request<T>("PATCH", path, body);
 
 /** DELETEs on the Worker and returns its JSON answer. */
-export const del = <T>(path: string) => request<T>("DELETE", path);
+const del = <T>(path: string) => request<T>("DELETE", path);
 
 /** PUTs a file, such as an image, to the Worker and returns its JSON answer. */
-export const putBlob = <T>(path: string, blob: Blob) =>
+const putBlob = <T>(path: string, blob: Blob) =>
   send<T>("PUT", path, { body: blob, contentType: blob.type });
 
 /**

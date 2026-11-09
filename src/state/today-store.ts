@@ -8,14 +8,8 @@ import {
   type RateRefusal,
   type Result,
 } from "@/core";
-import { del, getJson, postJson } from "@/lib/api";
-import type {
-  ItemDto,
-  RateResponse,
-  ReviewDto,
-  SectionDto,
-  TodayResponse,
-} from "../../worker/contract";
+import { api } from "@/lib/api";
+import type { ItemDto, ReviewDto, SectionDto } from "../../worker/contract";
 import { moveDayItem } from "./day-store";
 import {
   applyRating,
@@ -60,7 +54,7 @@ export function useTodayState(date: IsoDate): TodayState {
 export async function load(date: IsoDate): Promise<void> {
   setState({ status: "loading", date });
   try {
-    const data = await getJson<TodayResponse>(`/api/today?date=${date}`);
+    const data = await api().today(date);
     if (state.date === date) setState({ status: "ready", date, data });
   } catch {
     if (state.date === date) setState({ status: "failed", date });
@@ -76,7 +70,7 @@ export async function refreshToday(): Promise<void> {
   await Promise.all(pending.values());
   const date = state.date;
   try {
-    const data = await getJson<TodayResponse>(`/api/today?date=${date}`);
+    const data = await api().today(date);
     if (state.date === date) setState({ status: "ready", date, data });
   } catch {
     // The next load brings it up to date; nothing on screen is wrong in the meantime.
@@ -160,7 +154,8 @@ export function rateItem(
   updateData((d) => applyRating(d, item, review));
   moveDayItem(ratedCopy(item, review));
 
-  const saved = postJson<RateResponse>("/api/reviews", { itemId, date, confidence, pickedDate })
+  const saved = api()
+    .rate({ itemId, date, confidence, pickedDate })
     .then((response) => {
       updateData((d) => confirmReview(d, tempId, response.review));
       return response.review.id;
@@ -189,7 +184,7 @@ export async function undoRating(rating: LocalRating): Promise<boolean> {
   updateData((d) => revertRating(d, item, reviewId));
   moveDayItem(item);
   try {
-    await del(`/api/reviews/${reviewId}?date=${date}`);
+    await api().undo(reviewId, date);
     return true;
   } catch {
     updateData((d) => applyRating(d, item, review));

@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { addDays, weekOf, type IsoDate } from "@/core";
-import { getJson } from "@/lib/api";
-import type { DayResponse, ItemDto } from "../../worker/contract";
+import { api } from "@/lib/api";
+import type { ItemDto } from "../../worker/contract";
 import { withMovedItem, withoutDayItem, type DayData } from "./day-data";
 
 export type DayState =
@@ -85,7 +85,7 @@ async function ensure(date: IsoDate, today: IsoDate): Promise<void> {
   if (!current || current.status === "failed") set(key, LOADING);
   else set(key, { ...current, stale: false });
   try {
-    const data = await getJson<DayResponse>(`/api/days/${date}?today=${today}`);
+    const data = await api().day(date, today);
     set(key, { status: "ready", data, stale: false });
   } catch {
     if (cache.get(key)?.status !== "ready") set(key, { status: "failed" });

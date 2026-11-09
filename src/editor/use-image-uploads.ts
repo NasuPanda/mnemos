@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ApiError, putBlob } from "@/lib/api";
-import type { UploadImageResponse } from "../../worker/contract";
+import { api, ApiError } from "@/lib/api";
 import type { EditorImage, ImageSide } from "./form";
 import { prepareImage } from "./image-prep";
 import { hasKey, roomFor, updateImage } from "./images";
@@ -45,13 +44,15 @@ export function useImageUploads(setImages: SetImages, currentImages: () => Edito
     const file = prepared.current.get(id);
     if (!file) return;
     setImages((images) => updateImage(images, id, { status: "uploading" }));
-    putBlob<UploadImageResponse>(`/api/images/${file.key}`, file.blob).then(
-      () => setImages((images) => updateImage(images, id, { status: "stored" })),
-      (error: unknown) => {
-        setImages((images) => updateImage(images, id, { status: "failed" }));
-        if (error instanceof ApiError && error.code === "images-limit") say(side, MESSAGES.limit);
-      },
-    );
+    api()
+      .uploadImage(file.key, file.blob)
+      .then(
+        () => setImages((images) => updateImage(images, id, { status: "stored" })),
+        (error: unknown) => {
+          setImages((images) => updateImage(images, id, { status: "failed" }));
+          if (error instanceof ApiError && error.code === "images-limit") say(side, MESSAGES.limit);
+        },
+      );
   };
 
   /** Adds images to the end of a side, as many as fit. */
