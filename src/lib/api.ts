@@ -1,4 +1,4 @@
-import type { IsoDate } from "@/core";
+import type { IsoDate } from "../core";
 import type {
   AddStopRequest,
   CreateItemRequest,
@@ -72,6 +72,17 @@ export class ApiError extends Error {
 }
 
 const RELOAD_KEY = "mnemos:session-reload";
+/**
+ * The page's storage and location, typed here rather than through the DOM library, so the
+ * Worker's tests can load this file (they run the API contract through httpApi).
+ */
+const page = globalThis as unknown as {
+  sessionStorage: {
+    getItem(key: string): string | null;
+    setItem(key: string, value: string): void;
+  };
+  location: { reload(): void };
+};
 const RELOAD_GUARD_MS = 10_000;
 
 /** GETs JSON from the Worker. */
@@ -121,11 +132,12 @@ async function send<T>(
     body,
   });
 
-  if (res.type === "opaqueredirect") {
-    const last = Number(sessionStorage.getItem(RELOAD_KEY) ?? 0);
+  // Workers' Response type doesn't list "opaqueredirect"; browsers return it for redirect: "manual".
+  if ((res.type as string) === "opaqueredirect") {
+    const last = Number(page.sessionStorage.getItem(RELOAD_KEY) ?? 0);
     if (Date.now() - last > RELOAD_GUARD_MS) {
-      sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
-      window.location.reload();
+      page.sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+      page.location.reload();
       return new Promise<never>(() => {});
     }
     throw new ApiError(401);
