@@ -1,6 +1,9 @@
 import { isIsoDate, type IsoDate } from "@/core";
 
-/** The app's screens, from the URL path. */
+/** Where the first-run tutorial's practice day lives: the app's paths, under this one. */
+export const PRACTICE_BASE = "/tutorial";
+
+/** The app's screens, from the URL path (without the practice day's base). */
 export type Route =
   | { screen: "today" }
   | { screen: "flash" }

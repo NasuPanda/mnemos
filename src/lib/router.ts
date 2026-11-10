@@ -1,17 +1,51 @@
 import { useEffect, useEffectEvent, useMemo, useSyncExternalStore } from "react";
+import { PRACTICE_BASE } from "./routes";
 
 // A small router on the History API: the app has a handful of screens, and Back works on phones.
+// The first-run tutorial's practice day mirrors the app's paths under one base, /tutorial: while
+// the address is under it, paths given to the router get it added, and useLocation reports them
+// without it, so every screen works the same in both.
+
+/** Where the app's paths start: "" in the app, "/tutorial" in the practice day. */
+export type Base = "" | typeof PRACTICE_BASE;
+
+/** The base `pathname` is under. */
+export function baseOf(pathname: string): Base {
+  return pathname === PRACTICE_BASE || pathname.startsWith(`${PRACTICE_BASE}/`)
+    ? PRACTICE_BASE
+    : "";
+}
+
+/** `to` (an app path with an optional ?query or #hash) under `base`: "/" is the base itself. */
+export function withBase(to: string, base: Base): string {
+  if (!base) return to;
+  return /^\/(?:[?#]|$)/.test(to) ? `${base}${to.slice(1)}` : `${base}${to}`;
+}
+
+/** The app path of `pathname` under `base`: the base itself is "/". */
+export function stripBase(pathname: string, base: Base): string {
+  if (!base) return pathname;
+  return pathname.slice(base.length) || "/";
+}
 
 const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((listener) => listener());
 
 if (typeof window !== "undefined") window.addEventListener("popstate", notify);
 
+type NavigateOptions = {
+  /** Swap the current history entry instead of adding one. */
+  replace?: boolean;
+  /** Cross into or out of the practice day; by default `to` stays under the current base. */
+  base?: Base;
+};
+
 /**
- * Goes to `to` (a path with an optional ?query), adding a history entry unless `replace`. Each
- * entry remembers the screen it was opened from, so `leave` can go back the same way.
+ * Goes to `to` (an app path with an optional ?query), adding a history entry unless `replace`.
+ * Each entry remembers the screen it was opened from, so `leave` can go back the same way.
  */
-export function navigate(to: string, options: { replace?: boolean } = {}): void {
+export function navigate(path: string, options: NavigateOptions = {}): void {
+  const to = withBase(path, options.base ?? currentBase());
   if (to === currentUrl()) return;
   if (guarded && window.history.state?.guard) {
     // A Back guard's entry gives way to the new screen, so Back from there skips it.
@@ -30,8 +64,8 @@ let leaveCheck: ((proceed: () => void) => void) | null = null;
  * changes?"), and `proceed` goes on if the person says yes. Links, the T, I, , and N keys and
  * the command menu leave this way.
  */
-export function navigateAsking(to: string, options: { replace?: boolean } = {}): void {
-  if (to === currentUrl()) return;
+export function navigateAsking(to: string, options: NavigateOptions = {}): void {
+  if (withBase(to, options.base ?? currentBase()) === currentUrl()) return;
   if (leaveCheck) leaveCheck(() => navigate(to, options));
   else navigate(to, options);
 }
@@ -100,12 +134,16 @@ function armGuard() {
   guarded = true;
 }
 
-/** The current path and query, re-rendering when they change. */
-export function useLocation(): { path: string; query: URLSearchParams } {
+/**
+ * The current app path (without the base) and query, and the base it is under, re-rendering when
+ * they change.
+ */
+export function useLocation(): { path: string; query: URLSearchParams; base: Base } {
   const url = useSyncExternalStore(subscribe, currentUrl, () => "/");
   return useMemo(() => {
     const parsed = new URL(url, "http://mnemos.local");
-    return { path: parsed.pathname, query: parsed.searchParams };
+    const base = baseOf(parsed.pathname);
+    return { path: stripBase(parsed.pathname, base), query: parsed.searchParams, base };
   }, [url]);
 }
 
@@ -135,4 +173,9 @@ function subscribe(listener: () => void) {
 
 function currentUrl(): string {
   return `${window.location.pathname}${window.location.search}`;
+}
+
+/** The base the address is under now. */
+export function currentBase(): Base {
+  return baseOf(window.location.pathname);
 }
