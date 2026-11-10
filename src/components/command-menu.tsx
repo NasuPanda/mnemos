@@ -1,5 +1,6 @@
 import { Command as CommandPrimitive } from "cmdk";
 import {
+  FlaskConical,
   House,
   Keyboard,
   List,
@@ -26,11 +27,18 @@ import { Kbd } from "@/components/ui/kbd";
 import { openLayer } from "@/lib/layers";
 import { navigateAsking, useLocation } from "@/lib/router";
 import { useToday } from "@/lib/today";
-import { commands } from "@/state/commands";
+import { commands, type OtherCommand } from "@/state/commands";
 import { useItemsState } from "@/state/items-store";
 import { closeOverlay, openOverlay, useOverlay } from "@/state/overlay";
 import { todayView } from "@/state/today-data";
 import { useTodayState } from "@/state/today-store";
+import { replayTutorial } from "@/state/tutorial";
+
+const OTHER_ICONS: Record<OtherCommand["id"], LucideIcon> = {
+  shortcuts: Keyboard,
+  "replay-tutorial": FlaskConical,
+  "sign-out": LogOut,
+};
 
 const PLACE_ICONS: Record<string, LucideIcon> = {
   review: House,
@@ -101,9 +109,12 @@ function MenuBody() {
     closeOverlay();
     navigateAsking(to);
   };
-  const other = (id: "shortcuts" | "sign-out") => {
+  const other = (id: OtherCommand["id"]) => {
     if (id === "shortcuts") openOverlay("shortcuts");
-    else window.location.assign("/cdn-cgi/access/logout");
+    else if (id === "replay-tutorial") {
+      closeOverlay();
+      replayTutorial();
+    } else window.location.assign("/cdn-cgi/access/logout");
   };
 
   return (
@@ -183,7 +194,7 @@ function MenuBody() {
               <Row
                 key={command.id}
                 value={command.id}
-                icon={command.id === "shortcuts" ? Keyboard : LogOut}
+                icon={OTHER_ICONS[command.id]}
                 hint={command.hint}
                 onSelect={() => other(command.id)}
               >
