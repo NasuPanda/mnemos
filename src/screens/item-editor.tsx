@@ -31,7 +31,7 @@ import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { ApiError } from "@/lib/api";
 import { count, shortDate } from "@/lib/format";
 import { modKey } from "@/lib/keys";
-import { openLayer } from "@/lib/layers";
+import { openLayer, openTourCard } from "@/lib/layers";
 import { leave, useBackGuard, useLeaveCheck, useLocation } from "@/lib/router";
 import { useToday } from "@/lib/today";
 import {
@@ -303,7 +303,7 @@ function Editor({
   /** Ctrl/⌘+Enter saves from anywhere, before a picker or list can take the Enter. */
   const onSaveKey = useEffectEvent((event: KeyboardEvent) => {
     if (event.isComposing || event.key !== "Enter" || !(event.ctrlKey || event.metaKey)) return;
-    if (asking !== null) return;
+    if (asking !== null || openTourCard()) return;
     event.preventDefault();
     event.stopPropagation();
     save();

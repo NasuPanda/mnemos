@@ -20,6 +20,11 @@ export function openLayer(): boolean {
   return !!document.querySelector(inState("open"));
 }
 
+/** Whether the first-run tutorial's Explain card is open: it is modal, so even Ctrl+Enter waits. */
+export function openTourCard(): boolean {
+  return !!document.querySelector(inState("open", ["tour-card"]));
+}
+
 /** Whether one of the app's own popovers, menus, sheets or dialogs is open: the tour waits. */
 export function openAppLayer(): boolean {
   return !!document.querySelector(inState("open", APP_LAYERS));
