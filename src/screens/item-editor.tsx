@@ -31,7 +31,7 @@ import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
 import { ApiError } from "@/lib/api";
 import { count, shortDate } from "@/lib/format";
 import { modKey } from "@/lib/keys";
-import { openLayer } from "@/lib/layers";
+import { openLayer, openTourCard } from "@/lib/layers";
 import { leave, useBackGuard, useLeaveCheck, useLocation } from "@/lib/router";
 import { useToday } from "@/lib/today";
 import {
@@ -303,7 +303,7 @@ function Editor({
   /** Ctrl/⌘+Enter saves from anywhere, before a picker or list can take the Enter. */
   const onSaveKey = useEffectEvent((event: KeyboardEvent) => {
     if (event.isComposing || event.key !== "Enter" || !(event.ctrlKey || event.metaKey)) return;
-    if (asking !== null) return;
+    if (asking !== null || openTourCard()) return;
     event.preventDefault();
     event.stopPropagation();
     save();
@@ -421,6 +421,7 @@ function Editor({
               <Kbd>Esc</Kbd>
             </Button>
             <Button
+              data-tour="editor-save-top"
               className="h-12 gap-2.5 rounded-full px-6 text-item font-bold"
               onClick={save}
               disabled={saving}
@@ -447,6 +448,7 @@ function Editor({
         <div className="grid gap-x-5 gap-y-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <EditorField
             label="Name"
+            tour="editor-name"
             htmlFor={ids.name}
             required
             help={nameHelp}
@@ -470,6 +472,7 @@ function Editor({
             htmlFor={ids.sectionId}
             required
             help="Pick one, or type a new name to create it."
+            tour="editor-section"
             error={problems.sectionId}
           >
             <SectionPicker
@@ -510,7 +513,10 @@ function Editor({
           </EditorField>
         </div>
 
-        <div className="mt-8 grid items-start gap-x-5 gap-y-8 desk:grid-cols-2">
+        <div
+          data-tour="editor-sides"
+          className="mt-8 grid items-start gap-x-5 gap-y-8 desk:grid-cols-2"
+        >
           <Side side="problem" title="Problem side" note="Shown first in review.">
             <MarkdownField
               id={ids.problemText}
@@ -594,6 +600,7 @@ function Editor({
         <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
           <Button
             type="submit"
+            data-tour="editor-save-bottom"
             disabled={saving}
             className="h-14 w-full gap-2.5 rounded-full text-item font-bold"
           >

@@ -233,7 +233,8 @@ Direction B, "Danube at dusk". The design draft ("Mnemos visual directions", rou
 - `kbd-primary` and its foreground, for the key hint inside the yellow button;
 - `zsolnay-ground`, `zsolnay-tile` and `zsolnay-tile-alt`, for the Settings band;
 - the door animations of the flash review start, 150 ms;
-- the focus ring's colour at rest, so it never fades in from the text colour.
+- the focus ring's colour at rest, so it never fades in from the text colour;
+- `tour-backdrop`, `tour-backdrop-closing` and `tour-halo`, and the tour card's `text-tour-title`, `text-tour-body` and `text-tour-count`, for the first-run tutorial (issue #29).
 
 - **Dark mode only for now:** the tokens use shadcn/ui's semantic names, so a light theme later is one more block of values.
 - **Budapest, strong where you rest, quiet where you work:**

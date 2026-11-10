@@ -1,14 +1,16 @@
 /** What a popover, menu, sheet or dialog renders its content in. */
-const LAYERS = [
+const APP_LAYERS = [
   "popover-content",
   "dropdown-menu-content",
   "drawer-content",
   "alert-dialog-content",
   "dialog-content",
-].map((slot) => `[data-slot="${slot}"]`);
+];
+/** The first-run tutorial's Explain card is modal too: the app's keys wait while it is open. */
+const LAYERS = [...APP_LAYERS, "tour-card"];
 
-const inState = (state: "open" | "closed") =>
-  LAYERS.map((layer) => `${layer}[data-state="${state}"]`).join(", ");
+const inState = (state: "open" | "closed", slots = LAYERS) =>
+  slots.map((slot) => `[data-slot="${slot}"][data-state="${state}"]`).join(", ");
 
 /**
  * Whether a popover, menu, sheet or dialog is open; it has the keys until it closes. One that is
@@ -16,6 +18,16 @@ const inState = (state: "open" | "closed") =>
  */
 export function openLayer(): boolean {
   return !!document.querySelector(inState("open"));
+}
+
+/** Whether the first-run tutorial's Explain card is open: it is modal, so even Ctrl+Enter waits. */
+export function openTourCard(): boolean {
+  return !!document.querySelector(inState("open", ["tour-card"]));
+}
+
+/** Whether one of the app's own popovers, menus, sheets or dialogs is open: the tour waits. */
+export function openAppLayer(): boolean {
+  return !!document.querySelector(inState("open", APP_LAYERS));
 }
 
 /**

@@ -51,6 +51,7 @@ import { openHistory } from "@/state/history-panel";
 import { usePanelOpen } from "@/state/overlay";
 import type { TodayData } from "@/state/today-data";
 import { rateItem, useTodayState } from "@/state/today-store";
+import { tourSignal, useRevealRequest } from "@/state/tutorial";
 import type { ImageDto, ItemDto } from "../../worker/contract";
 
 /**
@@ -114,6 +115,12 @@ function ReviewRun({
       : parked.session;
   });
   useEffect(() => clearParkedRun(), []);
+  // The first-run tutorial's reveal step moves on once the answer shows; a tap on its card or
+  // on the dimmed area shows it too.
+  useEffect(() => {
+    if (session.revealed) tourSignal({ type: "revealed" });
+  }, [session.revealed]);
+  useRevealRequest(!session.revealed, () => setSession(reveal));
   // Code that names its language gets highlighted: fetch the highlighter before it's reached.
   useEffect(() => {
     const fields = [...items.values()].flatMap((i) => [i.problemText, i.answerText, i.sideNote]);
@@ -290,7 +297,10 @@ function ReviewRun({
         className={cn("flex-1", !session.revealed && "cursor-pointer")}
         aria-live="polite"
       >
-        <article className="mx-auto flex max-w-[760px] flex-col gap-5 px-4 py-6 lg:py-8">
+        <article
+          data-tour="review-problem"
+          className="mx-auto flex max-w-[760px] flex-col gap-5 px-4 py-6 lg:py-8"
+        >
           {/* One page heading for screen readers; the name is the heading under it. */}
           <h1 className="sr-only">Review</h1>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -317,7 +327,7 @@ function ReviewRun({
         </article>
       </main>
 
-      <div className="sticky bottom-0 z-10">
+      <div className="sticky bottom-0 z-10" data-tour="review-controls">
         {session.revealed ? (
           <RatingDock
             options={options}

@@ -258,7 +258,7 @@ function ItemsList({
         asChild
         className="fixed inset-x-4 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-20 h-14 gap-2.5 rounded-full text-item font-bold shadow-cta sm:inset-x-auto sm:left-1/2 sm:w-[min(760px,calc(100%-3rem))] sm:-translate-x-1/2 lg:hidden"
       >
-        <Link to={newItem}>
+        <Link to={newItem} data-tour="items-new-item">
           <Plus aria-hidden className="size-5" />
           New item
         </Link>

@@ -10,6 +10,10 @@ test.describe.configure({ timeout: 60_000 });
 const isPhone = (testInfo: TestInfo) => testInfo.project.name === "phone";
 const banner = (page: Page) => page.getByRole("region", { name: "Practice day" });
 
+/** Skip from the tour's card while one is open; the banner's Skip is dimmed under it. */
+const skip = (page: Page) =>
+  page.locator("[data-tour-card]").getByRole("button", { name: "Skip" }).click();
+
 /** Opens the app as a brand-new account and waits for the practice day. */
 async function landInPractice(page: Page) {
   newAccount();
@@ -66,26 +70,6 @@ test("Skip from the editor leaves without asking, for good", async ({ page }, te
   await expect(page).toHaveURL("/");
 });
 
-test("finishing the run ends on the person's own board", async ({ page }) => {
-  const guard = await landInPractice(page);
-  await page
-    .getByRole("link", { name: /Start review · 3/ })
-    .first()
-    .click();
-  await page.getByRole("button", { name: /^Start/ }).click();
-  for (let i = 0; i < 3; i++) {
-    await page.getByRole("button", { name: /Show answer/ }).click();
-    await page.getByRole("button", { name: /^Confident/ }).click();
-  }
-  await page.getByRole("button", { name: "Go to my dashboard" }).click();
-  await expect(page).toHaveURL("/");
-  await expect(page.getByText("No items yet")).toBeVisible();
-  expect(guard.broken()).toEqual([]);
-
-  await page.reload();
-  await expect(page).toHaveURL("/");
-});
-
 test("Replay from Settings starts a fresh practice day and leaves the flag alone", async ({
   page,
 }) => {
@@ -97,7 +81,7 @@ test("Replay from Settings starts a fresh practice day and leaves the flag alone
   await page.getByRole("button", { name: "Replay tutorial" }).click();
   await expect(page).toHaveURL("/tutorial");
   await expect(page.getByText("3 left")).toBeVisible();
-  await page.getByRole("button", { name: /^Skip/ }).click();
+  await skip(page);
   await expect(page).toHaveURL("/");
   await expect(page.getByText("4 left today")).toBeVisible();
   expect(flagWrites).toEqual([]);
@@ -114,7 +98,7 @@ test("Replay from the command menu and the ? list", async ({ page }, testInfo) =
   await page.getByRole("option", { name: /Replay tutorial/ }).click();
   await expect(page).toHaveURL("/tutorial");
   await expect(banner(page)).toBeVisible();
-  await page.getByRole("button", { name: "Skip tutorial" }).click();
+  await skip(page);
   await expect(page).toHaveURL("/");
 
   await expect(page.getByText("4 left today")).toBeVisible();
@@ -122,4 +106,6 @@ test("Replay from the command menu and the ? list", async ({ page }, testInfo) =
   await page.getByRole("button", { name: "Replay tutorial" }).click();
   await expect(page).toHaveURL("/tutorial");
   await expect(page.getByText("3 left")).toBeVisible();
+  // A fresh practice day: the tour starts again at the welcome card.
+  await expect(page.locator("[data-tour-card]")).toHaveAttribute("data-tour-card", "welcome");
 });

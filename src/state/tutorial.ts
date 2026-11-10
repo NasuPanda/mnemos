@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useEffectEvent, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import type { ItemForm } from "@/editor/form";
 import { DESKTOP } from "@/hooks/use-media-query";
@@ -7,6 +7,7 @@ import { currentBase, navigate, navigateAsking, stripBase, type Base } from "@/l
 import { PRACTICE_BASE } from "@/lib/routes";
 import { localToday, pinToday } from "@/lib/today";
 import type { PracticeSession } from "@/tutorial/session";
+import type { TourEvent } from "@/tutorial/tour";
 import { switchApi } from "./source";
 
 // The first-run tutorial's way in and out (design plan, First-run tutorial): the gate that sends
@@ -99,7 +100,10 @@ async function openPractice() {
       import("@/tutorial/practice-layer"),
     ]);
     if (mode !== "opening" || currentBase() !== PRACTICE_BASE) return;
-    session = openSession(window.sessionStorage, localToday(), { fresh });
+    session = openSession(window.sessionStorage, localToday(), {
+      fresh,
+      onEvent: (event) => tourSignal({ type: event }),
+    });
     fresh = false;
     pinToday(session.startedOn);
     switchApi(session.api);
@@ -169,4 +173,78 @@ export function replayTutorial(): void {
 /** The new item the practice editor opens with, or null outside the practice day. */
 export function practiceDraft(): ItemForm | null {
   return mode === "practice" ? (session?.draft() ?? null) : null;
+}
+
+// What moves the tour on (src/tutorial/tour.ts): the practice day's saves and ratings, and the
+// review screen's reveal. Outside the practice day nobody listens, so these do nothing.
+
+const tourListeners = new Set<(event: TourEvent) => void>();
+
+/** Tells the tour what the person just did. */
+export function tourSignal(event: TourEvent): void {
+  tourListeners.forEach((listener) => listener(event));
+}
+
+/** Listens for what the person does, for the tour; returns the way to stop. */
+export function onTourSignal(listener: (event: TourEvent) => void): () => void {
+  tourListeners.add(listener);
+  return () => tourListeners.delete(listener);
+}
+
+let revealer: (() => void) | null = null;
+
+/**
+ * While `active`, `reveal` shows the review's answer when the tour asks: on the reveal step, a
+ * tap anywhere shows it, the card and the dimmed area included.
+ */
+export function useRevealRequest(active: boolean, reveal: () => void): void {
+  const onReveal = useEffectEvent(reveal);
+  useEffect(() => {
+    if (!active) return;
+    const handler = () => onReveal();
+    revealer = handler;
+    return () => {
+      if (revealer === handler) revealer = null;
+    };
+  }, [active]);
+}
+
+/** Shows the review's answer, if a review is waiting for it. */
+export function requestReveal(): void {
+  revealer?.();
+}
+
+/** The tour's step in the open practice day; 0 outside it. */
+export function tourStep(): number {
+  return session?.step ?? 0;
+}
+
+/** Keeps the tour's step with the practice day, for a reload. */
+export function setTourStep(step: number): void {
+  session?.setStep(step);
+}
+
+// Where the practice banner goes: on screens with the sidebar, at the top of the content column,
+// so the sidebar keeps the full height; elsewhere above the screen.
+
+let bannerSlot: HTMLElement | null = null;
+const slotListeners = new Set<() => void>();
+
+/** The ref of the app shell's content column top; null when it unmounts. */
+export function bannerSlotRef(element: HTMLElement | null): void {
+  if (bannerSlot === element) return;
+  bannerSlot = element;
+  slotListeners.forEach((listener) => listener());
+}
+
+/** The element the practice banner renders in, or null for above the screen. */
+export function useBannerSlot(): HTMLElement | null {
+  return useSyncExternalStore(
+    (listener) => {
+      slotListeners.add(listener);
+      return () => slotListeners.delete(listener);
+    },
+    () => bannerSlot,
+    () => null,
+  );
 }

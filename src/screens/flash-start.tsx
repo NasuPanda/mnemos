@@ -110,7 +110,11 @@ export function FlashStartScreen() {
       </main>
 
       <div className="sticky bottom-0 mx-auto w-full max-w-md px-4 pt-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-        <Button className="h-14 w-full gap-3 rounded-full text-item font-bold" onClick={start}>
+        <Button
+          data-tour="flash-start"
+          className="h-14 w-full gap-3 rounded-full text-item font-bold"
+          onClick={start}
+        >
           <Play aria-hidden className="size-5" />
           Start
           <Kbd>Enter</Kbd>

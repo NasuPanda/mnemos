@@ -7,6 +7,7 @@ import { SectionBadge } from "@/components/section-badge";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { Link } from "@/components/link";
 import { navigateAsking, useLocation } from "@/lib/router";
+import { bannerSlotRef } from "@/state/tutorial";
 import { newItemPath } from "@/lib/routes";
 import { usePanelOpen } from "@/state/overlay";
 import type { SectionDto } from "../../worker/contract";
@@ -96,7 +97,7 @@ export function AppShell({
           variant="secondary"
           className="mt-auto h-12 shrink-0 justify-start gap-3 rounded-lg px-4 text-item font-bold"
         >
-          <Link to={newItemPath()}>
+          <Link to={newItemPath()} data-tour="sidebar-new-item">
             <Plus aria-hidden className="size-5" />
             <span className="flex-1">New item</span>
             <Kbd>N</Kbd>
@@ -107,6 +108,8 @@ export function AppShell({
       <div
         className={cn("min-w-0 lg:pb-0", tabBar && "pb-[calc(4.5rem+env(safe-area-inset-bottom))]")}
       >
+        {/* The first-run tutorial's practice banner, when it is on. */}
+        <div ref={bannerSlotRef} />
         {children}
       </div>
 
@@ -122,6 +125,7 @@ export function AppShell({
                 key={item.to}
                 to={item.to}
                 aria-current={active ? "page" : undefined}
+                data-tour={`tab-${item.label.toLowerCase()}`}
                 className={cn(
                   "flex h-[4.5rem] flex-col items-center justify-center gap-1 text-label",
                   active ? "text-foreground" : "text-muted-foreground",

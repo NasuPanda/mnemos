@@ -88,4 +88,34 @@ describe("the practice session", () => {
     // Also after a reload.
     expect(openSession(storage, TODAY).draft()).toBeNull();
   });
+
+  it("keeps the tour's step, so a reload comes back to it", () => {
+    const storage = memoryStorage();
+    const first = openSession(storage, TODAY);
+    expect(first.step).toBe(0);
+    first.setStep(5);
+    expect(openSession(storage, TODAY).step).toBe(5);
+    expect(openSession(storage, TODAY, { fresh: true }).step).toBe(0);
+  });
+
+  it("tells the tour when an item is saved and when one is rated", async () => {
+    const events: string[] = [];
+    const session = openSession(memoryStorage(), TODAY, { onEvent: (e) => events.push(e) });
+    const today = await session.api.today(TODAY);
+    const villamos = today.items.find((item) => item.name === "villamos")!;
+    await session.api.rate({ itemId: villamos.id, confidence: "neutral", date: TODAY });
+    await session.api.createItem({
+      sectionId: 1,
+      name: "Szia",
+      description: null,
+      problemUrl: null,
+      problemText: "Hello?",
+      answerUrl: null,
+      answerText: null,
+      sideNote: null,
+      images: [],
+      date: TODAY,
+    });
+    expect(events).toEqual(["rated", "created"]);
+  });
 });

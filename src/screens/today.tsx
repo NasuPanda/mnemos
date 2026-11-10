@@ -149,7 +149,9 @@ function Board({
       <header className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 lg:gap-x-6">
         <Heading day={day} today={today} />
         <div className="col-start-2 row-start-1 flex items-center gap-3 lg:row-span-2 lg:self-center">
-          {action && <MainAction {...action} className="hidden lg:inline-flex" />}
+          {action && (
+            <MainAction {...action} tour="start-review-top" className="hidden lg:inline-flex" />
+          )}
           <span className="flex items-center gap-3 lg:hidden">
             {day !== today && (
               <Button
@@ -181,6 +183,7 @@ function Board({
       {action && (
         <MainAction
           {...action}
+          tour="start-review-floating"
           className="fixed inset-x-4 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-20 h-14 shadow-cta sm:inset-x-auto sm:left-1/2 sm:w-[min(760px,calc(100%-3rem))] sm:-translate-x-1/2 lg:hidden"
         />
       )}
@@ -209,14 +212,21 @@ function Heading({ day, today }: { day: IsoDate; today: IsoDate }) {
 function MainAction({
   href,
   label,
+  tour,
   className,
 }: {
   href: string;
   label: string;
+  /** What the first-run tutorial's tour calls it. */
+  tour?: string;
   className?: string;
 }) {
   return (
-    <Button asChild className={cn("h-12 gap-2.5 rounded-full px-6 text-item font-bold", className)}>
+    <Button
+      asChild
+      data-tour={tour}
+      className={cn("h-12 gap-2.5 rounded-full px-6 text-item font-bold", className)}
+    >
       <Link to={href}>
         <Play aria-hidden className="size-5" />
         {label}
@@ -545,7 +555,11 @@ function AllDone({ data, view, day, today, strip }: Frame & { data: TodayData; v
         </div>
         {weekStrip("mt-6")}
       </div>
-      <section aria-labelledby="all-done" className="flex flex-col items-center text-center">
+      <section
+        aria-labelledby="all-done"
+        data-tour="all-done"
+        className="flex flex-col items-center text-center"
+      >
         {/* Phone: full width at the top, the bottom fading into the page. From 640 px: centred,
             every edge fading. The words start below the lit part. */}
         <div className="relative -mx-4 w-[calc(100%+2rem)] sm:mx-0 sm:w-full sm:max-w-[760px] lg:max-w-[840px]">
@@ -568,7 +582,12 @@ function AllDone({ data, view, day, today, strip }: Frame & { data: TodayData; v
           {longDate(day)} · today
         </h1>
         {weekStrip("mt-3 w-full -mx-1 lg:hidden")}
-        <h2 id="all-done" lang="hu" className="mt-6 text-display lg:-mt-10">
+        <h2
+          id="all-done"
+          lang="hu"
+          data-tour="all-done-heading"
+          className="mt-6 text-display lg:-mt-10"
+        >
           Végállomás
         </h2>
         <p className="text-body text-muted-foreground">End of the line</p>

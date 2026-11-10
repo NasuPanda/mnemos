@@ -1,23 +1,20 @@
 import { FlaskConical } from "lucide-react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { DESKTOP, useMediaQuery } from "@/hooks/use-media-query";
-import { useLocation } from "@/lib/router";
-import { useToday } from "@/lib/today";
-import { todayView } from "@/state/today-data";
-import { useTodayState } from "@/state/today-store";
-import { leaveTutorial } from "@/state/tutorial";
+import { leaveTutorial, useBannerSlot } from "@/state/tutorial";
+import { Tour } from "./tour-view";
 
 /**
- * The practice banner, above every practice screen's own header (design plan, First-run
- * tutorial): a River bar with a hairline below and a flask icon, never yellow, since it is
- * information. Skip leaves for the person's own board. Once the run is done, All done offers
- * Go to my dashboard here instead, until the tour's closing card takes its place (issue #29).
+ * The practice day above its screens (design plan, First-run tutorial): the practice banner, a
+ * River bar with a hairline below and a flask icon, never yellow, since it is information; Skip
+ * leaves for the person's own board. And the tour, whose cards walk through the day.
  */
 export default function PracticeLayer() {
   const desktop = useMediaQuery(DESKTOP);
-  const done = useRunDone();
+  const slot = useBannerSlot();
 
-  return (
+  const banner = (
     <div
       role="region"
       aria-label="Practice day"
@@ -30,32 +27,19 @@ export default function PracticeLayer() {
           ? " · sample lines and items. Nothing here is saved, and you can leave any time."
           : " · nothing here is saved"}
       </p>
-      {done ? (
-        <Button
-          variant="secondary"
-          className="h-12 shrink-0 px-4 text-small font-bold"
-          onClick={() => leaveTutorial("finish")}
-        >
-          Go to my dashboard
-        </Button>
-      ) : (
-        <Button
-          variant="ghost"
-          className="h-12 shrink-0 px-4 text-small font-bold"
-          onClick={() => leaveTutorial("skip")}
-        >
-          {desktop ? "Skip tutorial" : "Skip"}
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        className="h-12 shrink-0 px-4 text-small font-bold"
+        onClick={() => leaveTutorial("skip")}
+      >
+        {desktop ? "Skip tutorial" : "Skip"}
+      </Button>
     </div>
   );
-}
-
-/** Whether the practice dashboard shows All done: today's run has nothing left. */
-function useRunDone(): boolean {
-  const { path, query } = useLocation();
-  const today = useToday();
-  const state = useTodayState(today);
-  if (path !== "/" || (query.get("day") ?? today) !== today) return false;
-  return state.status === "ready" && todayView(state.data).counts.left === 0;
+  return (
+    <>
+      {slot ? createPortal(banner, slot) : banner}
+      <Tour />
+    </>
+  );
 }
