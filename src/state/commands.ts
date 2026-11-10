@@ -6,7 +6,7 @@ export type Place = { id: string; label: string; hint: string; to: string; keywo
 export type LineCommand = { section: SectionDto; left: number; to: string };
 export type ItemCommand = { item: ItemSummaryDto; section: SectionDto | undefined; to: string };
 export type OtherCommand = {
-  id: "shortcuts" | "sign-out";
+  id: "shortcuts" | "replay-tutorial" | "sign-out";
   label: string;
   hint?: string;
   keywords: string;
@@ -25,7 +25,7 @@ export const ITEM_RESULTS = 8;
 /**
  * What the command menu offers for a search: the places, a review of each line with items left
  * today, items whose name has every word of the search (ignoring case and accents), and the
- * shortcuts list and Sign out. An empty search lists everything but items.
+ * shortcuts list, Replay tutorial and Sign out. An empty search lists everything but items.
  */
 export function commands({
   query,
@@ -69,6 +69,7 @@ export function commands({
   ];
   const other: OtherCommand[] = [
     { id: "shortcuts", label: "Keyboard shortcuts", hint: "?", keywords: "keys help" },
+    { id: "replay-tutorial", label: "Replay tutorial", keywords: "tutorial tour help practice" },
     { id: "sign-out", label: "Sign out", keywords: "log out logout account" },
   ];
 

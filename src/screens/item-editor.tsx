@@ -57,6 +57,7 @@ import { todayView, type TodayData } from "@/state/today-data";
 import { openHistory } from "@/state/history-panel";
 import { usePanelOpen } from "@/state/overlay";
 import { useTodayState } from "@/state/today-store";
+import { practiceDraft } from "@/state/tutorial";
 import type { ItemDto, ItemErrorResponse } from "../../worker/contract";
 
 type Loaded =
@@ -150,8 +151,9 @@ function Editor({
 }) {
   const desktop = useMediaQuery(DESKTOP);
   const items = useItemsState(date);
+  // In the practice day, a new item opens prefilled (design plan, First-run tutorial).
   const [initial] = useState<ItemForm>(() =>
-    item ? formFromItem(item) : emptyForm(startSection ?? null),
+    item ? formFromItem(item) : (practiceDraft() ?? emptyForm(startSection ?? null)),
   );
   const [form, setForm] = useState<ItemForm>(initial);
   const [checked, setChecked] = useState(false);

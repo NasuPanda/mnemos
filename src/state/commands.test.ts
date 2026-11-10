@@ -38,7 +38,7 @@ describe("the command menu", () => {
     ]);
     expect(result.lines.map((l) => l.section.code)).toEqual(["GRA"]);
     expect(result.items).toEqual([]);
-    expect(result.other.map((o) => o.id)).toEqual(["shortcuts", "sign-out"]);
+    expect(result.other.map((o) => o.id)).toEqual(["shortcuts", "replay-tutorial", "sign-out"]);
   });
 
   it("offers Flash review only while something is left today", () => {
@@ -72,6 +72,12 @@ describe("the command menu", () => {
     expect(run("menetrend").places.map((p) => p.id)).toEqual(["settings"]);
     expect(run("logout").other.map((o) => o.id)).toEqual(["sign-out"]);
     expect(run("keys").other.map((o) => o.id)).toEqual(["shortcuts"]);
+    for (const name of ["tutorial", "tour", "help"]) {
+      expect(
+        run(name).other.map((o) => o.id),
+        name,
+      ).toContain("replay-tutorial");
+    }
   });
 
   it("finds nothing among items while the list loads", () => {

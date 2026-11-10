@@ -4,6 +4,8 @@
 //   npm run db:seed:e2e                   the end-to-end set, in the e2e state folder
 //   npm run db:seed:remote -- --email=me  your production account (asks you to confirm)
 //   node scripts/seed.ts --wipe [--remote --email=me]   delete the sample data only
+//   node scripts/seed.ts --new [--persist-to=…]          locally, a brand-new account: no data,
+//                                                        and the first-run tutorial not done yet
 //
 // Production asks you to type "seed production" (or "wipe production"). Where there is no
 // keyboard, such as Claude Code's "!" commands, pass it instead: --confirm="seed production".
@@ -29,12 +31,14 @@ const args = new Map(
   }),
 );
 const remote = args.has("remote");
-const wipe = args.has("wipe");
+const newAccount = args.has("new");
+const wipe = args.has("wipe") || newAccount;
 const profileName = args.get("profile") ?? "dev";
 const persistTo = args.get("persist-to");
 
 const email = (args.get("email") ?? (remote ? undefined : devUserEmail()))?.trim().toLowerCase();
 if (!email) fail("Pass --email=you@example.com: the account to seed must be named for production.");
+if (newAccount && remote) fail("--new is for local data only.");
 
 const today = localToday();
 const profile: Profile = profileName === "e2e" ? e2eProfile() : devProfile();
@@ -42,7 +46,10 @@ const profile: Profile = profileName === "e2e" ? e2eProfile() : devProfile();
 if (remote) await confirmProduction();
 
 const sql = wipe ? wipeSql() : [...wipeSql(), ...seedSql(profile)];
-const file = join(".wrangler", "seed", `${wipe ? "wipe" : profileName}.sql`);
+if (newAccount) {
+  sql.push(`UPDATE settings SET tutorial_completed_at = NULL WHERE user_id = ${userId()};`);
+}
+const file = join(".wrangler", "seed", `${newAccount ? "new" : wipe ? "wipe" : profileName}.sql`);
 mkdirSync(join(".wrangler", "seed"), { recursive: true });
 writeFileSync(file, `${sql.join("\n")}\n`);
 wrangler(["d1", "execute", "DB", `--file=${file}`, ...target()]);
@@ -50,9 +57,11 @@ if (!wipe) uploadImages(profile);
 
 const items = profile.items.length;
 console.log(
-  wipe
-    ? `Wiped the sample data for ${email}.`
-    : `Seeded ${profile.sections.length} sections and ${items} items for ${email}, today ${today}.`,
+  newAccount
+    ? `Made ${email} a new account: no data, and the tutorial not done yet.`
+    : wipe
+      ? `Wiped the sample data for ${email}.`
+      : `Seeded ${profile.sections.length} sections and ${items} items for ${email}, today ${today}.`,
 );
 
 // ---------------------------------------------------------------------------------------------

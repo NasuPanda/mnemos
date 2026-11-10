@@ -1,4 +1,6 @@
+import { FlaskConical } from "lucide-react";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { useHotkeys } from "@/hooks/use-hotkeys";
@@ -6,6 +8,7 @@ import { modKey, SHORTCUTS, type ShortcutGroup } from "@/lib/keys";
 import { openLayer } from "@/lib/layers";
 import { useLocation } from "@/lib/router";
 import { closeOverlay, openOverlay, useOverlay } from "@/state/overlay";
+import { replayTutorial } from "@/state/tutorial";
 
 /**
  * `?` from anywhere: every shortcut, grouped by where it works. `?` again or Esc closes it. Touch
@@ -39,6 +42,19 @@ export function ShortcutsDialog() {
           </DialogDescription>
         </div>
         <ShortcutList groups={SHORTCUTS} mod={modKey()} />
+        <div className="border-t border-border pt-4">
+          <Button
+            variant="ghost"
+            className="h-12 gap-2 px-3 text-small font-bold"
+            onClick={() => {
+              closeOverlay();
+              replayTutorial();
+            }}
+          >
+            <FlaskConical aria-hidden className="size-5 text-muted-foreground" />
+            Replay tutorial
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
