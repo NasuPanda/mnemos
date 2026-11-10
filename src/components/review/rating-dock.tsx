@@ -89,7 +89,10 @@ export function RatingDock({
 
   return (
     <div className="border-t border-border bg-background shadow-dock">
-      <div className="mx-auto flex max-w-[760px] flex-col gap-3 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pt-4">
+      <div
+        data-tour="rating-area"
+        className="mx-auto flex max-w-[760px] flex-col gap-3 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] lg:pt-4"
+      >
         {/* Phone: "Now on" and Pick a date above the buttons; a picked date takes the row. */}
         <div className="flex items-center justify-between gap-3 lg:hidden">
           {!pickedDate && (
@@ -100,7 +103,7 @@ export function RatingDock({
           {!desktop && picker}
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div data-tour="rating-dock" className="grid gap-3 rounded-lg sm:grid-cols-3">
           {options.map((option, index) => {
             const date = pickedDate ?? option.nextDueOn;
             return (

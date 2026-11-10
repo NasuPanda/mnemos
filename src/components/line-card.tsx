@@ -36,7 +36,10 @@ export function LineCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="gap-0 rounded-xl bg-card px-3 pt-3 pb-2 shadow-card ring-0">
+    <Card
+      data-tour={`line-${section.code.toLowerCase()}`}
+      className="gap-0 rounded-xl bg-card px-3 pt-3 pb-2 shadow-card ring-0"
+    >
       <header className="flex min-h-12 items-center gap-3 px-1">
         <SectionBadge code={section.code} line={section.line} />
         <div className="min-w-0 flex-1">

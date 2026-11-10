@@ -28,6 +28,8 @@ export type TourStep = {
   target: string | null;
   /** What stays lit, when it isn't the target itself. */
   spotlight?: string;
+  /** Act steps ring their target in tram yellow, but for the reveal: it has no control. */
+  ring?: false;
   /**
    * The title, then the subtext. A key in [brackets] is a key chip, shown with a mouse or
    * trackpad and left out on touch: "[Ctrl Enter]" is two chips.
@@ -102,6 +104,7 @@ const rate: TourStep = {
   kind: "act",
   screen: "review",
   target: "rating-dock",
+  spotlight: "rating-area",
   title: "Pick how confident you feel!",
   subtext: "Your confidence rating moves this item on the ladder and sets its next review date!",
   ends: { on: "rated" },
@@ -149,6 +152,7 @@ export function tourSteps(layout: Layout): TourStep[] {
         kind: "act",
         screen: "review",
         target: "review-problem",
+        ring: false,
         title: "Think of the answer, then click anywhere or press [Space] to see it.",
         subtext: YOUR_TURN,
         ends: { on: "revealed" },
@@ -224,6 +228,7 @@ export function tourSteps(layout: Layout): TourStep[] {
       kind: "act",
       screen: "review",
       target: "review-problem",
+      ring: false,
       title: "Think of the answer, then tap anywhere to see it.",
       subtext: YOUR_TURN,
       ends: { on: "revealed" },

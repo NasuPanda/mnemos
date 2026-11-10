@@ -98,6 +98,9 @@
   --elevation-cta: 0 10px 24px rgb(4 9 20 / 0.55);
   --elevation-dock: 0 -14px 28px rgb(4 9 20 / 0.55);
   --scrim: rgb(4 9 20 / 0.66);
+  --tour-backdrop: rgb(4 9 20 / 0.72);         /* the tutorial's dimmed app, every step */
+  --tour-backdrop-closing: rgb(4 9 20 / 0.5);  /* lighter under the closing card */
+  --tour-halo: rgb(245 196 0 / 0.28);          /* the faint pulse around an Act step's ring */
 }
 
 /* 3 · Tailwind utilities: bg-card, text-muted-foreground ... */
@@ -212,6 +215,15 @@
   --text-kbd: 0.75rem;          /* with font-mono */
   --text-kbd--line-height: 1;
   --text-kbd--font-weight: 600;
+  --text-tour-title: 1.125rem;  /* the tutorial's card: 18 / 24 */
+  --text-tour-title--line-height: 1.3333;
+  --text-tour-title--font-weight: 700;
+  --text-tour-body: 0.96875rem; /* the card's subtext: 15.5 / 23 */
+  --text-tour-body--line-height: 1.4839;
+  --text-tour-body--font-weight: 400;
+  --text-tour-count: 0.78125rem; /* "2 of 12", with font-mono: 12.5 px */
+  --text-tour-count--line-height: 1.2;
+  --text-tour-count--font-weight: 500;
 
   --spacing: 0.25rem;           /* 4 px grid: h-14 = 56 px */
   --radius-sm: 0.375rem;    /* 6 px: key hints, chips */

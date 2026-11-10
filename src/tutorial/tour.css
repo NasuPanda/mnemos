@@ -1,0 +1,50 @@
+/* The first-run tutorial's backdrop, cut-out and Act ring (design plan, First-run tutorial,
+   "The card"). react-joyride draws the backdrop as an SVG path; its colours come from here, so
+   they follow the tokens. */
+
+.react-joyride__spotlight > path {
+  fill: var(--tour-backdrop);
+}
+:root[data-tour-kind="closing"] .react-joyride__spotlight > path {
+  fill: var(--tour-backdrop-closing);
+}
+/* The cut-out fades in over 150 ms at most, and at once with reduced motion. */
+.react-joyride__spotlight > path + path {
+  transition-duration: 150ms !important;
+}
+/* Explain steps: a 2 px Mist edge around the cut-out. */
+.react-joyride__spotlight > path.tour-edge {
+  fill: none;
+  stroke: var(--muted-foreground);
+  stroke-width: 2;
+}
+.react-joyride__floater {
+  transition: opacity 120ms !important;
+}
+
+/* Act steps: the real control, ringed in tram yellow 4 px out, with a fainter halo 8 px out that
+   pulses at rest: the app's one looping animation. */
+[data-tour-ring] {
+  outline: 2px solid var(--ring) !important;
+  outline-offset: 4px !important;
+  animation: tour-halo 1.6s ease-in-out infinite;
+}
+@keyframes tour-halo {
+  0%,
+  100% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+  50% {
+    box-shadow: 0 0 0 8px var(--tour-halo);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .react-joyride__spotlight > path + path,
+  .react-joyride__floater {
+    transition: none !important;
+  }
+  [data-tour-ring] {
+    animation: none;
+  }
+}

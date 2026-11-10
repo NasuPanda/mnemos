@@ -19,6 +19,7 @@ export function EditorField({
   help,
   error,
   actions,
+  tour,
   className,
   children,
 }: {
@@ -29,11 +30,13 @@ export function EditorField({
   error?: string;
   /** Controls at the right of the label: the Code button, Write / Preview. */
   actions?: ReactNode;
+  /** What the first-run tutorial's tour calls the field. */
+  tour?: string;
   className?: string;
   children: ReactNode;
 }) {
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div data-tour={tour} className={cn("flex flex-col gap-2", className)}>
       <div className="flex min-h-8 items-end justify-between gap-3">
         <label htmlFor={htmlFor} className="flex items-baseline gap-2 text-label">
           {label}

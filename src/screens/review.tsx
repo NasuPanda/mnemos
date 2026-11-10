@@ -297,7 +297,10 @@ function ReviewRun({
         className={cn("flex-1", !session.revealed && "cursor-pointer")}
         aria-live="polite"
       >
-        <article className="mx-auto flex max-w-[760px] flex-col gap-5 px-4 py-6 lg:py-8">
+        <article
+          data-tour="review-problem"
+          className="mx-auto flex max-w-[760px] flex-col gap-5 px-4 py-6 lg:py-8"
+        >
           {/* One page heading for screen readers; the name is the heading under it. */}
           <h1 className="sr-only">Review</h1>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -324,7 +327,7 @@ function ReviewRun({
         </article>
       </main>
 
-      <div className="sticky bottom-0 z-10">
+      <div className="sticky bottom-0 z-10" data-tour="review-controls">
         {session.revealed ? (
           <RatingDock
             options={options}

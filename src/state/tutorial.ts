@@ -223,3 +223,28 @@ export function tourStep(): number {
 export function setTourStep(step: number): void {
   session?.setStep(step);
 }
+
+// Where the practice banner goes: on screens with the sidebar, at the top of the content column,
+// so the sidebar keeps the full height; elsewhere above the screen.
+
+let bannerSlot: HTMLElement | null = null;
+const slotListeners = new Set<() => void>();
+
+/** The ref of the app shell's content column top; null when it unmounts. */
+export function bannerSlotRef(element: HTMLElement | null): void {
+  if (bannerSlot === element) return;
+  bannerSlot = element;
+  slotListeners.forEach((listener) => listener());
+}
+
+/** The element the practice banner renders in, or null for above the screen. */
+export function useBannerSlot(): HTMLElement | null {
+  return useSyncExternalStore(
+    (listener) => {
+      slotListeners.add(listener);
+      return () => slotListeners.delete(listener);
+    },
+    () => bannerSlot,
+    () => null,
+  );
+}
