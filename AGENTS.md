@@ -42,7 +42,7 @@ Create these in phase 0 and keep this list accurate.
 - `npm run preview`: build, then serve the built app in the Workers runtime.
 - `npm run typecheck`, `npm run lint` (ESLint and Prettier), `npm run format`, `npm test`, `npm run test:watch`, `npm run test:e2e`.
 - `npm run db:generate`, `npm run db:migrate:local`, `npm run db:migrate:remote`.
-- `npm run db:seed`: replace the dev user's local data with the sample day (`scripts/seed.ts`; `--wipe` deletes it only).
+- `npm run db:seed`: replace the dev user's local data with the sample day (`scripts/seed.ts`; `--wipe` deletes it only; `-- --new` makes a brand-new account, with no data and the first-run tutorial not done, so the app opens on the practice day).
 - `npm run db:migrate:e2e`, `npm run db:seed:e2e`: the end-to-end tests' own local database; Playwright runs both.
 - `npm run db:seed:remote -- --email=<you>`: the sample day in production. Only when I ask; it asks to type "seed production" (or takes `--confirm="seed production"` where there is no keyboard).
 - `npm run cf-typegen`: regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc`.
@@ -61,7 +61,7 @@ Setup, the Cloudflare and Google checklist, and deploying are in `docs/setup.md`
   Every rule has unit tests.
 - `worker/`: the Hono app. Routes stay thin: they call `src/core` and Drizzle, and nothing else decides scheduling.
 - `src/`: the React app. Screens live in `src/screens/`, shared pieces in `src/components/`, and shadcn components in `src/components/ui/`.
-- `src/tutorial/`: the first-run tutorial's practice day: `createSandboxApi`, an in-memory copy of every API route on `src/core`, and its sample data (`makeSandbox`). `src/lib/api-contract.ts` is one test suite run on both it and the Worker; a route change goes into both.
+- `src/tutorial/`: the first-run tutorial's practice day, loaded with `import()` only under `/tutorial`: `createSandboxApi`, an in-memory copy of every API route on `src/core`, its sample data (`makeSandbox`), the session kept in sessionStorage and the practice banner. The way in and out (the gate, Skip, finishing, Replay) is `src/state/tutorial.ts`. `src/lib/api-contract.ts` is one test suite run on both it and the Worker; a route change goes into both.
 
 ## Rules that are easy to get wrong
 
