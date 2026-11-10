@@ -14,7 +14,10 @@ export const SESSION_KEY = "mnemos:tutorial";
 /** The part of sessionStorage the practice day uses. */
 export type SessionStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
-type Saved = { startedOn: IsoDate; state: SandboxState };
+type Saved = { startedOn: IsoDate; state: SandboxState; step?: number };
+
+/** What the practice day tells the tour: the person saved a new item, or rated one. */
+export type SessionEvent = "created" | "rated";
 
 export type PracticeSession = {
   api: SandboxApi;
@@ -22,6 +25,9 @@ export type PracticeSession = {
   startedOn: IsoDate;
   /** The new item the editor opens with, until the person has saved one of their own. */
   draft(): ItemForm | null;
+  /** The tour's step, kept with the practice day so a reload comes back to it. */
+  step: number;
+  setStep(step: number): void;
   /** Lets go of the practice day and forgets it. */
   close(): void;
 };
@@ -49,13 +55,17 @@ const WRITES = [
 export function openSession(
   storage: SessionStorage,
   today: IsoDate,
-  { fresh = false } = {},
+  {
+    fresh = false,
+    onEvent = () => {},
+  }: { fresh?: boolean; onEvent?: (event: SessionEvent) => void } = {},
 ): PracticeSession {
   const saved = fresh ? null : read(storage);
   const startedOn = saved?.startedOn ?? today;
   const sample = makeSandbox(startedOn);
   const sandbox = createSandboxApi(saved?.state ?? sample, SAMPLE_IMAGES);
-  const save = () => write(storage, { startedOn, state: sandbox.snapshot() });
+  let step = Number.isSafeInteger(saved?.step) && saved!.step! >= 0 ? saved!.step! : 0;
+  const save = () => write(storage, { startedOn, state: sandbox.snapshot(), step });
 
   const api: SandboxApi = { ...sandbox };
   for (const name of WRITES) {
@@ -63,6 +73,8 @@ export function openSession(
     (api as Record<string, unknown>)[name] = async (...args: unknown[]) => {
       const answer = await route(...args);
       save();
+      if (name === "createItem") onEvent("created");
+      if (name === "rate") onEvent("rated");
       return answer;
     };
   }
@@ -71,6 +83,14 @@ export function openSession(
   return {
     api,
     startedOn,
+    get step() {
+      return step;
+    },
+    setStep(next) {
+      if (next === step) return;
+      step = next;
+      save();
+    },
     draft() {
       const state = sandbox.snapshot();
       // Item ids only go up, so a higher one means the person saved an item of their own.

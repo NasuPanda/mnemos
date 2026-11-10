@@ -51,6 +51,7 @@ import { openHistory } from "@/state/history-panel";
 import { usePanelOpen } from "@/state/overlay";
 import type { TodayData } from "@/state/today-data";
 import { rateItem, useTodayState } from "@/state/today-store";
+import { tourSignal, useRevealRequest } from "@/state/tutorial";
 import type { ImageDto, ItemDto } from "../../worker/contract";
 
 /**
@@ -114,6 +115,12 @@ function ReviewRun({
       : parked.session;
   });
   useEffect(() => clearParkedRun(), []);
+  // The first-run tutorial's reveal step moves on once the answer shows; a tap on its card or
+  // on the dimmed area shows it too.
+  useEffect(() => {
+    if (session.revealed) tourSignal({ type: "revealed" });
+  }, [session.revealed]);
+  useRevealRequest(!session.revealed, () => setSession(reveal));
   // Code that names its language gets highlighted: fetch the highlighter before it's reached.
   useEffect(() => {
     const fields = [...items.values()].flatMap((i) => [i.problemText, i.answerText, i.sideNote]);
