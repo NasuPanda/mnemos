@@ -364,9 +364,14 @@ function FutureBoard({
     () => (dayData ? futureDayView(dayData, data.sections, reviewed) : null),
     [dayData, data.sections, reviewed],
   );
-  const open = view?.list.filter((entry) => !entry.reviewedToday) ?? [];
-  const { selected, move } = useSelection(open.map((entry) => entry.item.id));
-  const selectedSection = open.find((entry) => entry.item.id === selected)?.item.sectionId;
+  const list = view?.list ?? [];
+  const { selected, move } = useSelection(list.map((entry) => entry.item.id));
+  const selectedEntry = list.find((entry) => entry.item.id === selected);
+  // Shift+F reviews the selected row's line, if anything in it is left to review early.
+  const selectedSection =
+    selectedEntry && view?.lines.get(selectedEntry.item.sectionId)?.early
+      ? selectedEntry.item.sectionId
+      : undefined;
   const { day } = frame;
   const early = view?.counts.early ?? 0;
 
@@ -374,6 +379,7 @@ function FutureBoard({
     {
       j: () => move(1),
       k: () => move(-1),
+      // Review early, or a row reviewed today without rating: review mode tells them apart.
       Enter: () => selected !== null && navigate(reviewPath({ day, itemId: selected })),
       f: () => early > 0 && navigate(flashPath({ day })),
       "Shift+F": () =>
@@ -394,7 +400,7 @@ function FutureBoard({
       }
       hints={[
         [["J", "K"], "move"],
-        [["Enter"], "review early"],
+        [["Enter"], selectedEntry?.reviewedToday ? "open" : "review early"],
         [["Shift", "F"], "review line", { wide: true }],
         [["E"], "edit"],
         [["H"], "history"],
@@ -433,9 +439,7 @@ function FutureBoard({
                       last={index === rows.length - 1}
                       selected={entry.item.id === selected}
                       dimmed={entry.reviewedToday}
-                      to={
-                        entry.reviewedToday ? undefined : reviewPath({ day, itemId: entry.item.id })
-                      }
+                      to={reviewPath({ day, itemId: entry.item.id })}
                     >
                       <ItemRow entry={entry} stops={data.ladder.length} />
                     </Station>
@@ -478,8 +482,16 @@ function PastBoard({
   const { day } = frame;
   const { selected, move } = useSelection(reviews?.map((review) => review.id) ?? []);
   const selectedItem = reviews?.find((review) => review.id === selected)?.itemId;
-  const history = () => selectedItem !== undefined && openHistory(selectedItem);
-  useHotkeys({ j: () => move(1), k: () => move(-1), Enter: history, h: history }, !usePanelOpen());
+  useHotkeys(
+    {
+      j: () => move(1),
+      k: () => move(-1),
+      Enter: () =>
+        selectedItem !== undefined && navigate(reviewPath({ day, itemId: selectedItem })),
+      h: () => selectedItem !== undefined && openHistory(selectedItem),
+    },
+    !usePanelOpen(),
+  );
 
   return (
     <Board
@@ -493,6 +505,7 @@ function PastBoard({
       }
       hints={[
         [["J", "K"], "move"],
+        [["Enter"], "open"],
         [["H"], "history"],
         [["[", "]"], "day"],
         [["N"], "new item"],
@@ -519,7 +532,7 @@ function PastBoard({
                   first={index === 0}
                   last={index === rows.length - 1}
                   selected={review.id === selected}
-                  onOpen={() => openHistory(review.itemId)}
+                  to={reviewPath({ day, itemId: review.itemId })}
                 >
                   <ReviewRow review={review} stops={data.ladder.length} />
                 </Station>
