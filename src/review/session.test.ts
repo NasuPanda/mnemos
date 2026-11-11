@@ -3,7 +3,9 @@ import {
   advance,
   currentItem,
   endsToday,
+  dayToFetch,
   isFinished,
+  lookBackFrom,
   pickDate,
   progress,
   returnTo,
@@ -99,6 +101,32 @@ describe("Runs for today and for Review early", () => {
     });
     expect(runFromTarget({ day: TODAY, itemId: 5 }, TODAY)).toEqual({ kind: "item", itemId: 5 });
     expect(runFromTarget({ day: "2026-09-20" }, TODAY)).toEqual({ kind: "all" });
+  });
+
+  it("looks back at an item that can't be rated: a past day's, or one reviewed today", () => {
+    const MONDAY = "2026-09-21";
+    const none = new Set<number>();
+    expect(lookBackFrom({ day: MONDAY, itemId: 5 }, TODAY, none)).toEqual({
+      day: MONDAY,
+      itemId: 5,
+    });
+    expect(lookBackFrom({ day: FRIDAY, itemId: 5 }, TODAY, new Set([5]))).toEqual({
+      day: FRIDAY,
+      itemId: 5,
+    });
+    // Still to review: a run, not a look back.
+    expect(lookBackFrom({ day: FRIDAY, itemId: 5 }, TODAY, none)).toBeNull();
+    expect(lookBackFrom({ day: TODAY, itemId: 5 }, TODAY, new Set([5]))).toBeNull();
+    expect(lookBackFrom({ itemId: 5 }, TODAY, new Set([5]))).toBeNull();
+    expect(lookBackFrom({ day: MONDAY, sectionId: 2 }, TODAY, none)).toBeNull();
+  });
+
+  it("fetches the day a look back or Review early needs, and today otherwise", () => {
+    expect(dayToFetch({ day: "2026-09-21", itemId: 5 }, TODAY)).toBe("2026-09-21");
+    expect(dayToFetch({ day: FRIDAY, itemId: 5 }, TODAY)).toBe(FRIDAY);
+    expect(dayToFetch({ day: FRIDAY }, TODAY)).toBe(FRIDAY);
+    expect(dayToFetch({ day: "2026-09-21" }, TODAY)).toBe(TODAY);
+    expect(dayToFetch({}, TODAY)).toBe(TODAY);
   });
 
   it("tells today's runs from a day's", () => {

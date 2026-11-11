@@ -1,7 +1,7 @@
 import { Ellipsis, Eye, History, Lightbulb, Pencil, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { toast } from "sonner";
-import { daysLate, ratingOptions, type Confidence, type IsoDate } from "@/core";
+import { compareDates, daysLate, ratingOptions, type Confidence, type IsoDate } from "@/core";
 import { Overdue } from "@/components/overdue";
 import { ExternalLink } from "@/components/review/external-link";
 import { ImageZoom } from "@/components/review/image-zoom";
@@ -30,8 +30,10 @@ import { cn } from "@/lib/utils";
 import {
   advance,
   currentItem,
+  dayToFetch,
   endsToday,
   isFinished,
+  lookBackFrom,
   pickDate,
   progress,
   returnTo,
@@ -41,6 +43,7 @@ import {
   runQueue,
   startSession,
   toggleAnswer,
+  type LookBack,
   type Run,
   type Session,
 } from "@/review/session";
@@ -52,22 +55,56 @@ import { usePanelOpen } from "@/state/overlay";
 import type { TodayData } from "@/state/today-data";
 import { rateItem, useTodayState } from "@/state/today-store";
 import { tourSignal, useRevealRequest } from "@/state/tutorial";
-import type { ImageDto, ItemDto } from "../../worker/contract";
+import type { ImageDto, ItemDto, SectionDto } from "../../worker/contract";
 
 /**
  * Review mode: /review?item=ID (one item), ?section=ID (one line) or no query (everything left
- * today). With ?day=YYYY-MM-DD, the same for a future day's items: Review early.
+ * today). With ?day=YYYY-MM-DD, the same for a future day's items: Review early. An item on
+ * another day that can't be rated (a past day's, or one reviewed today) shows without rating.
  */
 export function ReviewScreen() {
   const today = useToday();
   const state = useTodayState(today);
   const { query } = useLocation();
-  const run = useMemo(() => runFromTarget(runTargetFromQuery(query), today), [query, today]);
-  const dayState = useDayState(run.day ?? today, today);
-  if (state.status !== "ready") return null;
-  if (run.day && dayState.status !== "ready") return null;
-  const dayItems = run.day && dayState.status === "ready" ? dayState.data.items : null;
+  const target = useMemo(() => runTargetFromQuery(query), [query]);
+  const run = useMemo(() => runFromTarget(target, today), [target, today]);
+  const fetchDay = dayToFetch(target, today);
+  const dayState = useDayState(fetchDay, today);
+  const ready = state.status === "ready" && (fetchDay === today || dayState.status === "ready");
+  const lookBack = useLookBack(
+    `${today}?${query.toString()}`,
+    ready && state.status === "ready"
+      ? lookBackFrom(target, today, new Set(state.data.reviewsToday.map((r) => r.itemId)))
+      : undefined,
+  );
+  if (!ready || state.status !== "ready" || lookBack === undefined) return null;
+  const dayData = dayState.status === "ready" ? dayState.data : null;
+  if (lookBack) {
+    return (
+      <LookBackView
+        key={`${lookBack.day}-${lookBack.itemId}`}
+        data={state.data}
+        dayItems={dayData?.items ?? []}
+        lookBack={lookBack}
+      />
+    );
+  }
+  const dayItems = run.day ? (dayData?.items ?? []) : null;
   return <ReviewRun key={runKey(run)} data={state.data} dayItems={dayItems} run={run} />;
+}
+
+/**
+ * Whether an address looks back or runs, decided once when it opens: rating Review early's
+ * item marks it reviewed today, and the run must go on, not turn into a look back.
+ */
+function useLookBack(address: string, now: LookBack | null | undefined) {
+  const [decided, setDecided] = useState<{ address: string; lookBack: LookBack | null } | null>(
+    null,
+  );
+  if (now !== undefined && decided?.address !== address) {
+    setDecided({ address, lookBack: now });
+  }
+  return decided?.address === address ? decided.lookBack : now;
 }
 
 /**
@@ -217,80 +254,18 @@ function ReviewRun({
     setSession(reveal);
   };
 
-  const { number, total } = progress(session);
   const options = ratingOptions(item.stop, data.ladder, data.date);
   const hasLinksOrImages = item.images.some((i) => i.side === "problem") || !!item.problemUrl;
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background px-3 lg:px-8">
-        <Button
-          variant="ghost"
-          className="h-12 gap-2 px-3 text-item font-bold"
-          onClick={() => navigate(home)}
-        >
-          <X aria-hidden className="size-5" />
-          <span className="hidden lg:inline">Close</span>
-          <Kbd className="hidden lg:inline-flex">Esc</Kbd>
-          <span className="sr-only lg:hidden">Close review</span>
-        </Button>
-        <div className="flex flex-1 items-center gap-3 lg:justify-center">
-          <span className="hidden text-label text-muted-foreground lg:inline">
-            {runLabel(run, section.name)}
-          </span>
-          <span className="shrink-0 font-mono text-meta whitespace-nowrap">
-            {number} of {total}
-          </span>
-          <span
-            role="progressbar"
-            aria-label="Progress"
-            aria-valuemin={0}
-            aria-valuemax={total}
-            aria-valuenow={number}
-            className="h-1 w-full max-w-60 overflow-hidden rounded-full bg-secondary"
-          >
-            <span
-              className="block h-full rounded-full bg-foreground"
-              style={{ width: `${(number / total) * 100}%` }}
-            />
-          </span>
-        </div>
-        <Button
-          variant="ghost"
-          className="hidden h-12 gap-2 px-3 text-item font-bold lg:inline-flex"
-          onClick={showHistory}
-        >
-          <History aria-hidden className="size-5" />
-          History
-          <Kbd>H</Kbd>
-        </Button>
-        <Button
-          variant="ghost"
-          className="hidden h-12 gap-2 px-3 text-item font-bold lg:inline-flex"
-          onClick={edit}
-        >
-          <Pencil aria-hidden className="size-5" />
-          Edit
-          <Kbd>E</Kbd>
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-12 lg:hidden" aria-label="More">
-              <Ellipsis aria-hidden className="size-6" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-52 rounded-lg p-1.5 shadow-raised">
-            <DropdownMenuItem className="h-12 gap-3 text-body" onSelect={showHistory}>
-              <History aria-hidden className="size-5" />
-              History
-            </DropdownMenuItem>
-            <DropdownMenuItem className="h-12 gap-3 text-body" onSelect={edit}>
-              <Pencil aria-hidden className="size-5" />
-              Edit item
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </header>
+      <ReviewHeader
+        label={runLabel(run, section.name)}
+        progress={progress(session)}
+        onClose={() => navigate(home)}
+        onHistory={showHistory}
+        onEdit={edit}
+      />
 
       <main
         onClick={revealOnTap}
@@ -303,22 +278,7 @@ function ReviewRun({
         >
           {/* One page heading for screen readers; the name is the heading under it. */}
           <h1 className="sr-only">Review</h1>
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <SectionBadge code={section.code} line={section.line} />
-            <span className="text-label text-muted-foreground">{section.name}</span>
-            <StopIndicator
-              stop={item.stop}
-              stops={data.ladder.length}
-              long
-              className="hidden text-muted-foreground lg:inline-flex"
-            />
-            <StopIndicator
-              stop={item.stop}
-              stops={data.ladder.length}
-              className="text-muted-foreground lg:hidden"
-            />
-            <Overdue days={daysLate(item.dueOn, data.date)} />
-          </p>
+          <ItemMeta item={item} section={section} stops={data.ladder.length} today={data.date} />
           {session.revealed ? (
             <AnswerSide item={item} onZoom={openZoom} />
           ) : (
@@ -353,6 +313,232 @@ function ReviewRun({
         onClose={() => setZoom(null)}
       />
     </div>
+  );
+}
+
+/**
+ * An item that can't be rated, opened from another day: the problem, Show answer and the answer
+ * as in a run, with nothing where the rating buttons go. Esc and ✕ go back to that day.
+ */
+function LookBackView({
+  data,
+  dayItems,
+  lookBack,
+}: {
+  data: TodayData;
+  dayItems: ItemDto[];
+  lookBack: LookBack;
+}) {
+  const { day, itemId } = lookBack;
+  const home = dayPath(day, data.date);
+  const key = `look-${day}-${itemId}`;
+  // Back from the editor, it comes back as it was, answer showing or not.
+  const [session, setSession] = useState<Session>(
+    () => parkedRun(key)?.session ?? startSession({ kind: "item", itemId, day }, [itemId]),
+  );
+  useEffect(() => clearParkedRun(), []);
+  useRevealRequest(!session.revealed, () => setSession(reveal));
+  const item = dayItems.find((i) => i.id === itemId);
+  const section = data.sections.find((s) => s.id === item?.sectionId);
+  useEffect(() => {
+    const fields = item ? [item.problemText, item.answerText, item.sideNote] : [];
+    if (fields.some(hasTaggedCodeBlock)) void loadHighlighting();
+  }, [item]);
+  // Gone (deleted, or not on that day): back to the day.
+  const missing = !item || !section;
+  useEffect(() => {
+    if (missing) navigate(home, { replace: true });
+  }, [missing, home]);
+  const [zoom, setZoom] = useState<{ images: ImageDto[]; index: number } | null>(null);
+
+  const edit = () => {
+    if (!item) return;
+    parkRun({ key, items: new Map(), session });
+    navigate(editItemPath(item.id));
+  };
+  const showHistory = () => item && openHistory(item.id, { hideName: !session.revealed });
+  const panelOpen = usePanelOpen();
+  const visibleImages = item
+    ? item.images.filter((image) => session.revealed || image.side === "problem")
+    : [];
+  const openZoom = (image: ImageDto) =>
+    setZoom({ images: visibleImages, index: Math.max(visibleImages.indexOf(image), 0) });
+
+  useHotkeys(
+    {
+      Space: () => setSession(toggleAnswer),
+      z: () => visibleImages[0] && openZoom(visibleImages[0]),
+      e: edit,
+      h: showHistory,
+      Escape: () => navigate(home),
+    },
+    zoom === null && !panelOpen,
+  );
+
+  if (!item || !section) return null;
+
+  const revealOnTap = (event: MouseEvent) => {
+    if (session.revealed) return;
+    const target = event.target as HTMLElement;
+    if (target.closest("a, button, input, [data-no-reveal]")) return;
+    if (window.getSelection()?.toString()) return;
+    setSession(reveal);
+  };
+  const hasLinksOrImages = item.images.some((i) => i.side === "problem") || !!item.problemUrl;
+  const reviewedOn = compareDates(day, data.date) < 0 ? day : data.date;
+
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <ReviewHeader
+        label={reviewedOn === data.date ? "Reviewed today" : `Reviewed ${shortDate(reviewedOn)}`}
+        onClose={() => navigate(home)}
+        onHistory={showHistory}
+        onEdit={edit}
+      />
+      <main
+        onClick={revealOnTap}
+        className={cn("flex-1", !session.revealed && "cursor-pointer")}
+        aria-live="polite"
+      >
+        <article className="mx-auto flex max-w-[760px] flex-col gap-5 px-4 py-6 lg:py-8">
+          <h1 className="sr-only">Review</h1>
+          <ItemMeta item={item} section={section} stops={data.ladder.length} today={data.date} />
+          {session.revealed ? (
+            <AnswerSide item={item} onZoom={openZoom} />
+          ) : (
+            <ProblemSide item={item} onZoom={openZoom} />
+          )}
+        </article>
+      </main>
+      {!session.revealed && (
+        <div className="sticky bottom-0 z-10">
+          <ShowAnswer hint={hasLinksOrImages} onShow={() => setSession(reveal)} />
+        </div>
+      )}
+      <ImageZoom
+        images={zoom?.images ?? []}
+        index={zoom?.index ?? null}
+        onIndexChange={(index) => setZoom((z) => (z ? { ...z, index } : z))}
+        onClose={() => setZoom(null)}
+      />
+    </div>
+  );
+}
+
+/**
+ * Close, what is being reviewed and how far along ("3 of 38"), then History and Edit (the ···
+ * menu on the phone). A look back has no progress; its label shows on the phone too.
+ */
+function ReviewHeader({
+  label,
+  progress,
+  onClose,
+  onHistory,
+  onEdit,
+}: {
+  label: string;
+  progress?: { number: number; total: number };
+  onClose: () => void;
+  onHistory: () => void;
+  onEdit: () => void;
+}) {
+  return (
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background px-3 lg:px-8">
+      <Button variant="ghost" className="h-12 gap-2 px-3 text-item font-bold" onClick={onClose}>
+        <X aria-hidden className="size-5" />
+        <span className="hidden lg:inline">Close</span>
+        <Kbd className="hidden lg:inline-flex">Esc</Kbd>
+        <span className="sr-only lg:hidden">Close review</span>
+      </Button>
+      <div className="flex flex-1 items-center gap-3 lg:justify-center">
+        <span className={cn("text-label text-muted-foreground", progress && "hidden lg:inline")}>
+          {label}
+        </span>
+        {progress && (
+          <>
+            <span className="shrink-0 font-mono text-meta whitespace-nowrap">
+              {progress.number} of {progress.total}
+            </span>
+            <span
+              role="progressbar"
+              aria-label="Progress"
+              aria-valuemin={0}
+              aria-valuemax={progress.total}
+              aria-valuenow={progress.number}
+              className="h-1 w-full max-w-60 overflow-hidden rounded-full bg-secondary"
+            >
+              <span
+                className="block h-full rounded-full bg-foreground"
+                style={{ width: `${(progress.number / progress.total) * 100}%` }}
+              />
+            </span>
+          </>
+        )}
+      </div>
+      <Button
+        variant="ghost"
+        className="hidden h-12 gap-2 px-3 text-item font-bold lg:inline-flex"
+        onClick={onHistory}
+      >
+        <History aria-hidden className="size-5" />
+        History
+        <Kbd>H</Kbd>
+      </Button>
+      <Button
+        variant="ghost"
+        className="hidden h-12 gap-2 px-3 text-item font-bold lg:inline-flex"
+        onClick={onEdit}
+      >
+        <Pencil aria-hidden className="size-5" />
+        Edit
+        <Kbd>E</Kbd>
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="size-12 lg:hidden" aria-label="More">
+            <Ellipsis aria-hidden className="size-6" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-52 rounded-lg p-1.5 shadow-raised">
+          <DropdownMenuItem className="h-12 gap-3 text-body" onSelect={onHistory}>
+            <History aria-hidden className="size-5" />
+            History
+          </DropdownMenuItem>
+          <DropdownMenuItem className="h-12 gap-3 text-body" onSelect={onEdit}>
+            <Pencil aria-hidden className="size-5" />
+            Edit item
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </header>
+  );
+}
+
+/** The item's line, its stop and how late it is. */
+function ItemMeta({
+  item,
+  section,
+  stops,
+  today,
+}: {
+  item: ItemDto;
+  section: SectionDto;
+  stops: number;
+  today: IsoDate;
+}) {
+  return (
+    <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <SectionBadge code={section.code} line={section.line} />
+      <span className="text-label text-muted-foreground">{section.name}</span>
+      <StopIndicator
+        stop={item.stop}
+        stops={stops}
+        long
+        className="hidden text-muted-foreground lg:inline-flex"
+      />
+      <StopIndicator stop={item.stop} stops={stops} className="text-muted-foreground lg:hidden" />
+      <Overdue days={daysLate(item.dueOn, today)} />
+    </p>
   );
 }
 
