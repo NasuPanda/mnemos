@@ -28,7 +28,7 @@ export function dayKind(day: IsoDate, today: IsoDate): DayKind {
 /**
  * An item that has moved, by a rating or by Undo: it leaves the week's count and the day's list
  * where it was, and joins them where it is now. A future day keeps an item rated today that lands
- * on it again; it shows dimmed there.
+ * on it again; it shows dimmed there. A past day keeps its reviewed items, as they are now.
  */
 export function withMovedItem(data: DayData, item: ItemDto): DayData {
   const due = data.week.due.filter((row) => row.id !== item.id);
@@ -36,8 +36,10 @@ export function withMovedItem(data: DayData, item: ItemDto): DayData {
     due.push({ id: item.id, dueOn: item.dueOn });
     due.sort((a, b) => compareDates(a.dueOn, b.dueOn) || a.id - b.id);
   }
+  const kind = dayKind(data.date, data.today);
+  const had = data.items.some((i) => i.id === item.id);
   const items = data.items.filter((i) => i.id !== item.id);
-  if (dayKind(data.date, data.today) === "future" && item.dueOn === data.date) {
+  if ((kind === "future" && item.dueOn === data.date) || (kind === "past" && had)) {
     items.push(item);
     items.sort((a, b) => a.id - b.id);
   }

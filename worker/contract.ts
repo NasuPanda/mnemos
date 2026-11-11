@@ -95,7 +95,10 @@ export type DayResponse = {
     /** Reviews made on the week's days before today (a past day's done). */
     reviews: { itemId: number; reviewedOn: IsoDate }[];
   };
-  /** A future day: the items due then, with everything review mode shows, for Review early. */
+  /**
+   * With everything review mode shows: a future day's items due then (for Review early), or a
+   * past day's reviewed items, each once, as they are now (for review without rating). By id.
+   */
   items: ItemDto[];
   /** A past day: the reviews made that day, in the order they were made. */
   reviews: PastReviewDto[];

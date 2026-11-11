@@ -87,7 +87,16 @@ test("Settings and an item's history", async ({ page }, testInfo) => {
   await expectAccessible(page, testInfo, "the remove-stop question");
 
   await page.goto(`/?day=${dayFrom(-8)}`);
+  // A past day's row opens review mode without rating; its History opens the panel.
   await page.getByText(ITEMS.dijkstra).click();
+  await expect(page.getByRole("button", { name: /Show answer/ })).toBeVisible();
+  await expectAccessible(page, testInfo, "a past day's item without rating");
+  if (isPhone(testInfo)) {
+    await page.getByRole("button", { name: "More" }).click();
+    await page.getByRole("menuitem", { name: "History" }).click();
+  } else {
+    await page.getByRole("button", { name: /^History/ }).click();
+  }
   await expect(page.getByRole("dialog")).toContainText("History");
   await expectAccessible(page, testInfo, "the history panel");
 });

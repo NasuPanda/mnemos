@@ -29,6 +29,29 @@ export function runFromTarget(target: RunTarget, today: IsoDate): Run {
   return { kind: "all", ...day };
 }
 
+/**
+ * An item opened on another day that can't be rated: a past day's, or a future day's already
+ * reviewed today. Review mode shows it without rating, and closes back to that day.
+ */
+export type LookBack = { day: IsoDate; itemId: number };
+
+/** The look back an address asks for, or null when it asks for a run. */
+export function lookBackFrom(
+  target: RunTarget,
+  today: IsoDate,
+  reviewedToday: ReadonlySet<number>,
+): LookBack | null {
+  const { day, itemId } = target;
+  if (!day || !itemId) return null;
+  const order = compareDates(day, today);
+  return order < 0 || (order > 0 && reviewedToday.has(itemId)) ? { day, itemId } : null;
+}
+
+/** The day a review address needs fetched besides today: a look back's day, or Review early's. */
+export function dayToFetch(target: RunTarget, today: IsoDate): IsoDate {
+  return target.itemId && target.day ? target.day : (runFromTarget(target, today).day ?? today);
+}
+
 /** Tells runs apart, so leaving one for the editor and coming back continues the same one. */
 export function runKey(run: Run): string {
   const what =

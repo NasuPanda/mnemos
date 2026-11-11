@@ -29,6 +29,17 @@ test("reviews tomorrow's item early with only the keyboard", async ({ page }, te
   await expect(page.getByText("Reviewed today", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: /Review early/ })).toHaveCount(0);
 
+  // The dimmed row still opens: without rating, as it was reviewed today.
+  await page.keyboard.press("j");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/review\?day=.+&item=\d+$/);
+  await expect(page.getByText("Reviewed today", { exact: true })).toBeVisible();
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("heading", { name: ITEMS.binaryHeap })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Confident/ })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(page).toHaveURL(/\/\?day=/);
+
   // Today's Left is untouched, and the early review counts as done.
   await page.keyboard.press("t");
   await expect(page.getByText("4 left today")).toBeVisible();
@@ -119,4 +130,62 @@ function tomorrowInBrowser(): string {
   d.setDate(d.getDate() + 1);
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+// The e2e profile's Dijkstra item ("Why Dijkstra fails on negative edges") was reviewed 8 days ago.
+
+test("opens a past day's review without rating, with the keyboard", async ({ page }, testInfo) => {
+  desktopOnly(testInfo.project.name);
+  const day = dayFrom(-8);
+  await page.goto(`/?day=${day}`);
+  await expect(page.getByText(ITEMS.dijkstra)).toBeVisible();
+
+  await page.keyboard.press("j");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(new RegExp(`/review\\?day=${day}&item=\\d+$`));
+  await expect(page.getByText(/^Reviewed \w{3} \d+ \w{3}$/)).toBeVisible();
+  // The problem first, the name hidden until the reveal.
+  await expect(page.getByRole("heading", { name: ITEMS.dijkstra })).toHaveCount(0);
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("heading", { name: ITEMS.dijkstra })).toBeVisible();
+  // Nothing to rate: no buttons, and 1 and D do nothing.
+  await expect(page.getByRole("button", { name: /^Confident/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Pick a date/ })).toHaveCount(0);
+  await page.keyboard.press("1");
+  await page.keyboard.press("d");
+  await expect(page).toHaveURL(/\/review\?/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  // Esc goes back to that day, where H still opens the history.
+  await page.keyboard.press("Escape");
+  await expect(page).toHaveURL(new RegExp(`/\\?day=${day}$`));
+  await page.keyboard.press("j");
+  await page.keyboard.press("h");
+  await expect(page.getByRole("dialog")).toContainText("Not at all");
+});
+
+test("opens a past day's review without rating, with taps", async ({ page }, testInfo) => {
+  phoneOnly(testInfo.project.name);
+  const day = dayFrom(-8);
+  await page.goto(`/?day=${day}`);
+  await page.getByText(ITEMS.dijkstra).tap();
+
+  await expect(page).toHaveURL(new RegExp(`/review\\?day=${day}&item=\\d+$`));
+  await page.getByRole("button", { name: /Show answer/ }).tap();
+  await expect(page.getByRole("heading", { name: ITEMS.dijkstra })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Confident/ })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Close review" }).tap();
+  await expect(page).toHaveURL(new RegExp(`/\\?day=${day}$`));
+  // Nothing was rated: today still has its four left.
+  await page.goto("/");
+  await expect(page.getByText(/4 left/).first()).toBeVisible();
+});
+
+/** The local date `days` from today, as the app sends it. */
+function dayFrom(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }

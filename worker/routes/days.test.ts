@@ -158,7 +158,7 @@ describe("GET /api/days/:date", () => {
     });
 
     const { body } = await s.day(MONDAY);
-    expect(body.items).toEqual([]);
+    expect(body.items.map((item) => item.id)).toEqual([first, second].sort((x, y) => x - y));
     expect(body.reviews).toEqual([
       {
         id: early,
@@ -178,6 +178,37 @@ describe("GET /api/days/:date", () => {
         itemId: second,
         name: "Bellman–Ford",
         sectionId: graphs,
+      }),
+    ]);
+  });
+
+  it("gives a past day's reviewed items with their content and images, as they are now", async () => {
+    const s = await person("ivo@example.com");
+    const section = await addSection(s.userId, { code: "GR" });
+    const item = await addItem(s.userId, section, {
+      name: "Dijkstra with a binary heap",
+      dueOn: "2026-10-01",
+      stop: 4,
+      answerText: "Decrease-key, or push again.",
+    });
+    await addImage(item, { key: "b.webp", side: "answer", position: 1 });
+    await addImage(item, { key: "a.webp", side: "problem", position: 1 });
+    await addReview(s.userId, item, { reviewedOn: MONDAY, nextDueOn: "2026-09-23" });
+    await addReview(s.userId, item, { reviewedOn: "2026-09-23", nextDueOn: "2026-10-01" });
+    const other = await addItem(s.userId, section, { name: "Not reviewed Monday", dueOn: MONDAY });
+    await addImage(other, { key: "c.webp", side: "problem", position: 1 });
+
+    const { body } = await s.day(MONDAY);
+    expect(body.items).toEqual([
+      expect.objectContaining({
+        id: item,
+        stop: 4,
+        dueOn: "2026-10-01",
+        answerText: "Decrease-key, or push again.",
+        images: [
+          { key: "a.webp", side: "problem", position: 1 },
+          { key: "b.webp", side: "answer", position: 1 },
+        ],
       }),
     ]);
   });
