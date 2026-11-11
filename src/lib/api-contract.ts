@@ -353,12 +353,18 @@ export function describeApiContract(name: string, newAccount: () => Promise<Mnem
         expect((await api.today(THU)).tomorrow).toEqual({ date: FRI, itemIds: [early.id] });
       });
 
-      it("lists a past day's reviews with the item's name and section", async () => {
+      it("lists a past day's reviews, and the items they reviewed as they are now", async () => {
         const { api, item } = await withItem("Dijkstra", WED);
+        const { item: other } = await api.createItem({
+          ...fieldsIn(item.sectionId, "Prim"),
+          date: WED,
+        });
         const { review } = await api.rate({ itemId: item.id, date: WED, confidence: "neutral" });
+        await api.rate({ itemId: item.id, date: THU, confidence: "confident" });
 
         const wednesday = await api.day(WED, THU);
-        expect(wednesday.items).toEqual([]);
+        expect(wednesday.items).toEqual([(await api.item(item.id)).item]);
+        expect(wednesday.items.map((i) => i.id)).not.toContain(other.id);
         expect(wednesday.reviews).toEqual([
           { ...review, name: "Dijkstra", sectionId: item.sectionId },
         ]);

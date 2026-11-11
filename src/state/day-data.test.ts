@@ -184,6 +184,21 @@ describe("Other days on the client", () => {
     expect(moved.items.map((i) => i.id)).toEqual([1, 2]);
   });
 
+  it("keeps a past day's reviewed item, as it is now, when it is rated today", () => {
+    const monday: DayData = {
+      ...friday,
+      date: "2026-09-21",
+      items: [item(20, "2026-09-23"), item(21, "2026-09-22")],
+      reviews: [pastReview(30, 20, 1), pastReview(31, 21, 1)],
+    };
+    const moved = withMovedItem(monday, item(20, "2026-10-08", 1, 4));
+    expect(moved.items.map((i) => [i.id, i.stop])).toEqual([
+      [20, 4],
+      [21, 2],
+    ]);
+    expect(withMovedItem(monday, item(7, FRIDAY)).items.map((i) => i.id)).toEqual([20, 21]);
+  });
+
   it("forgets a deleted item everywhere, its past reviews too", () => {
     const monday: DayData = { ...friday, date: "2026-09-21", reviews: [pastReview(30, 20, 1)] };
     const gone = withoutDayItem(monday, 20);

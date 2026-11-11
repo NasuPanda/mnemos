@@ -9,7 +9,8 @@ import { itemImages, items, reviews } from "./schema";
 /**
  * Another day for the dashboard, in one D1 round trip through the (user_id, due_on) and
  * (user_id, reviewed_on) indexes: what the week strip counts, plus a future day's items with
- * their content and images, or a past day's reviews. Missed items never show on a past day.
+ * their content and images, or a past day's reviews and the items they reviewed, with their
+ * content and images. Missed items never show on a past day.
  * Every query is scoped to `userId`.
  */
 export async function loadDay(
@@ -71,18 +72,33 @@ export async function loadDay(
   }
 
   if (order < 0) {
-    const [due, weekReviews, reviewRows] = await db.batch([
+    const reviewedThatDay = and(eq(reviews.userId, userId), eq(reviews.reviewedOn, date));
+    const [due, weekReviews, reviewRows, itemRows, imageRows] = await db.batch([
       ...weekQueries,
       db
         .select({ review: reviews, name: items.name, sectionId: items.sectionId })
         .from(reviews)
         .innerJoin(items, eq(items.id, reviews.itemId))
-        .where(and(eq(reviews.userId, userId), eq(reviews.reviewedOn, date)))
+        .where(reviewedThatDay)
         .orderBy(asc(reviews.id)),
+      // One review per item per day, so each item comes once.
+      db
+        .select({ item: items })
+        .from(reviews)
+        .innerJoin(items, eq(items.id, reviews.itemId))
+        .where(reviewedThatDay)
+        .orderBy(asc(items.id)),
+      db
+        .select(imageColumns)
+        .from(itemImages)
+        .innerJoin(reviews, eq(reviews.itemId, itemImages.itemId))
+        .where(reviewedThatDay),
     ]);
+    const images = imagesByItem(imageRows);
     return {
       ...base,
       week: { days, due, reviews: weekReviews },
+      items: itemRows.map(({ item }) => toItemDto(item, images.get(item.id) ?? [])),
       reviews: reviewRows.map((row) => ({
         ...toReviewDto(row.review),
         name: row.name,

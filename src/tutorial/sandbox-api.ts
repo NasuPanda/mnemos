@@ -188,7 +188,17 @@ export function createSandboxApi(
         date,
         today,
         week,
-        items: order > 0 ? state.items.filter((i) => i.dueOn === date).map(withImages) : [],
+        items:
+          order === 0
+            ? []
+            : state.items
+                .filter((i) =>
+                  order > 0
+                    ? i.dueOn === date
+                    : state.reviews.some((r) => r.itemId === i.id && r.reviewedOn === date),
+                )
+                .sort((a, b) => a.id - b.id)
+                .map(withImages),
         reviews:
           order < 0
             ? state.reviews
